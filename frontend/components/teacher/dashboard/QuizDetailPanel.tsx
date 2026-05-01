@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { Chip, Tabs, TabList, Tab, TabPanel } from "@heroui/react";
-import { X, Pencil, Clock, HelpCircle, Users, TrendingUp, CheckCircle, Tag } from "lucide-react";
+import { X, Pencil, Clock, HelpCircle, Users, TrendingUp, CheckCircle, Tag, Share2 } from "lucide-react";
 import type { Quiz } from "@/types/teacher/quiz.types";
 import { useLang } from "@/lib/i18n/LanguageContext";
+import { ShareQuizModal } from "./ShareQuizModal";
 
 interface QuizDetailPanelProps {
   quiz: Quiz;
@@ -22,6 +23,7 @@ function ProgressBar({ value, color }: { value: number; color: string }) {
 
 export function QuizDetailPanel({ quiz, onClose, onEdit }: QuizDetailPanelProps) {
   const [activeTab, setActiveTab] = useState<string>("info");
+  const [isShareOpen, setIsShareOpen] = useState(false);
   const { t } = useLang();
   const d = t.detail;
 
@@ -43,10 +45,16 @@ export function QuizDetailPanel({ quiz, onClose, onEdit }: QuizDetailPanelProps)
             <h2 className="font-bold text-base text-default-900 dark:text-default-100 leading-snug">{quiz.title}</h2>
             <p className="text-xs text-default-400 mt-0.5">{quiz.categoryName}</p>
           </div>
-          <button onClick={() => onEdit(quiz)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400 hover:bg-violet-100 transition-colors shrink-0">
-            <Pencil className="w-3 h-3" />{d.edit}
-          </button>
+          <div className="flex flex-col gap-1.5 shrink-0">
+            <button onClick={() => setIsShareOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 hover:bg-green-100 transition-colors w-full justify-center">
+              <Share2 className="w-3 h-3" />{d.share}
+            </button>
+            <button onClick={() => onEdit(quiz)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400 hover:bg-violet-100 transition-colors w-full justify-center">
+              <Pencil className="w-3 h-3" />{d.edit}
+            </button>
+          </div>
         </div>
 
         <div className="flex gap-1.5 flex-wrap">
@@ -112,6 +120,13 @@ export function QuizDetailPanel({ quiz, onClose, onEdit }: QuizDetailPanelProps)
           </TabPanel>
         </Tabs>
       </div>
+      
+      {/* Share Modal */}
+      <ShareQuizModal 
+        quiz={quiz} 
+        isOpen={isShareOpen} 
+        onClose={() => setIsShareOpen(false)} 
+      />
     </aside>
   );
 }

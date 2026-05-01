@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Search, Bell, Menu, Settings, LogOut, User, ChevronDown } from "lucide-react";
 import { useLang } from "@/lib/i18n/LanguageContext";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
+import { ThemeToggle } from "@/components/common/ThemeToggle";
 
 interface TeacherTopbarProps {
   onMenuToggle: () => void;
@@ -43,6 +44,7 @@ export function TeacherTopbar({ onMenuToggle, searchQuery, onSearchChange }: Tea
       <div className="flex items-center gap-2 ml-auto">
         {/* Language Switcher */}
         <LanguageSwitcher />
+        <ThemeToggle />
 
         {/* Notifications */}
         <div className="relative">

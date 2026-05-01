@@ -49,6 +49,7 @@ const en = {
     questions: "Questions", duration: (m: number) => `${m} min`, attempts: "Attempts",
     tags: "Tags", avgScore: "Average Score", completionRate: "Completion Rate",
     created: "Created", updated: "Updated", edit: "Edit",
+    share: "Share", shareCode: "Access Code", shareLink: "Share Link", copy: "Copy",
   },
   modal: {
     createTitle: "Create New Quiz", editTitle: "Edit Quiz",
@@ -113,6 +114,7 @@ const th: typeof en = {
     questions: "คำถาม", duration: (m: number) => `${m} นาที`, attempts: "ครั้งที่ทำ",
     tags: "แท็ก", avgScore: "คะแนนเฉลี่ย", completionRate: "อัตราการทำสำเร็จ",
     created: "สร้างเมื่อ", updated: "แก้ไขเมื่อ", edit: "แก้ไข",
+    share: "แชร์", shareCode: "รหัสเข้าทำ", shareLink: "คัดลอกลิงก์", copy: "คัดลอก",
   },
   modal: {
     createTitle: "สร้างแบบทดสอบใหม่", editTitle: "แก้ไขแบบทดสอบ",
@@ -177,6 +179,7 @@ const ja: typeof en = {
     questions: "問題数", duration: (m: number) => `${m} 分`, attempts: "受験回数",
     tags: "タグ", avgScore: "平均スコア", completionRate: "完了率",
     created: "作成日", updated: "更新日", edit: "編集",
+    share: "共有", shareCode: "アクセスコード", shareLink: "リンクを共有", copy: "コピー",
   },
   modal: {
     createTitle: "クイズを新規作成", editTitle: "クイズを編集",

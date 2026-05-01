@@ -20,6 +20,7 @@ export interface Quiz {
   categoryName: string;
   difficulty: QuizDifficulty;
   status: QuizStatus;
+  accessCode?: string | null;
   questionCount: number;
   duration: number;
   totalAttempts: number;
@@ -41,11 +42,3 @@ export interface QuizStats {
   averageScore: number;
 }
 
-export interface CreateQuizFormData {
-  title: string;
-  description: string;
-  categoryId: string;
-  difficulty: QuizDifficulty;
-  duration: number;
-  tags: string;
-}

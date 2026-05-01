@@ -1,7 +1,7 @@
 "use client";
 
 import { Chip } from "@heroui/react";
-import { Clock, HelpCircle, Pencil, Trash2, Users } from "lucide-react";
+import { Clock, HelpCircle, Pencil, Trash2, Users, Share2 } from "lucide-react";
 import type { Quiz, QuizDifficulty, QuizStatus } from "@/types/teacher/quiz.types";
 import { useLang } from "@/lib/i18n/LanguageContext";
 
@@ -18,9 +18,10 @@ interface QuizCardProps {
   onSelect: (quiz: Quiz) => void;
   onEdit: (quiz: Quiz) => void;
   onDelete: (id: string) => void;
+  onShare?: (quiz: Quiz) => void;
 }
 
-export function QuizCard({ quiz, isSelected, onSelect, onEdit, onDelete }: QuizCardProps) {
+export function QuizCard({ quiz, isSelected, onSelect, onEdit, onDelete, onShare }: QuizCardProps) {
   const { t } = useLang();
 
   return (
@@ -39,6 +40,14 @@ export function QuizCard({ quiz, isSelected, onSelect, onEdit, onDelete }: QuizC
       <div className={`h-24 bg-gradient-to-br ${quiz.gradient} flex items-center justify-center relative`}>
         <span className="text-4xl">{quiz.emoji}</span>
         <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          {onShare && (
+            <button onClick={(e) => { e.stopPropagation(); onShare(quiz); }}
+              suppressHydrationWarning
+              className="w-7 h-7 rounded-lg bg-white/20 backdrop-blur-sm text-white hover:bg-green-500/60 flex items-center justify-center"
+              aria-label="Share">
+              <Share2 className="w-3 h-3" />
+            </button>
+          )}
           <button onClick={(e) => { e.stopPropagation(); onEdit(quiz); }}
             suppressHydrationWarning
             className="w-7 h-7 rounded-lg bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 flex items-center justify-center"

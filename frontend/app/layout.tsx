@@ -54,9 +54,7 @@ export default function RootLayout({
         <Providers>
           <LanguageProvider>
             {children}
-            <div className="fixed top-4 right-4 z-50">
-              <ThemeSwitcher />
-            </div>
+
           </LanguageProvider>
         </Providers>
       </body>

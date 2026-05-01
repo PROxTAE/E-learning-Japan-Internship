@@ -1,135 +1,104 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useLang } from "@/lib/i18n/LanguageContext";
 import { ScrollShadow } from "@heroui/react";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { DashboardHeader } from "@/components/teacher/dashboard/DashboardHeader";
+import { DashboardHeader }   from "@/components/teacher/dashboard/DashboardHeader";
 import { QuizStatsOverview } from "@/components/teacher/dashboard/QuizStatsOverview";
-import { QuizCategoryCard } from "@/components/teacher/dashboard/QuizCategoryCard";
-import { QuizCard } from "@/components/teacher/dashboard/QuizCard";
-import { QuizTable } from "@/components/teacher/dashboard/QuizTable";
-import { QuizDetailPanel } from "@/components/teacher/dashboard/QuizDetailPanel";
-import { CreateQuizModal } from "@/components/teacher/dashboard/CreateQuizModal";
-import { EmptyState } from "@/components/teacher/shared/EmptyState";
+import { QuizCategoryCard }  from "@/components/teacher/dashboard/QuizCategoryCard";
+import { QuizCard }          from "@/components/teacher/dashboard/QuizCard";
+import { QuizTable }         from "@/components/teacher/dashboard/QuizTable";
+import { QuizDetailPanel }   from "@/components/teacher/dashboard/QuizDetailPanel";
+import { ShareQuizModal }    from "@/components/teacher/dashboard/ShareQuizModal";
+import { EmptyState }        from "@/components/teacher/shared/EmptyState";
 
-import { MOCK_QUIZZES, MOCK_CATEGORIES, MOCK_STATS } from "@/lib/teacher/quiz.mock";
-import type { Quiz, QuizViewMode, CreateQuizFormData } from "@/types/teacher/quiz.types";
+// Real API client
+import { quizApi } from "@/services/quizApi";
+
+// Categories are still static (no category collection yet)
+import { MOCK_CATEGORIES } from "@/lib/teacher/quiz.mock";
+import type { Quiz, QuizViewMode } from "@/types/teacher/quiz.types";
 
 export default function TeacherDashboardPage() {
-  const [quizzes, setQuizzes] = useState<Quiz[]>(MOCK_QUIZZES);
+  const router = useRouter();
+  const { t }  = useLang();
+
+  // ── State ──────────────────────────────────────────────────────
+  const [quizzes, setQuizzes]         = useState<Quiz[]>([]);
+  const [loading, setLoading]         = useState(true);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
-  const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null);
-  const [viewMode, setViewMode] = useState<QuizViewMode>("grid");
+  const [viewMode, setViewMode]       = useState<QuizViewMode>("grid");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [filterPeriod, setFilterPeriod] = useState("");
-  const { t } = useLang();
-  // Use first period label if filterPeriod is empty (or was set in different language)
+  const [filterPeriod, setFilterPeriod]     = useState("");
+  const [shareQuiz, setShareQuiz]           = useState<Quiz | null>(null);
+
   const activePeriod = filterPeriod || t.header.periods[0];
-  const [searchQuery, setSearchQuery] = useState("");
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // ── Fetch from API ─────────────────────────────────────────────
+  const fetchQuizzes = useCallback(async () => {
+    try {
+      setLoading(true);
+      const result = await quizApi.listQuizzes();
+      // API returns quiz-builder Quiz shape; teacher dashboard uses teacher Quiz shape.
+      // They share the same fields that matter here.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setQuizzes(result.quizzes as any);
+    } catch (err) {
+      console.error("Failed to load quizzes:", err);
+      // Keep empty list on error
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  /* ── Derived state ── */
+  useEffect(() => { fetchQuizzes(); }, [fetchQuizzes]);
+
+  // ── Derived state ───────────────────────────────────────────────
   const filtered = useMemo(() => {
     let result = quizzes;
     if (activeCategory) result = result.filter((q) => q.categoryId === activeCategory);
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (quiz) =>
-          quiz.title.toLowerCase().includes(q) ||
-          quiz.categoryName.toLowerCase().includes(q) ||
-          quiz.tags.some((t) => t.toLowerCase().includes(q))
-      );
-    }
     return result;
-  }, [quizzes, activeCategory, searchQuery]);
+  }, [quizzes, activeCategory]);
 
   const stats = useMemo(() => {
     const attempted = quizzes.filter((q) => q.totalAttempts > 0);
     return {
-      totalQuizzes: quizzes.length,
+      totalQuizzes:     quizzes.length,
       publishedQuizzes: quizzes.filter((q) => q.status === "published").length,
-      draftQuizzes: quizzes.filter((q) => q.status === "draft").length,
-      archivedQuizzes: quizzes.filter((q) => q.status === "archived").length,
-      totalAttempts: quizzes.reduce((s, q) => s + q.totalAttempts, 0),
+      draftQuizzes:     quizzes.filter((q) => q.status === "draft").length,
+      archivedQuizzes:  quizzes.filter((q) => q.status === "archived").length,
+      totalAttempts:    quizzes.reduce((s, q) => s + (q.totalAttempts ?? 0), 0),
       averageScore: attempted.length
-        ? Math.round(attempted.reduce((s, q) => s + q.averageScore, 0) / attempted.length)
+        ? Math.round(attempted.reduce((s, q) => s + (q.averageScore ?? 0), 0) / attempted.length)
         : 0,
     };
   }, [quizzes]);
 
-  /* ── Handlers ── */
-  const handleCreate = () => {
-    setEditingQuiz(null);
-    setIsModalOpen(true);
-  };
+  // ── Handlers ────────────────────────────────────────────────────
+  const handleCreate = () => router.push("/teacher/create-quiz");
+  const handleEdit   = (quiz: Quiz) => router.push(`/teacher/create-quiz?id=${quiz.id}`);
 
-  const handleEdit = (quiz: Quiz) => {
-    setEditingQuiz(quiz);
-    setIsModalOpen(true);
-  };
-
-  const handleDelete = (id: string) => {
-    setQuizzes((prev) => prev.filter((q) => q.id !== id));
-    if (selectedQuiz?.id === id) setSelectedQuiz(null);
-  };
-
-  const handleSave = (data: CreateQuizFormData, id?: string) => {
-    const cat = MOCK_CATEGORIES.find((c) => c.id === data.categoryId);
-    const now = new Date().toISOString();
-
-    if (id) {
-      setQuizzes((prev) =>
-        prev.map((q) =>
-          q.id === id
-            ? {
-              ...q,
-              title: data.title,
-              description: data.description,
-              categoryId: data.categoryId,
-              categoryName: cat?.name ?? q.categoryName,
-              difficulty: data.difficulty,
-              duration: data.duration,
-              tags: data.tags.split(",").map((t) => t.trim()).filter(Boolean),
-              updatedAt: now,
-            }
-            : q
-        )
-      );
-    } else {
-      const newQuiz: Quiz = {
-        id: `quiz-${Date.now()}`,
-        title: data.title,
-        description: data.description,
-        categoryId: data.categoryId,
-        categoryName: cat?.name ?? "",
-        difficulty: data.difficulty,
-        status: "draft",
-        questionCount: 0,
-        duration: data.duration,
-        totalAttempts: 0,
-        averageScore: 0,
-        completionRate: 0,
-        createdAt: now,
-        updatedAt: now,
-        tags: data.tags.split(",").map((t) => t.trim()).filter(Boolean),
-        emoji: cat?.icon ?? "📝",
-        gradient: cat?.gradient ?? "from-violet-500 to-purple-700",
-      };
-      setQuizzes((prev) => [newQuiz, ...prev]);
+  const handleDelete = async (id: string) => {
+    try {
+      await quizApi.deleteQuiz(id);
+      setQuizzes((prev) => prev.filter((q) => q.id !== id));
+      if (selectedQuiz?.id === id) setSelectedQuiz(null);
+    } catch (err) {
+      console.error("Delete failed:", err);
     }
   };
 
   const showDetailPanel = selectedQuiz !== null;
 
+  // ── Render ──────────────────────────────────────────────────────
   return (
-    <div className=" flex h-[calc(100vh-64px)]">
+    <div className="flex h-[calc(100vh-64px)]">
       {/* ── Left/Center Content ── */}
-      <div className=" flex-1 min-w-0 overflow-y-auto">
-        <div className="w-full mx-auto p-4 lg:p-6 space-y-6 ">
+      <div className="flex-1 min-w-0 overflow-y-auto">
+        <div className="w-full mx-auto p-4 lg:p-6 space-y-6">
 
           {/* Header */}
           <DashboardHeader
@@ -175,7 +144,11 @@ export default function TeacherDashboardPage() {
               <p className="text-xs text-default-400">{t.quizSection.results(filtered.length)}</p>
             </div>
 
-            {filtered.length === 0 ? (
+            {loading ? (
+              <div className="flex items-center justify-center py-20 text-default-400 text-sm">
+                Loading quizzes…
+              </div>
+            ) : filtered.length === 0 ? (
               <EmptyState
                 title={t.quizSection.noQuizzes}
                 description={t.quizSection.noQuizzesDesc}
@@ -183,10 +156,7 @@ export default function TeacherDashboardPage() {
                 onAction={handleCreate}
               />
             ) : viewMode === "grid" ? (
-              <motion.div
-                layout
-                className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3"
-              >
+              <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
                 <AnimatePresence mode="popLayout">
                   {filtered.map((quiz) => (
                     <motion.div
@@ -203,6 +173,7 @@ export default function TeacherDashboardPage() {
                         onSelect={setSelectedQuiz}
                         onEdit={handleEdit}
                         onDelete={handleDelete}
+                        onShare={setShareQuiz}
                       />
                     </motion.div>
                   ))}
@@ -240,14 +211,15 @@ export default function TeacherDashboardPage() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Create/Edit Modal */}
-      <CreateQuizModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        editingQuiz={editingQuiz}
-        onSave={handleSave}
-      />
+      
+      {/* ── Share Modal ── */}
+      {shareQuiz && (
+        <ShareQuizModal 
+          quiz={shareQuiz} 
+          isOpen={true} 
+          onClose={() => setShareQuiz(null)} 
+        />
+      )}
     </div>
   );
 }

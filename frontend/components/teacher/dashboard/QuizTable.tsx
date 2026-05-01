@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { Chip } from "@heroui/react";
-import { Clock, HelpCircle, Pencil, Trash2, Eye } from "lucide-react";
+import { Clock, HelpCircle, Pencil, Trash2, Eye, Share2 } from "lucide-react";
 import type { Quiz, QuizDifficulty, QuizStatus } from "@/types/teacher/quiz.types";
 import { useLang } from "@/lib/i18n/LanguageContext";
+import { ShareQuizModal } from "./ShareQuizModal";
 
 const DIFFICULTY_COLOR: Record<QuizDifficulty, "success" | "warning" | "danger"> = {
   easy: "success", medium: "warning", hard: "danger",
@@ -21,6 +23,7 @@ interface QuizTableProps {
 }
 
 export function QuizTable({ quizzes, selectedId, onSelect, onEdit, onDelete }: QuizTableProps) {
+  const [shareQuiz, setShareQuiz] = useState<Quiz | null>(null);
   const { t } = useLang();
   const col = t.table;
 
@@ -87,6 +90,9 @@ export function QuizTable({ quizzes, selectedId, onSelect, onEdit, onDelete }: Q
                   <button onClick={() => onSelect(quiz)} className="p-1.5 rounded-lg text-default-400 hover:text-default-600 hover:bg-default-100 dark:hover:bg-default-700/30 transition-colors" aria-label="View">
                     <Eye className="w-4 h-4" />
                   </button>
+                  <button onClick={() => setShareQuiz(quiz)} className="p-1.5 rounded-lg text-default-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors" aria-label="Share">
+                    <Share2 className="w-4 h-4" />
+                  </button>
                   <button onClick={() => onEdit(quiz)} className="p-1.5 rounded-lg text-default-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors" aria-label="Edit">
                     <Pencil className="w-4 h-4" />
                   </button>
@@ -99,6 +105,14 @@ export function QuizTable({ quizzes, selectedId, onSelect, onEdit, onDelete }: Q
           ))}
         </tbody>
       </table>
+      
+      {shareQuiz && (
+        <ShareQuizModal 
+          quiz={shareQuiz} 
+          isOpen={true} 
+          onClose={() => setShareQuiz(null)} 
+        />
+      )}
     </div>
   );
 }

@@ -1,16 +1,24 @@
-import Link from "next/link";
-import { Metadata } from "next";
+"use client";
 
-export const metadata: Metadata = {
-  title: "E-Learning | Home",
-  description: "Interactive quiz platform for e-learning",
-};
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { TextField, Input, Button } from "@heroui/react";
+import { ArrowRight } from "lucide-react";
 
 export default function Home() {
+  const router = useRouter();
+  const [accessCode, setAccessCode] = useState("");
+
+  const handleJoin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (accessCode.trim()) {
+      router.push(`/play/${accessCode.trim().toUpperCase()}`);
+    }
+  };
+
   return (
-    <div
-      className="quiz-bg fixed inset-0 overflow-y-auto"
-    >
+    <div className="quiz-bg fixed inset-0 overflow-y-auto">
       {/* Blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-20 -left-20 w-64 sm:w-80 h-64 sm:h-80 rounded-full bg-purple-400/20 dark:bg-purple-300/10 blur-3xl" />
@@ -41,45 +49,44 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Stats pills row */}
-        <div className="flex gap-3 sm:gap-4 flex-wrap justify-center">
-          {[
-            { icon: "📝", label: "5 Questions" },
-            { icon: "⚡", label: "Instant Results" },
-            { icon: "🏆", label: "Score Tracking" },
-          ].map((item) => (
-            <div
-              key={item.label}
-              className="
-                flex items-center gap-2 px-4 py-2 rounded-full
-                bg-white/10 dark:bg-white/5 backdrop-blur-sm
-                border border-white/20 dark:border-white/10
-              "
-            >
-              <span className="text-base">{item.icon}</span>
-              <span className="text-white/80 text-xs sm:text-sm font-semibold">{item.label}</span>
-            </div>
-          ))}
+        <form onSubmit={handleJoin} className="w-full max-w-xs sm:max-w-sm bg-white/10 backdrop-blur-md p-4 rounded-3xl border border-white/20 flex flex-col gap-3">
+          <TextField className="w-full">
+            <Input
+              placeholder="Enter Access Code"
+              value={accessCode}
+              onChange={(e) => setAccessCode(e.target.value)}
+              className="text-center text-xl font-bold tracking-widest uppercase bg-white/5 border-white/10 hover:border-white/20 focus:border-violet-500 rounded-xl h-12 w-full outline-none transition-all text-white"
+            />
+          </TextField>
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full font-bold bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-lg shadow-violet-500/25 hover:-translate-y-0.5 flex items-center justify-center gap-2"
+            isDisabled={!accessCode.trim()}
+          >
+            Join Quiz <ArrowRight className="w-5 h-5" />
+          </Button>
+        </form>
+
+        <div className="flex items-center gap-4 w-full max-w-xs sm:max-w-sm my-2">
+          <div className="h-px bg-white/20 flex-1" />
+          <span className="text-white/50 text-sm font-medium uppercase tracking-wider">OR</span>
+          <div className="h-px bg-white/20 flex-1" />
         </div>
 
-        {/* CTA button */}
-        <Link href="/quiz" className="w-full max-w-xs sm:max-w-sm">
+        {/* CTA button to Teacher Dashboard */}
+        <Link href="/teacher/dashboard" className="w-full max-w-xs sm:max-w-sm">
           <button
             className="
               w-full py-4 sm:py-4.5 rounded-2xl
-              bg-gradient-to-r from-emerald-400 to-green-500
-              text-white font-bold text-lg sm:text-xl shadow-2xl
-              hover:from-emerald-500 hover:to-green-600
-              hover:shadow-emerald-500/30 hover:-translate-y-1
+              bg-white/10 text-white font-bold text-lg sm:text-xl
+              border border-white/20 hover:bg-white/20
               active:scale-97 transition-all duration-200
-              focus-visible:outline-none focus-visible:ring-2
-              focus-visible:ring-emerald-400 focus-visible:ring-offset-2
             "
           >
-            Start Quiz →
+            Teacher Portal
           </button>
         </Link>
-
       </div>
     </div>
   );

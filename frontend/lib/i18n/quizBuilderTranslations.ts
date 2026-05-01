@@ -1,0 +1,232 @@
+// ─────────────────────────────────────
+//  Quiz Builder — i18n Translations
+//  Extends the existing translation system
+// ─────────────────────────────────────
+
+export const quizBuilderTranslations = {
+  en: {
+    builder: {
+      pageTitle: "Quiz Builder",
+      pageSubtitle: "Create and manage your quiz questions",
+      loadMock: "Load Example",
+      reset: "Reset",
+      save: "Save Quiz",
+      saving: "Saving...",
+      preview: "Preview",
+      editMode: "Edit Mode",
+      publish: "Publish",
+      draft: "Save as Draft",
+      unsaved: "Unsaved changes",
+
+      // Quiz header fields
+      quizTitle: "Quiz Title",
+      quizTitlePlaceholder: "e.g. Introduction to Algebra",
+      description: "Description",
+      descriptionPlaceholder: "Briefly describe what this quiz covers...",
+      category: "Category",
+      categoryPlaceholder: "Select a category",
+      difficulty: "Difficulty",
+      duration: "Duration (minutes)",
+      tags: "Tags",
+      tagsPlaceholder: "e.g. math, algebra, equations (comma separated)",
+      status: "Status",
+
+      // Difficulty
+      easy: "Easy",
+      medium: "Medium",
+      hard: "Hard",
+
+      // Categories
+      categories: ["Math", "Science", "Programming", "History", "Language", "Art", "Other"],
+
+      // Question section
+      questions: "Questions",
+      addQuestion: "Add Question",
+      addMultipleChoice: "Multiple Choice",
+      addTrueFalse: "True / False",
+      noQuestions: "No questions yet",
+      noQuestionsHint: "Click \"Add Question\" to get started",
+      questionPlaceholder: "Type your question here...",
+      questionType: "Question type",
+      deleteQuestion: "Delete question",
+      moveUp: "Move up",
+      moveDown: "Move down",
+
+      // Choices
+      choicePlaceholder: "Enter choice text...",
+      addChoice: "Add choice",
+      removeChoice: "Remove choice",
+      markCorrect: "Mark as correct",
+      correct: "Correct",
+      noCorrectAnswer: "No correct answer selected",
+
+      // Preview
+      previewTitle: "Quiz Preview",
+      previewQuestion: "Question",
+      previewOf: "of",
+      submit: "Submit Quiz",
+      yourAnswer: "Your answer",
+      selectAnswer: "Select an answer",
+
+      // Validation
+      titleRequired: "Quiz title is required",
+      categoryRequired: "Category is required",
+      durationMin: "Duration must be at least 1 minute",
+
+      // Image upload
+      addImage: "Add image",
+      changeImage: "Change image",
+      removeImage: "Remove image",
+      imageDrop: "Drop image here or click to upload",
+      imageHint: "PNG, JPG, GIF, WebP • max 5 MB",
+      imageSizeError: "Image exceeds 5 MB limit",
+      imageTypeError: "Unsupported file type",
+    },
+  },
+  th: {
+    builder: {
+      pageTitle: "สร้างแบบทดสอบ",
+      pageSubtitle: "สร้างและจัดการคำถามในแบบทดสอบ",
+      loadMock: "โหลดตัวอย่าง",
+      reset: "รีเซ็ต",
+      save: "บันทึกแบบทดสอบ",
+      saving: "กำลังบันทึก...",
+      preview: "ดูตัวอย่าง",
+      editMode: "โหมดแก้ไข",
+      publish: "เผยแพร่",
+      draft: "บันทึกเป็นร่าง",
+      unsaved: "มีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก",
+
+      quizTitle: "ชื่อแบบทดสอบ",
+      quizTitlePlaceholder: "เช่น บทนำสู่พีชคณิต",
+      description: "คำอธิบาย",
+      descriptionPlaceholder: "อธิบายสั้น ๆ เกี่ยวกับเนื้อหาของแบบทดสอบ...",
+      category: "หมวดหมู่",
+      categoryPlaceholder: "เลือกหมวดหมู่",
+      difficulty: "ระดับความยาก",
+      duration: "ระยะเวลา (นาที)",
+      tags: "แท็ก",
+      tagsPlaceholder: "เช่น คณิตศาสตร์, พีชคณิต (คั่นด้วยจุลภาค)",
+      status: "สถานะ",
+
+      easy: "ง่าย",
+      medium: "ปานกลาง",
+      hard: "ยาก",
+
+      categories: ["คณิตศาสตร์", "วิทยาศาสตร์", "การเขียนโปรแกรม", "ประวัติศาสตร์", "ภาษา", "ศิลปะ", "อื่น ๆ"],
+
+      questions: "คำถาม",
+      addQuestion: "เพิ่มคำถาม",
+      addMultipleChoice: "หลายตัวเลือก",
+      addTrueFalse: "ถูก / ผิด",
+      noQuestions: "ยังไม่มีคำถาม",
+      noQuestionsHint: "คลิก \"เพิ่มคำถาม\" เพื่อเริ่มต้น",
+      questionPlaceholder: "พิมพ์คำถามของคุณที่นี่...",
+      questionType: "ประเภทคำถาม",
+      deleteQuestion: "ลบคำถาม",
+      moveUp: "เลื่อนขึ้น",
+      moveDown: "เลื่อนลง",
+
+      choicePlaceholder: "ใส่ข้อความตัวเลือก...",
+      addChoice: "เพิ่มตัวเลือก",
+      removeChoice: "ลบตัวเลือก",
+      markCorrect: "ทำเครื่องหมายว่าถูกต้อง",
+      correct: "ถูกต้อง",
+      noCorrectAnswer: "ยังไม่ได้เลือกคำตอบที่ถูกต้อง",
+
+      previewTitle: "ดูตัวอย่างแบบทดสอบ",
+      previewQuestion: "คำถาม",
+      previewOf: "จาก",
+      submit: "ส่งแบบทดสอบ",
+      yourAnswer: "คำตอบของคุณ",
+      selectAnswer: "เลือกคำตอบ",
+
+      titleRequired: "กรุณากรอกชื่อแบบทดสอบ",
+      categoryRequired: "กรุณาเลือกหมวดหมู่",
+      durationMin: "ระยะเวลาต้องมากกว่า 0 นาที",
+
+      // Image upload
+      addImage: "เพิ่มรูปภาพ",
+      changeImage: "เปลี่ยนรูปภาพ",
+      removeImage: "ลบรูปภาพ",
+      imageDrop: "วางรูปภาพที่นี่ หรือคลิกเพื่ออัพโหลด",
+      imageHint: "PNG, JPG, GIF, WebP • ขนาดสูงสุด 5 MB",
+      imageSizeError: "รูปภาพเกินขนาด 5 MB",
+      imageTypeError: "ประเภทไฟล์ไม่รองรับ",
+    },
+  },
+  ja: {
+    builder: {
+      pageTitle: "クイズビルダー",
+      pageSubtitle: "クイズの問題を作成・管理する",
+      loadMock: "サンプルを読み込む",
+      reset: "リセット",
+      save: "クイズを保存",
+      saving: "保存中...",
+      preview: "プレビュー",
+      editMode: "編集モード",
+      publish: "公開する",
+      draft: "下書き保存",
+      unsaved: "未保存の変更があります",
+
+      quizTitle: "クイズタイトル",
+      quizTitlePlaceholder: "例：代数入門",
+      description: "説明",
+      descriptionPlaceholder: "このクイズの内容を簡単に説明してください...",
+      category: "カテゴリ",
+      categoryPlaceholder: "カテゴリを選択",
+      difficulty: "難易度",
+      duration: "制限時間（分）",
+      tags: "タグ",
+      tagsPlaceholder: "例：数学、代数、方程式（カンマ区切り）",
+      status: "ステータス",
+
+      easy: "易しい",
+      medium: "普通",
+      hard: "難しい",
+
+      categories: ["数学", "科学", "プログラミング", "歴史", "言語", "アート", "その他"],
+
+      questions: "問題",
+      addQuestion: "問題を追加",
+      addMultipleChoice: "多肢選択",
+      addTrueFalse: "正誤問題",
+      noQuestions: "問題がまだありません",
+      noQuestionsHint: "「問題を追加」をクリックして始めてください",
+      questionPlaceholder: "ここに問題を入力してください...",
+      questionType: "問題タイプ",
+      deleteQuestion: "問題を削除",
+      moveUp: "上に移動",
+      moveDown: "下に移動",
+
+      choicePlaceholder: "選択肢のテキストを入力...",
+      addChoice: "選択肢を追加",
+      removeChoice: "選択肢を削除",
+      markCorrect: "正解としてマーク",
+      correct: "正解",
+      noCorrectAnswer: "正解が選択されていません",
+
+      previewTitle: "クイズプレビュー",
+      previewQuestion: "問題",
+      previewOf: "/",
+      submit: "クイズを送信",
+      yourAnswer: "あなたの回答",
+      selectAnswer: "回答を選択してください",
+
+      titleRequired: "タイトルを入力してください",
+      categoryRequired: "カテゴリを選択してください",
+      durationMin: "制限時間は1分以上にしてください",
+
+      // Image upload
+      addImage: "画像を追加",
+      changeImage: "画像を変更",
+      removeImage: "画像を削除",
+      imageDrop: "ここに画像をドロップ、またはクリックしてアップロード",
+      imageHint: "PNG, JPG, GIF, WebP • 最大 5 MB",
+      imageSizeError: "画像が5MBを超えています",
+      imageTypeError: "サポートされていないファイル形式です",
+    },
+  },
+};
+
+export type BuilderT = typeof quizBuilderTranslations.en;
