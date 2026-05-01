@@ -1,0 +1,39 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+
+/* ── Universal font stack: each font covers its own script ── */
+body {
+  font-family:
+    var(--font-inter),
+    var(--font-noto-thai),
+    var(--font-noto-jp),
+    var(--font-noto-kr),
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Script-specific line-height tweaks for readability */
+html[lang="th"] body { line-height: 1.8; }
+html[lang="ja"] body { line-height: 1.75; word-break: break-all; }
+html[lang="ko"] body { line-height: 1.75; word-break: break-all; }
+
+/* ─────────────────────────────────────
+   Quiz background gradient
+   Light → vibrant purple
+   Dark  → deep navy-purple
+───────────────────────────────────── */
+.quiz-bg {
+  background: linear-gradient(160deg, #5b21b6 0%, #7c3aed 50%, #6d28d9 100%);
+  min-height: 100vh;
+}
+
+.dark .quiz-bg {
+  background: linear-gradient(160deg, #120736 0%, #2e0a7a 50%, #1a0550 100%);
+}
+
+/* Option card hover ring — purple accent */
+.option-ring:focus-visible {
+  outline: 2px solid #7c3aed;
+  outline-offset: 2px;
+}
