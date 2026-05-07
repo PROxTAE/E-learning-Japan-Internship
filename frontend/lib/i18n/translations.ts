@@ -69,6 +69,22 @@ const en = {
     categoryRequired: "Category is required",
     durationMin: "Duration must be at least 1 minute",
   },
+  monitoring: {
+    registry: "Live Registry",
+    search: "Search students...",
+    filter: { all: "All Students", incorrect: "Struggling", completed: "Finished" },
+    stats: { active: "Online", score: "Avg Score", completion: "Completion", efficiency: "Efficiency" },
+    analytics: { 
+      title: "Student Analytics", 
+      responseTime: "Response Time", 
+      changes: "Answer Changes",
+      accuracy: "Accuracy",
+      evolution: "Answer Evolution",
+      correct: "Correct Solution",
+      wrong: "Incorrect Answer"
+    },
+    confusion: { high: "High Confusion", hesitation: "Hesitation" }
+  }
 };
 
 const th: typeof en = {
@@ -134,6 +150,22 @@ const th: typeof en = {
     categoryRequired: "กรุณาเลือกหมวดหมู่",
     durationMin: "ระยะเวลาต้องมากกว่า 0 นาที",
   },
+  monitoring: {
+    registry: "ทะเบียนนักเรียน",
+    search: "ค้นหานักเรียน...",
+    filter: { all: "นักเรียนทั้งหมด", incorrect: "ต้องการความช่วยเหลือ", completed: "ทำเสร็จแล้ว" },
+    stats: { active: "ออนไลน์", score: "คะแนนเฉลี่ย", completion: "ความสำเร็จ", efficiency: "ประสิทธิภาพ" },
+    analytics: { 
+      title: "บทวิเคราะห์นักเรียน", 
+      responseTime: "เวลาในการตอบ", 
+      changes: "สลับคำตอบ",
+      accuracy: "ความแม่นยำ",
+      evolution: "ลำดับการตอบ",
+      correct: "ตอบถูกต้อง",
+      wrong: "ตอบไม่ถูก"
+    },
+    confusion: { high: "สับสนมาก", hesitation: "ลังเล" }
+  }
 };
 
 const ja: typeof en = {
@@ -199,6 +231,22 @@ const ja: typeof en = {
     categoryRequired: "カテゴリを選択してください",
     durationMin: "制限時間は1分以上にしてください",
   },
+  monitoring: {
+    registry: "ライブ登録者",
+    search: "学生を検索...",
+    filter: { all: "全学生", incorrect: "苦戦中", completed: "完了" },
+    stats: { active: "オンライン", score: "平均スコア", completion: "完了率", efficiency: "効率" },
+    analytics: { 
+      title: "学生分析", 
+      responseTime: "回答時間", 
+      changes: "回答変更",
+      accuracy: "正確性",
+      evolution: "回答の変遷",
+      correct: "正解",
+      wrong: "不正解"
+    },
+    confusion: { high: "強い混乱", hesitation: "ためらい" }
+  }
 };
 
 export const translations = { en, th, ja };

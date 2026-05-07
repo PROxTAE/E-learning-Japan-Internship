@@ -13,6 +13,7 @@ export function LanguageSwitcher() {
   return (
     <div className="relative">
       <button
+        suppressHydrationWarning
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-default-200/50 dark:border-default-700/30 bg-default-50 dark:bg-default-50/10 text-default-700 dark:text-default-300 hover:bg-default-100 dark:hover:bg-default-50/20 transition-all text-xs font-semibold"
         aria-label="Change language"
@@ -28,6 +29,7 @@ export function LanguageSwitcher() {
           <div className="absolute right-0 top-full mt-1.5 w-40 bg-white dark:bg-[#1a1a2e] border border-default-200/50 dark:border-default-700/30 rounded-xl shadow-xl z-20 overflow-hidden py-1">
             {LANGUAGES.map((l) => (
               <button
+                suppressHydrationWarning
                 key={l.code}
                 onClick={() => { setLang(l.code as Language); setOpen(false); }}
                 className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${lang === l.code

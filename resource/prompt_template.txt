@@ -1,0 +1,1 @@
+ทำแค่ส่วนของ front-end และอาจจะ mock data ไว้ก่อน แต่ให้แยก component และ API ไว้รอสำหรับเชื่อมกับ back end ทีหลัง โดยให้เน้นใช้ component ของ HeroUI เป็นหลักเพื่อให้จัดการได้ง่าย แยก component ชัดเจนตาม Best practies และทำให้รองรับ darkmode light mode รองรับหลายภาษาให้เรียบร้อย และรองรับ responsive

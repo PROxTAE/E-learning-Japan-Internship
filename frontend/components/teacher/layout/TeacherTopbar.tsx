@@ -20,6 +20,7 @@ export function TeacherTopbar({ onMenuToggle, searchQuery, onSearchChange }: Tea
     <header className="h-16 flex items-center gap-3 px-4 lg:px-6 border-b border-default-200/50 dark:border-default-700/30 bg-white/80 dark:bg-white/5 backdrop-blur-xl sticky top-0 z-30">
       {/* Hamburger */}
       <button
+        suppressHydrationWarning
         onClick={onMenuToggle}
         className="lg:hidden p-2 rounded-xl text-default-500 hover:bg-default-100 dark:hover:bg-default-50/10 transition-colors"
         aria-label="Toggle sidebar"
@@ -32,6 +33,7 @@ export function TeacherTopbar({ onMenuToggle, searchQuery, onSearchChange }: Tea
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-default-400 pointer-events-none" />
           <input
+            suppressHydrationWarning
             type="text"
             placeholder={t.topbar.searchPlaceholder}
             value={searchQuery}
@@ -49,6 +51,7 @@ export function TeacherTopbar({ onMenuToggle, searchQuery, onSearchChange }: Tea
         {/* Notifications */}
         <div className="relative">
           <button
+            suppressHydrationWarning
             className="relative p-2 rounded-xl text-default-500 hover:bg-default-100 dark:hover:bg-default-50/10 transition-colors"
             aria-label="Notifications"
           >
@@ -62,6 +65,7 @@ export function TeacherTopbar({ onMenuToggle, searchQuery, onSearchChange }: Tea
         {/* Profile Dropdown */}
         <div className="relative">
           <button
+            suppressHydrationWarning
             onClick={() => setDropdownOpen((v) => !v)}
             className="flex items-center gap-2.5 pl-3 border-l border-default-200/50 dark:border-default-700/30 hover:opacity-80 transition-opacity"
           >
@@ -86,6 +90,7 @@ export function TeacherTopbar({ onMenuToggle, searchQuery, onSearchChange }: Tea
                   { icon: Settings, label: t.topbar.settings },
                 ].map(({ icon: Icon, label }) => (
                   <button
+                    suppressHydrationWarning
                     key={label}
                     className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-default-600 dark:text-default-300 hover:bg-default-50 dark:hover:bg-white/5 transition-colors"
                   >
@@ -94,7 +99,7 @@ export function TeacherTopbar({ onMenuToggle, searchQuery, onSearchChange }: Tea
                   </button>
                 ))}
                 <div className="border-t border-default-100 dark:border-default-700/30" />
-                <button className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                <button suppressHydrationWarning className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                   <LogOut className="w-4 h-4" />
                   {t.topbar.logout}
                 </button>
