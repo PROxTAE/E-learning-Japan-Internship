@@ -5,7 +5,8 @@
 
 import type { Quiz, QuizFormData, Question } from "@/types/quiz";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://150.15.79.45:5000";
+console.log("Quiz API BASE_URL:", BASE_URL);
 
 // ── internal fetch helper ─────────────────────────────────────
 

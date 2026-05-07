@@ -145,9 +145,15 @@ async function generateCode(req, res) {
 async function getQuizByCode(req, res) {
   try {
     const code = req.params.code.toUpperCase().trim();
+    console.log(`🔍 [STUDENT] Fetching quiz by code: "${code}" (from ${req.ip})`);
+    
     const quiz = await Quiz.findOne({ accessCode: code, status: "published" });
-    if (!quiz) return fail(res, "Quiz not found or not published", 404);
+    if (!quiz) {
+      console.warn(`❌ [STUDENT] Quiz not found or not published for code: "${code}"`);
+      return fail(res, "Quiz not found or not published", 404);
+    }
 
+    console.log(`✅ [STUDENT] Quiz found: "${quiz.title}" (ID: ${quiz._id})`);
     // Strip correct-answer info before sending to student
     const safeQuiz = quiz.toJSON();
     safeQuiz.questions = safeQuiz.questions.map((q) => ({
