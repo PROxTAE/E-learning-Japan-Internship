@@ -1,0 +1,223 @@
+/**
+ * SessionManager — In-memory live session state
+ * Production: replace Map storage with Redis (pattern shown in comments)
+ */
+
+// ── In-memory store ────────────────────────────────────────────
+// Redis equivalent: HSET quiz:{sessionId}:students ...
+const sessions = new Map(); // sessionId → SessionState
+
+/**
+ * SessionState shape:
+ * {
+ *   sessionId: string,
+ *   quizId: string,
+ *   isPaused: boolean,
+ *   students: Map<studentId, StudentRecord>,
+ *   answers:  Map<`${studentId}:${questionId}`, AnswerRecord>
+ * }
+ */
+
+function getOrCreate(sessionId, quizId) {
+  if (!sessions.has(sessionId)) {
+    sessions.set(sessionId, {
+      sessionId,
+      quizId: quizId || "unknown",
+      isPaused: false,
+      students: new Map(),
+      answers: new Map(),
+    });
+  }
+  return sessions.get(sessionId);
+}
+
+function getSession(sessionId) {
+  return sessions.get(sessionId) || null;
+}
+
+// ── Student management ─────────────────────────────────────────
+
+function upsertStudent(sessionId, student) {
+  const session = getOrCreate(sessionId);
+  const existing = session.students.get(student.studentId) || {};
+  const updated = {
+    studentId: student.studentId,
+    name: student.name,
+    avatar: student.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${student.studentId}`,
+    isOnline: true,
+    score: existing.score || 0,
+    progress: existing.progress || 0,
+    speed: existing.speed || 0,
+    socketId: student.socketId,
+    joinedAt: existing.joinedAt || Date.now(),
+  };
+  session.students.set(student.studentId, updated);
+  return updated;
+}
+
+function setStudentOffline(sessionId, studentId) {
+  const session = sessions.get(sessionId);
+  if (!session) return null;
+  const student = session.students.get(studentId);
+  if (student) {
+    student.isOnline = false;
+    session.students.set(studentId, student);
+  }
+  return student;
+}
+
+function getStudents(sessionId) {
+  const session = sessions.get(sessionId);
+  return session ? Array.from(session.students.values()) : [];
+}
+
+// ── Answer management ──────────────────────────────────────────
+
+function recordAnswer(sessionId, { studentId, questionId, choiceId, choiceText, isCorrect, responseTime }) {
+  const session = getOrCreate(sessionId);
+  const key = `${studentId}:${questionId}`;
+  const existing = session.answers.get(key);
+
+  const history = existing ? [...existing.history] : [];
+  // Store both choiceId and choiceText so frontend can display label
+  history.push({
+    choiceId,
+    choiceText: choiceText || "",
+    answer: choiceId,          // backward-compat alias
+    timestamp: Date.now(),
+  });
+
+  const confusionLevel = calcConfusion(history, responseTime);
+
+  const record = {
+    studentId,
+    questionId,
+    state: isCorrect ? "correct" : "wrong",
+    finalAnswer: choiceId,
+    finalAnswerText: choiceText || "",   // ← human-readable label
+    isCorrect,
+    responseTime,
+    history,
+    confusionLevel,
+    updatedAt: Date.now(),
+  };
+
+  session.answers.set(key, record);
+  _refreshStudentStats(session, studentId);
+  return record;
+}
+
+function getAnswers(sessionId) {
+  const session = sessions.get(sessionId);
+  return session ? Array.from(session.answers.values()) : [];
+}
+
+// ── Stats aggregation ──────────────────────────────────────────
+
+function calcStats(sessionId) {
+  const session = sessions.get(sessionId);
+  if (!session) return null;
+
+  const students = Array.from(session.students.values());
+  const answers = Array.from(session.answers.values());
+  const totalStudents = students.length;
+  const activeStudents = students.filter(s => s.isOnline).length;
+
+  let totalScore = 0;
+  let totalCompleted = 0;
+  students.forEach(s => {
+    totalScore += s.score;
+    if (s.progress === 100) totalCompleted++;
+  });
+
+  return {
+    totalStudents,
+    activeStudents,
+    averageScore: totalStudents ? Math.round(totalScore / totalStudents) : 0,
+    completionPercentage: totalStudents ? Math.round((totalCompleted / totalStudents) * 100) : 0,
+    totalAnswers: answers.length,
+    correctAnswers: answers.filter(a => a.isCorrect).length,
+    questionStats: getQuestionStats(sessionId),
+  };
+}
+
+// ── Session control ────────────────────────────────────────────
+
+function setSessionPaused(sessionId, isPaused) {
+  const session = sessions.get(sessionId);
+  if (session) session.isPaused = isPaused;
+}
+
+// ── Private helpers ────────────────────────────────────────────
+
+function calcConfusion(history, responseTime) {
+  const changes = history.length - 1;
+  if (changes >= 2 || responseTime > 60) return "high";
+  if (changes >= 1 || responseTime > 30) return "low";
+  return "none";
+}
+
+function _refreshStudentStats(session, studentId) {
+  const student = session.students.get(studentId);
+  if (!student) return;
+
+  const allAnswers = Array.from(session.answers.values());
+  const studentAnswers = allAnswers.filter(a => a.studentId === studentId);
+  const correct = studentAnswers.filter(a => a.isCorrect).length;
+
+  student.score = studentAnswers.length > 0 ? Math.round((correct / studentAnswers.length) * 100) : 0;
+  // Calculate progress (this is tricky without totalQuestions, so we'll leave it to frontend or use a known count)
+  
+  session.students.set(studentId, student);
+}
+
+/**
+ * Aggregates stats for each question based on current answers
+ */
+function getQuestionStats(sessionId) {
+  const session = sessions.get(sessionId);
+  if (!session) return {};
+
+  const answers = Array.from(session.answers.values());
+  const stats = {}; // questionId -> { answerCount, correctCount, avgTime, choices: { choiceId -> count } }
+
+  answers.forEach(a => {
+    if (!stats[a.questionId]) {
+      stats[a.questionId] = { 
+        answerCount: 0, 
+        correctCount: 0, 
+        totalTime: 0, 
+        choices: {} 
+      };
+    }
+    const q = stats[a.questionId];
+    q.answerCount++;
+    if (a.isCorrect) q.correctCount++;
+    q.totalTime += (a.responseTime || 0);
+    
+    const choiceId = a.finalAnswer;
+    q.choices[choiceId] = (q.choices[choiceId] || 0) + 1;
+  });
+
+  // Finalize averages
+  Object.keys(stats).forEach(id => {
+    const q = stats[id];
+    q.avgTime = q.answerCount > 0 ? q.totalTime / q.answerCount : 0;
+    q.correctPercentage = q.answerCount > 0 ? Math.round((q.correctCount / q.answerCount) * 100) : 0;
+  });
+
+  return stats;
+}
+
+module.exports = {
+  getOrCreate,
+  getSession,
+  upsertStudent,
+  setStudentOffline,
+  getStudents,
+  recordAnswer,
+  getAnswers,
+  calcStats,
+  getQuestionStats,
+  setSessionPaused,
+};

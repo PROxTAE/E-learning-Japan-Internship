@@ -14,9 +14,37 @@ body {
 }
 
 /* Script-specific line-height tweaks for readability */
-html[lang="th"] body { line-height: 1.8; }
-html[lang="ja"] body { line-height: 1.75; word-break: break-all; }
-html[lang="ko"] body { line-height: 1.75; word-break: break-all; }
+html[lang="th"] body {
+  line-height: 1.8;
+}
+
+html[lang="ja"] body {
+  line-height: 1.75;
+  word-break: break-all;
+}
+
+html[lang="ko"] body {
+  line-height: 1.75;
+  word-break: break-all;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+*::-webkit-scrollbar {
+  width: 4px;
+  height: 3px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #8181817a;
+  border-radius: 20px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  cursor: pointer;
+}
 
 /* ─────────────────────────────────────
    Quiz background gradient

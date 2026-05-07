@@ -1,8 +1,10 @@
 export type AnswerState = "correct" | "wrong" | "unanswered" | "answering";
 
 export interface AnswerChange {
-  answer: string;
-  timestamp: number; // seconds from start
+  choiceId:   string;     // which choice was selected
+  choiceText?: string;    // human-readable label e.g. "let"
+  answer:     string;     // alias kept for backward compat (= choiceId)
+  timestamp:  number;     // ms epoch
 }
 
 export interface Student {
@@ -34,15 +36,16 @@ export interface Question {
 }
 
 export interface AnswerCellData {
-  studentId: string;
-  questionId: string;
-  state: AnswerState;
-  finalAnswer?: string;
-  correctAnswer?: string;
-  responseTime: number; // in seconds
-  history: AnswerChange[];
-  isCorrect: boolean;
-  confusionLevel: "none" | "low" | "high";
+  studentId:       string;
+  questionId:      string;
+  state:           AnswerState;
+  finalAnswer?:    string;   // choiceId of the last selection
+  finalAnswerText?: string;  // human-readable text of last selection
+  correctAnswer?:  string;   // choiceId of the correct answer
+  responseTime:    number;   // in seconds
+  history:         AnswerChange[];
+  isCorrect:       boolean;
+  confusionLevel:  "none" | "low" | "high";
 }
 
 export interface LiveStats {
@@ -50,6 +53,13 @@ export interface LiveStats {
   activeStudents: number;
   averageScore: number;
   completionPercentage: number;
+  questionStats?: Record<string, {
+    answerCount: number;
+    correctCount: number;
+    avgTime: number;
+    correctPercentage: number;
+    choices: Record<string, number>;
+  }>;
 }
 
 export interface MonitoringState {

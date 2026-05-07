@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { MonitoringState, Student, Question, AnswerCellData, LiveStats } from "@/types/teacher/monitoring.types";
-import { MOCK_STUDENTS, MOCK_QUESTIONS, MOCK_ANSWERS, MOCK_LIVE_STATS } from "@/lib/teacher/monitoring.mock";
 
 interface MonitoringStore {
   students: Student[];
@@ -15,6 +14,8 @@ interface MonitoringStore {
   updateUIState: (updates: Partial<MonitoringState>) => void;
   addAnswer: (answer: AnswerCellData) => void;
   updateStudent: (student: Student) => void;
+  updateStats: (stats: LiveStats) => void;
+  setQuestions: (questions: Question[]) => void;
 }
 
 export const useMonitoringStore = create<MonitoringStore>((set) => ({
@@ -37,8 +38,26 @@ export const useMonitoringStore = create<MonitoringStore>((set) => ({
   loading: true,
 
   setLoading: (loading) => set({ loading }),
-  setSessionData: (data) => set({ ...data, loading: false }),
+  
+  setSessionData: (data) => set((state) => {
+    const nextStats = data.stats ?? state.stats;
+    const nextQuestions = mergeQuestionStats((data.questions ?? []).length > 0 ? data.questions! : state.questions, nextStats);
+
+    return {
+      students:  (data.students  ?? []).length > 0 ? data.students!  : state.students,
+      questions: nextQuestions,
+      answers:   (data.answers   ?? []).length > 0 ? data.answers!   : state.answers,
+      stats:     nextStats,
+      loading: false,
+    };
+  }),
+
+  setQuestions: (questions) => set((state) => ({ 
+    questions: mergeQuestionStats(questions, state.stats) 
+  })),
+
   updateUIState: (updates) => set((state) => ({ uiState: { ...state.uiState, ...updates } })),
+
   addAnswer: (answer) => set((state) => {
     const existingIndex = state.answers.findIndex(a => a.studentId === answer.studentId && a.questionId === answer.questionId);
     let newAnswers = [...state.answers];
@@ -49,7 +68,46 @@ export const useMonitoringStore = create<MonitoringStore>((set) => ({
     }
     return { answers: newAnswers };
   }),
-  updateStudent: (student) => set((state) => ({
-    students: state.students.map(s => s.id === student.id ? student : s)
+
+  updateStudent: (student: Student) => set((state) => {
+    const normalized: Student = {
+      ...student,
+      id: student.id || (student as any).studentId || "",
+    };
+    if (!normalized.id) return {};
+    const existsAt = state.students.findIndex((s) => s.id === normalized.id);
+    if (existsAt >= 0) {
+      const next = [...state.students];
+      next[existsAt] = { ...next[existsAt], ...normalized };
+      return { students: next };
+    }
+    return { students: [...state.students, normalized] };
+  }),
+
+  updateStats: (stats) => set((state) => ({ 
+    stats,
+    questions: mergeQuestionStats(state.questions, stats)
   })),
 }));
+
+/**
+ * Merges question-level stats (from backend calcStats) into the frontend question objects
+ */
+function mergeQuestionStats(questions: Question[], stats: LiveStats): Question[] {
+  if (!stats.questionStats) return questions;
+
+  return questions.map(q => {
+    const qStat = stats.questionStats![q.id];
+    if (!qStat) return q;
+
+    return {
+      ...q,
+      averageResponseTime: qStat.avgTime,
+      correctPercentage: qStat.correctPercentage,
+      choices: q.choices.map(c => ({
+        ...c,
+        answerCount: qStat.choices[c.id] || 0
+      }))
+    };
+  });
+}

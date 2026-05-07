@@ -29,6 +29,15 @@ export function MonitoringGrid() {
 
   if (uiState.sortBy === "score") processedStudents.sort((a, b) => b.score - a.score);
 
+  // Deduplicate by id — guard against empty/undefined ids from socket events
+  const seen = new Set<string>();
+  processedStudents = processedStudents.filter((s) => {
+    const key = s.id || "";
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
   return (
     <div className="relative rounded-3xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 backdrop-blur-xl shadow-xl dark:shadow-2xl overflow-hidden flex flex-col h-full min-h-[600px]">
       <ScrollShadow className="flex-1 overflow-auto" orientation="horizontal">
@@ -65,7 +74,7 @@ export function MonitoringGrid() {
               {processedStudents.map((student, idx) => (
                 <motion.div
                   layout
-                  key={student.id}
+                  key={student.id || `fallback-${idx}`}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: idx * 0.05 }}

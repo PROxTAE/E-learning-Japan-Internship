@@ -11,10 +11,10 @@ import { useLang } from "@/lib/i18n/LanguageContext";
 
 const NAV_KEYS = [
   { key: "dashboard" as const, icon: LayoutDashboard, href: "/teacher/dashboard" },
-  { key: "quizzes" as const, icon: BookOpen, href: "/teacher/dashboard" },
-  { key: "students" as const, icon: Users, href: "/teacher/students" },
-  { key: "calendar" as const, icon: CalendarDays, href: "/teacher/calendar" },
-  { key: "reports" as const, icon: BarChart2, href: "/teacher/reports" },
+  { key: "quizzes"   as const, icon: BookOpen,        href: "/teacher/quizzes" },
+  { key: "students"  as const, icon: Users,           href: "/teacher/students" },
+  { key: "calendar"  as const, icon: CalendarDays,    href: "/teacher/calendar" },
+  { key: "reports"   as const, icon: BarChart2,       href: "/teacher/reports" },
 ];
 
 const BOTTOM_KEYS = [

@@ -122,3 +122,27 @@ interface Choice {
   imageUrl?: string;
 }
 ```
+
+
+1 Mr. Bordinth Srihakhun
+2 Miss Jeerawan Prasertsri 
+3 Miss Nattakarn Prayongsook
+4 Miss Phattharanan Akhad 
+5 Mr. Phonlakrit Somsong
+6 Mr. Pachara Chamraxsa
+7 Mr. Mekmai Jankeaw
+8 Mr. Nithis Manora
+9 Mr. Racharnon Srichai
+10 Mr. Sakda Baokham
+11 Mr. Kritsanapong Pornphu
+12 Mr. Sirawit Sirisalung
+13 Mr. Natthawut Malakong
+14 Miss Kanokwan Yodpheng
+15 Mr. Khwanchai Phomdach 
+16 Mr. Wachirawit Seedee
+17 Miss. Kodchakon Komarvuth
+18 Miss. Sirorat Sangam
+19 Mr. Panyapat Raksaboon
+20 Mr. Phiraphat Putpun
+21 Miss Napassorn Kaewpai
+22 Mr. Sinlapakorn Saenjinda
