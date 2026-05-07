@@ -67,7 +67,7 @@ export function TeacherTopbar({ onMenuToggle, searchQuery, onSearchChange }: Tea
           >
             <div className="text-right hidden sm:block">
               <p className="text-xs font-semibold text-default-700 dark:text-default-200 leading-tight">
-                Ms. Tanaka
+                Mr. Takajo
               </p>
               <p className="text-[10px] text-default-400 leading-tight">Teacher</p>
             </div>
