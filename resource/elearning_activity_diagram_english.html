@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: transparent; font-family: var(--font-sans, sans-serif); }
+.scroll-wrap { width: 100%; overflow-x: auto; }
+svg text { font-family: var(--font-sans, sans-serif); }
+</style>
+</head>
+<body>
+<div class="scroll-wrap">
+<svg width="1320" viewBox="0 0 1320 2560" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>E-Learning System Activity Diagram (Swimlane) — English</title>
+<desc>Activity diagram showing 4 main flows: Quiz Creation, Student Join, Gameplay, and Session Control across 5 swimlanes: Student, Teacher, Backend, MongoDB, Redis</desc>
+<defs>
+  <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+  <marker id="arr-b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="#185FA5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+  <marker id="arr-g" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="#0F6E56" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+  <marker id="arr-a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="#854F0B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+  <marker id="arr-p" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="#534AB7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+  <marker id="arr-r" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="#A32D2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+  <marker id="arr-o" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="#D85A30" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<!-- ===== LANE BACKGROUNDS ===== -->
+<rect x="60" y="0" width="220" height="2560" fill="#E6F1FB" fill-opacity="0.18" stroke="#85B7EB" stroke-width="0.5"/>
+<rect x="280" y="0" width="220" height="2560" fill="#E1F5EE" fill-opacity="0.18" stroke="#5DCAA5" stroke-width="0.5"/>
+<rect x="500" y="0" width="260" height="2560" fill="#EEEDFE" fill-opacity="0.18" stroke="#AFA9EC" stroke-width="0.5"/>
+<rect x="760" y="0" width="280" height="2560" fill="#FAEEDA" fill-opacity="0.18" stroke="#FAC775" stroke-width="0.5"/>
+<rect x="1040" y="0" width="280" height="2560" fill="#FAECE7" fill-opacity="0.18" stroke="#F0997B" stroke-width="0.5"/>
+
+<!-- ===== LANE HEADERS ===== -->
+<rect x="60" y="0" width="220" height="48" fill="#378ADD"/>
+<text x="170" y="29" text-anchor="middle" font-size="14" font-weight="500" fill="white">Client (Student)</text>
+
+<rect x="280" y="0" width="220" height="48" fill="#1D9E75"/>
+<text x="390" y="29" text-anchor="middle" font-size="14" font-weight="500" fill="white">Client (Teacher)</text>
+
+<rect x="500" y="0" width="260" height="48" fill="#7F77DD"/>
+<text x="630" y="22" text-anchor="middle" font-size="13" font-weight="500" fill="white">Backend</text>
+<text x="630" y="38" text-anchor="middle" font-size="11" font-weight="400" fill="white">(Node.js / Socket.io)</text>
+
+<rect x="760" y="0" width="280" height="48" fill="#BA7517"/>
+<text x="900" y="29" text-anchor="middle" font-size="14" font-weight="500" fill="white">MongoDB</text>
+
+<rect x="1040" y="0" width="280" height="48" fill="#D85A30"/>
+<text x="1180" y="22" text-anchor="middle" font-size="13" font-weight="500" fill="white">Redis</text>
+<text x="1180" y="38" text-anchor="middle" font-size="11" font-weight="400" fill="white">(In-memory Session)</text>
+
+<!-- ============================================================ -->
+<!-- FLOW 1: QUIZ CREATION & OPEN SESSION -->
+<!-- ============================================================ -->
+<rect x="60" y="56" width="1260" height="30" fill="#534AB7" fill-opacity="0.12"/>
+<text x="690" y="76" text-anchor="middle" font-size="13" font-weight="500" fill="#3C3489">Flow 1 — Quiz Creation &amp; Open Session</text>
+
+<!-- Step 1: Teacher fills quiz form -->
+<rect x="296" y="102" width="186" height="46" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="389" y="122" text-anchor="middle" font-size="11" font-weight="500" fill="#085041">① Fill in Quiz Details</text>
+<text x="389" y="138" text-anchor="middle" font-size="10" fill="#085041">Create / edit quiz, then save</text>
+<!-- Teacher → Backend -->
+<line x1="482" y1="125" x2="498" y2="125" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arr-g)" fill="none"/>
+<text x="490" y="119" text-anchor="middle" font-size="9" font-style="italic" fill="#0F6E56">POST /api/quizzes</text>
+
+<!-- Step 2: Backend receives REST -->
+<rect x="516" y="102" width="224" height="46" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="122" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">② Receive REST API Request</text>
+<text x="628" y="138" text-anchor="middle" font-size="10" fill="#26215C">POST / PUT /api/quizzes</text>
+<!-- Backend → MongoDB -->
+<line x1="740" y1="125" x2="758" y2="125" stroke="#854F0B" stroke-width="1.5" marker-end="url(#arr-a)" fill="none"/>
+
+<!-- Step 3: MongoDB saves quiz -->
+<rect x="776" y="102" width="246" height="46" rx="8" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+<text x="899" y="122" text-anchor="middle" font-size="11" font-weight="500" fill="#412402">③ Save Quiz to Database</text>
+<text x="899" y="138" text-anchor="middle" font-size="10" fill="#412402">Questions, choices, answer key</text>
+
+<!-- Vertical connectors flow 1 -->
+<line x1="389" y1="148" x2="389" y2="168" stroke="#0F6E56" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+<line x1="628" y1="148" x2="628" y2="168" stroke="#534AB7" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+
+<!-- Step 4: Teacher generates access code -->
+<rect x="296" y="168" width="186" height="46" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="389" y="188" text-anchor="middle" font-size="11" font-weight="500" fill="#085041">④ Generate Access Code</text>
+<text x="389" y="204" text-anchor="middle" font-size="10" fill="#085041">Click "Create Room Code"</text>
+<line x1="482" y1="191" x2="498" y2="191" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arr-g)" fill="none"/>
+
+<!-- Step 5: Backend creates code + saves -->
+<rect x="516" y="168" width="224" height="46" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="188" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">⑤ Generate Code (e.g. RX-9201)</text>
+<text x="628" y="204" text-anchor="middle" font-size="10" fill="#26215C">Save access code to DB</text>
+<line x1="740" y1="191" x2="758" y2="191" stroke="#854F0B" stroke-width="1.5" marker-end="url(#arr-a)" fill="none"/>
+
+<rect x="776" y="168" width="246" height="46" rx="8" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+<text x="899" y="188" text-anchor="middle" font-size="11" font-weight="500" fill="#412402">Save Access Code</text>
+<text x="899" y="204" text-anchor="middle" font-size="10" fill="#412402">Linked to Quiz ID</text>
+
+<line x1="389" y1="214" x2="389" y2="234" stroke="#0F6E56" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+<line x1="628" y1="214" x2="628" y2="234" stroke="#534AB7" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+
+<!-- Step 6: Teacher enters Monitoring Dashboard -->
+<rect x="296" y="234" width="186" height="52" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="389" y="253" text-anchor="middle" font-size="11" font-weight="500" fill="#085041">⑥ Open Monitoring Dashboard</text>
+<text x="389" y="267" text-anchor="middle" font-size="10" fill="#085041">WebSocket: JOIN_QUIZ</text>
+<text x="389" y="280" text-anchor="middle" font-size="10" fill="#085041">role="teacher"</text>
+<line x1="482" y1="260" x2="498" y2="260" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arr-g)" fill="none"/>
+<text x="490" y="254" text-anchor="middle" font-size="9" font-style="italic" fill="#0F6E56">JOIN_QUIZ</text>
+
+<!-- Step 7: Backend checks session -->
+<rect x="516" y="234" width="224" height="52" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="253" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">⑦ Verify Quiz Session Exists</text>
+<text x="628" y="267" text-anchor="middle" font-size="10" fill="#26215C">Connect WebSocket</text>
+<text x="628" y="280" text-anchor="middle" font-size="10" fill="#26215C">Check if room already exists</text>
+<!-- Backend → Redis -->
+<line x1="740" y1="260" x2="1038" y2="260" stroke="#D85A30" stroke-width="1.5" marker-end="url(#arr-o)" fill="none"/>
+<text x="890" y="254" text-anchor="middle" font-size="9" font-style="italic" fill="#D85A30">get / create session</text>
+
+<!-- Step 8: Redis session state -->
+<rect x="1056" y="234" width="246" height="52" rx="8" fill="#F5C4B3" stroke="#D85A30" stroke-width="0.5"/>
+<text x="1179" y="253" text-anchor="middle" font-size="11" font-weight="500" fill="#4A1B0C">⑧ Load Session State</text>
+<text x="1179" y="267" text-anchor="middle" font-size="10" fill="#4A1B0C">Student count, answers</text>
+<text x="1179" y="280" text-anchor="middle" font-size="10" fill="#4A1B0C">New room → create empty session</text>
+
+<!-- Backend → MongoDB fetch quiz -->
+<line x1="628" y1="286" x2="628" y2="306" stroke="#534AB7" stroke-width="1.5" fill="none"/>
+<line x1="628" y1="306" x2="758" y2="306" stroke="#854F0B" stroke-width="1.5" marker-end="url(#arr-a)" fill="none"/>
+
+<!-- Step 9: MongoDB returns quiz -->
+<rect x="776" y="290" width="246" height="46" rx="8" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+<text x="899" y="310" text-anchor="middle" font-size="11" font-weight="500" fill="#412402">⑨ Fetch Quiz Data</text>
+<text x="899" y="326" text-anchor="middle" font-size="10" fill="#412402">Return quiz info to Backend</text>
+<line x1="776" y1="313" x2="740" y2="313" stroke="#854F0B" stroke-width="1.5" marker-end="url(#arr)" fill="none"/>
+
+<!-- Step 10: Backend sends SESSION_JOINED to Teacher -->
+<rect x="516" y="290" width="224" height="46" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="310" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">⑩ Send SESSION_JOINED Event</text>
+<text x="628" y="326" text-anchor="middle" font-size="10" fill="#26215C">Return to Teacher client</text>
+<line x1="516" y1="313" x2="482" y2="313" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arr-g)" fill="none"/>
+<text x="499" y="307" text-anchor="middle" font-size="9" font-style="italic" fill="#534AB7">SESSION_JOINED</text>
+
+<!-- Step 11: Teacher UI ready -->
+<rect x="296" y="302" width="186" height="46" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="389" y="322" text-anchor="middle" font-size="11" font-weight="500" fill="#085041">⑪ Dashboard Ready</text>
+<text x="389" y="338" text-anchor="middle" font-size="10" fill="#085041">Empty room — waiting for students</text>
+
+<!-- ============================================================ -->
+<!-- FLOW 2: STUDENT JOIN SESSION -->
+<!-- ============================================================ -->
+<rect x="60" y="372" width="1260" height="30" fill="#1D9E75" fill-opacity="0.12"/>
+<text x="690" y="392" text-anchor="middle" font-size="13" font-weight="500" fill="#085041">Flow 2 — Student Join Session</text>
+
+<!-- Step 1: Student enters access code -->
+<rect x="76" y="418" width="186" height="46" rx="8" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
+<text x="169" y="438" text-anchor="middle" font-size="11" font-weight="500" fill="#042C53">① Enter Access Code</text>
+<text x="169" y="454" text-anchor="middle" font-size="10" fill="#042C53">Navigate to Play page</text>
+<line x1="262" y1="441" x2="498" y2="441" stroke="#185FA5" stroke-width="1.5" marker-end="url(#arr-b)" fill="none"/>
+<text x="380" y="435" text-anchor="middle" font-size="9" font-style="italic" fill="#185FA5">GET /api/play/:code</text>
+
+<!-- Step 2: Backend validates code -->
+<rect x="516" y="418" width="224" height="46" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="438" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">② Validate Access Code</text>
+<text x="628" y="454" text-anchor="middle" font-size="10" fill="#26215C">REST API: GET /api/play/:code</text>
+<line x1="740" y1="441" x2="758" y2="441" stroke="#854F0B" stroke-width="1.5" marker-end="url(#arr-a)" fill="none"/>
+
+<!-- Step 3: MongoDB find quiz -->
+<rect x="776" y="418" width="246" height="46" rx="8" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+<text x="899" y="438" text-anchor="middle" font-size="11" font-weight="500" fill="#412402">③ Look Up Quiz by Code</text>
+<text x="899" y="454" text-anchor="middle" font-size="10" fill="#412402">Return quiz data to Backend</text>
+<line x1="776" y1="441" x2="740" y2="441" stroke="#854F0B" stroke-width="1.5" marker-end="url(#arr)" fill="none"/>
+
+<line x1="169" y1="464" x2="169" y2="484" stroke="#185FA5" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+
+<!-- Step 4: Student WebSocket JOIN_QUIZ -->
+<rect x="76" y="484" width="186" height="52" rx="8" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
+<text x="169" y="503" text-anchor="middle" font-size="11" font-weight="500" fill="#042C53">④ Load Exam Page</text>
+<text x="169" y="517" text-anchor="middle" font-size="10" fill="#042C53">WebSocket: JOIN_QUIZ</text>
+<text x="169" y="530" text-anchor="middle" font-size="10" fill="#042C53">role="student"</text>
+<line x1="262" y1="510" x2="498" y2="510" stroke="#185FA5" stroke-width="1.5" marker-end="url(#arr-b)" fill="none"/>
+<text x="380" y="504" text-anchor="middle" font-size="9" font-style="italic" fill="#185FA5">JOIN_QUIZ (role=student)</text>
+
+<!-- Step 5: Backend receives student data -->
+<rect x="516" y="484" width="224" height="52" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="503" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">⑤ Receive Student Data</text>
+<text x="628" y="517" text-anchor="middle" font-size="10" fill="#26215C">From WebSocket event</text>
+<text x="628" y="530" text-anchor="middle" font-size="10" fill="#26215C">Identify student via Socket ID</text>
+<line x1="740" y1="510" x2="1038" y2="510" stroke="#D85A30" stroke-width="1.5" marker-end="url(#arr-o)" fill="none"/>
+<text x="890" y="504" text-anchor="middle" font-size="9" font-style="italic" fill="#D85A30">Upsert Student</text>
+
+<!-- Step 6: Redis saves student -->
+<rect x="1056" y="484" width="246" height="52" rx="8" fill="#F5C4B3" stroke="#D85A30" stroke-width="0.5"/>
+<text x="1179" y="503" text-anchor="middle" font-size="11" font-weight="500" fill="#4A1B0C">⑥ Save Student to Session</text>
+<text x="1179" y="517" text-anchor="middle" font-size="10" fill="#4A1B0C">Name, Avatar, isOnline=true</text>
+<text x="1179" y="530" text-anchor="middle" font-size="10" fill="#4A1B0C">Upsert into Redis session</text>
+
+<line x1="1179" y1="536" x2="1179" y2="550" stroke="#D85A30" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+
+<!-- Step 7: Redis calcStats -->
+<rect x="1056" y="550" width="246" height="46" rx="8" fill="#F5C4B3" stroke="#D85A30" stroke-width="0.5"/>
+<text x="1179" y="570" text-anchor="middle" font-size="11" font-weight="500" fill="#4A1B0C">⑦ Recalculate Room Stats</text>
+<text x="1179" y="586" text-anchor="middle" font-size="10" fill="#4A1B0C">Total students in room</text>
+<line x1="1056" y1="573" x2="740" y2="573" stroke="#D85A30" stroke-width="1.5" marker-end="url(#arr)" fill="none"/>
+
+<!-- Step 8: Backend → Student SESSION_JOINED -->
+<rect x="516" y="550" width="224" height="46" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="570" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">⑧ Send SESSION_JOINED</text>
+<text x="628" y="586" text-anchor="middle" font-size="10" fill="#26215C">Allow student to start exam</text>
+<line x1="516" y1="573" x2="262" y2="573" stroke="#185FA5" stroke-width="1.5" marker-end="url(#arr-b)" fill="none"/>
+<text x="380" y="567" text-anchor="middle" font-size="9" font-style="italic" fill="#185FA5">SESSION_JOINED</text>
+
+<rect x="76" y="550" width="186" height="46" rx="8" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
+<text x="169" y="570" text-anchor="middle" font-size="11" font-weight="500" fill="#042C53">Exam starts</text>
+<text x="169" y="586" text-anchor="middle" font-size="10" fill="#042C53">Questions displayed on screen</text>
+
+<!-- Step 9: Backend → Teacher STUDENT_JOINED Broadcast -->
+<rect x="516" y="612" width="224" height="46" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="632" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">⑨ Broadcast STUDENT_JOINED</text>
+<text x="628" y="648" text-anchor="middle" font-size="10" fill="#26215C">To teacher's room</text>
+<line x1="516" y1="635" x2="482" y2="635" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arr-g)" fill="none"/>
+<text x="499" y="629" text-anchor="middle" font-size="9" font-style="italic" fill="#534AB7">STUDENT_JOINED</text>
+
+<!-- Step 10: Teacher UI updates -->
+<rect x="296" y="612" width="186" height="46" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="389" y="632" text-anchor="middle" font-size="11" font-weight="500" fill="#085041">⑩ Student List Updates</text>
+<text x="389" y="648" text-anchor="middle" font-size="10" fill="#085041">Online count refreshed live</text>
+
+<!-- ============================================================ -->
+<!-- FLOW 3: GAMEPLAY & ANSWER SUBMISSION -->
+<!-- ============================================================ -->
+<rect x="60" y="682" width="1260" height="30" fill="#7F77DD" fill-opacity="0.12"/>
+<text x="690" y="702" text-anchor="middle" font-size="13" font-weight="500" fill="#3C3489">Flow 3 — Gameplay &amp; Real-time Answer Submission</text>
+
+<!-- Step 1: Student submits answer -->
+<rect x="76" y="728" width="186" height="52" rx="8" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
+<text x="169" y="747" text-anchor="middle" font-size="11" font-weight="500" fill="#042C53">① Select &amp; Submit Answer</text>
+<text x="169" y="761" text-anchor="middle" font-size="10" fill="#042C53">SUBMIT_ANSWER event</text>
+<text x="169" y="774" text-anchor="middle" font-size="10" fill="#042C53">studentId, question, answer, time</text>
+<line x1="262" y1="754" x2="498" y2="754" stroke="#185FA5" stroke-width="1.5" marker-end="url(#arr-b)" fill="none"/>
+<text x="380" y="748" text-anchor="middle" font-size="9" font-style="italic" fill="#185FA5">SUBMIT_ANSWER</text>
+
+<!-- Step 2: Backend receives answer -->
+<rect x="516" y="728" width="224" height="52" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="747" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">② Receive Answer from Student</text>
+<text x="628" y="761" text-anchor="middle" font-size="10" fill="#26215C">Via Socket event</text>
+<text x="628" y="774" text-anchor="middle" font-size="10" fill="#26215C">Prepare to validate</text>
+
+<!-- Backend → MongoDB (optional) -->
+<line x1="740" y1="744" x2="758" y2="744" stroke="#854F0B" stroke-width="1.5" marker-end="url(#arr-a)" fill="none"/>
+<text x="749" y="738" text-anchor="middle" font-size="9" font-style="italic" fill="#854F0B">(optional)</text>
+
+<rect x="776" y="728" width="246" height="52" rx="8" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+<text x="899" y="747" text-anchor="middle" font-size="11" font-weight="500" fill="#412402">③ Verify Answer Correctness</text>
+<text x="899" y="761" text-anchor="middle" font-size="10" fill="#412402">Compare with answer key</text>
+<text x="899" y="774" text-anchor="middle" font-size="10" fill="#412402">→ isCorrect (optional step)</text>
+
+<!-- Backend → Redis recordAnswer -->
+<line x1="628" y1="780" x2="628" y2="800" stroke="#534AB7" stroke-width="1.5" fill="none"/>
+<line x1="628" y1="800" x2="1038" y2="800" stroke="#D85A30" stroke-width="1.5" marker-end="url(#arr-o)" fill="none"/>
+<text x="835" y="794" text-anchor="middle" font-size="9" font-style="italic" fill="#D85A30">recordAnswer</text>
+
+<!-- Step 4: Redis record + confusion + score -->
+<rect x="1056" y="804" width="246" height="68" rx="8" fill="#F5C4B3" stroke="#D85A30" stroke-width="0.5"/>
+<text x="1179" y="824" text-anchor="middle" font-size="11" font-weight="500" fill="#4A1B0C">④ Record Answer</text>
+<text x="1179" y="840" text-anchor="middle" font-size="10" fill="#4A1B0C">Confusion Level: change count + time</text>
+<text x="1179" y="854" text-anchor="middle" font-size="10" fill="#4A1B0C">→ high / low / none</text>
+<text x="1179" y="868" text-anchor="middle" font-size="10" fill="#4A1B0C">Score: update student's score</text>
+
+<line x1="1179" y1="872" x2="1179" y2="886" stroke="#D85A30" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+
+<!-- Step 5: Redis calcStats -->
+<rect x="1056" y="886" width="246" height="46" rx="8" fill="#F5C4B3" stroke="#D85A30" stroke-width="0.5"/>
+<text x="1179" y="906" text-anchor="middle" font-size="11" font-weight="500" fill="#4A1B0C">⑤ Recalculate Room Stats</text>
+<text x="1179" y="922" text-anchor="middle" font-size="10" fill="#4A1B0C">Average, % correct, active users</text>
+<line x1="1056" y1="909" x2="740" y2="909" stroke="#D85A30" stroke-width="1.5" marker-end="url(#arr)" fill="none"/>
+
+<!-- Step 6: Backend → Student ANSWER_UPDATE -->
+<rect x="516" y="898" width="224" height="52" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="918" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">⑥ Send ANSWER_UPDATE</text>
+<text x="628" y="932" text-anchor="middle" font-size="10" fill="#26215C">Confirm result to student</text>
+<text x="628" y="945" text-anchor="middle" font-size="10" fill="#26215C">(correct/wrong + score)</text>
+<line x1="516" y1="924" x2="262" y2="924" stroke="#185FA5" stroke-width="1.5" marker-end="url(#arr-b)" fill="none"/>
+<text x="380" y="918" text-anchor="middle" font-size="9" font-style="italic" fill="#185FA5">ANSWER_UPDATE</text>
+
+<rect x="76" y="898" width="186" height="52" rx="8" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
+<text x="169" y="918" text-anchor="middle" font-size="11" font-weight="500" fill="#042C53">Receive answer result</text>
+<text x="169" y="932" text-anchor="middle" font-size="10" fill="#042C53">Show correct / wrong</text>
+<text x="169" y="945" text-anchor="middle" font-size="10" fill="#042C53">Score updated</text>
+
+<!-- Step 7: Backend → Teacher Broadcast ANSWER_UPDATE (Async) -->
+<rect x="516" y="966" width="224" height="52" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="986" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">⑦ Broadcast ANSWER_UPDATE</text>
+<text x="628" y="1000" text-anchor="middle" font-size="10" fill="#26215C">→ Teacher (Async / Broadcast)</text>
+<text x="628" y="1013" text-anchor="middle" font-size="10" fill="#26215C">Teacher listens, does not request</text>
+<line x1="516" y1="992" x2="482" y2="992" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arr-g)" fill="none"/>
+<text x="499" y="986" text-anchor="middle" font-size="9" font-style="italic" fill="#534AB7">ANSWER_UPDATE ⟶</text>
+
+<!-- Step 8: Teacher dashboard updates -->
+<rect x="296" y="966" width="186" height="52" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="389" y="986" text-anchor="middle" font-size="11" font-weight="500" fill="#085041">⑧ Dashboard Updates Live</text>
+<text x="389" y="1000" text-anchor="middle" font-size="10" fill="#085041">Timeline chart moves</text>
+<text x="389" y="1013" text-anchor="middle" font-size="10" fill="#085041">Score + Confusion status shown</text>
+
+<!-- Vertical links flow3 -->
+<line x1="628" y1="950" x2="628" y2="966" stroke="#534AB7" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+
+<!-- ============================================================ -->
+<!-- FLOW 4A: SESSION CONTROL (PAUSE / RESUME) -->
+<!-- ============================================================ -->
+<rect x="60" y="1042" width="1260" height="30" fill="#D85A30" fill-opacity="0.10"/>
+<text x="690" y="1062" text-anchor="middle" font-size="13" font-weight="500" fill="#4A1B0C">Flow 4A — Session Control: Pause / Resume</text>
+
+<!-- Step 1: Teacher presses Pause/Resume -->
+<rect x="296" y="1088" width="186" height="46" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="389" y="1108" text-anchor="middle" font-size="11" font-weight="500" fill="#085041">① Press Pause / Resume</text>
+<text x="389" y="1124" text-anchor="middle" font-size="10" fill="#085041">Control exam room</text>
+<line x1="482" y1="1111" x2="498" y2="1111" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arr-g)" fill="none"/>
+<text x="490" y="1105" text-anchor="middle" font-size="9" font-style="italic" fill="#0F6E56">CONTROL_SESSION</text>
+
+<!-- Step 2: Backend receives -->
+<rect x="516" y="1088" width="224" height="46" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="1108" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">② Receive CONTROL_SESSION</text>
+<text x="628" y="1124" text-anchor="middle" font-size="10" fill="#26215C">action: "pause" / "resume"</text>
+<line x1="740" y1="1111" x2="1038" y2="1111" stroke="#D85A30" stroke-width="1.5" marker-end="url(#arr-o)" fill="none"/>
+<text x="890" y="1105" text-anchor="middle" font-size="9" font-style="italic" fill="#D85A30">update isPaused</text>
+
+<!-- Step 3: Redis updates isPaused -->
+<rect x="1056" y="1088" width="246" height="46" rx="8" fill="#F5C4B3" stroke="#D85A30" stroke-width="0.5"/>
+<text x="1179" y="1108" text-anchor="middle" font-size="11" font-weight="500" fill="#4A1B0C">③ Update isPaused Flag</text>
+<text x="1179" y="1124" text-anchor="middle" font-size="10" fill="#4A1B0C">On that session</text>
+
+<line x1="628" y1="1134" x2="628" y2="1150" stroke="#534AB7" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+
+<!-- Step 4: Backend Broadcast SESSION_CONTROL -->
+<rect x="516" y="1150" width="224" height="46" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="1170" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">④ Broadcast SESSION_CONTROL</text>
+<text x="628" y="1186" text-anchor="middle" font-size="10" fill="#26215C">To everyone in the room</text>
+<line x1="516" y1="1173" x2="262" y2="1173" stroke="#185FA5" stroke-width="1.5" marker-end="url(#arr-b)" fill="none"/>
+<text x="380" y="1167" text-anchor="middle" font-size="9" font-style="italic" fill="#185FA5">SESSION_CONTROL</text>
+
+<!-- Step 5: Student screen locks/unlocks -->
+<rect x="76" y="1150" width="186" height="46" rx="8" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
+<text x="169" y="1170" text-anchor="middle" font-size="11" font-weight="500" fill="#042C53">⑤ Exam Screen Locks / Unlocks</text>
+<text x="169" y="1186" text-anchor="middle" font-size="10" fill="#042C53">Immediately applied</text>
+
+<!-- ============================================================ -->
+<!-- FLOW 4B: STUDENT DISCONNECT -->
+<!-- ============================================================ -->
+<rect x="60" y="1220" width="1260" height="30" fill="#E24B4A" fill-opacity="0.10"/>
+<text x="690" y="1240" text-anchor="middle" font-size="13" font-weight="500" fill="#501313">Flow 4B — Student Disconnect</text>
+
+<!-- Step 1: Student disconnects -->
+<rect x="76" y="1266" width="186" height="52" rx="8" fill="#F7C1C1" stroke="#A32D2D" stroke-width="0.5"/>
+<text x="169" y="1285" text-anchor="middle" font-size="11" font-weight="500" fill="#501313">① Student Disconnects</text>
+<text x="169" y="1299" text-anchor="middle" font-size="10" fill="#501313">Browser closed, network lost,</text>
+<text x="169" y="1312" text-anchor="middle" font-size="10" fill="#501313">or page changed</text>
+<line x1="262" y1="1292" x2="498" y2="1292" stroke="#A32D2D" stroke-width="1.5" marker-end="url(#arr-r)" fill="none"/>
+<text x="380" y="1286" text-anchor="middle" font-size="9" font-style="italic" fill="#A32D2D">socket: disconnect</text>
+
+<!-- Step 2: Backend detects disconnect -->
+<rect x="516" y="1266" width="224" height="52" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="1285" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">② Detect Disconnect Event</text>
+<text x="628" y="1299" text-anchor="middle" font-size="10" fill="#26215C">Socket event: "disconnect"</text>
+<text x="628" y="1312" text-anchor="middle" font-size="10" fill="#26215C">Identify student by Socket ID</text>
+<line x1="740" y1="1292" x2="1038" y2="1292" stroke="#D85A30" stroke-width="1.5" marker-end="url(#arr-o)" fill="none"/>
+<text x="890" y="1286" text-anchor="middle" font-size="9" font-style="italic" fill="#D85A30">isOnline=false</text>
+
+<!-- Step 3: Redis updates isOnline=false -->
+<rect x="1056" y="1266" width="246" height="52" rx="8" fill="#F5C4B3" stroke="#D85A30" stroke-width="0.5"/>
+<text x="1179" y="1285" text-anchor="middle" font-size="11" font-weight="500" fill="#4A1B0C">③ Set isOnline=false</text>
+<text x="1179" y="1299" text-anchor="middle" font-size="10" fill="#4A1B0C">Recalculate room stats</text>
+<text x="1179" y="1312" text-anchor="middle" font-size="10" fill="#4A1B0C">Active users decremented</text>
+
+<line x1="628" y1="1318" x2="628" y2="1334" stroke="#534AB7" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+
+<!-- Step 4: Broadcast STUDENT_LEFT -->
+<rect x="516" y="1334" width="224" height="46" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="1354" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">④ Broadcast STUDENT_LEFT</text>
+<text x="628" y="1370" text-anchor="middle" font-size="10" fill="#26215C">To teacher's room</text>
+<line x1="516" y1="1357" x2="482" y2="1357" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arr-g)" fill="none"/>
+<text x="499" y="1351" text-anchor="middle" font-size="9" font-style="italic" fill="#534AB7">STUDENT_LEFT</text>
+
+<!-- Step 5: Teacher sees student offline -->
+<rect x="296" y="1334" width="186" height="46" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="389" y="1354" text-anchor="middle" font-size="11" font-weight="500" fill="#085041">⑤ Student Shown as Offline</text>
+<text x="389" y="1370" text-anchor="middle" font-size="10" fill="#085041">Name grayed out in list</text>
+
+<!-- ============================================================ -->
+<!-- LEGEND -->
+<!-- ============================================================ -->
+<rect x="60" y="1408" width="1260" height="30" fill="#888780" fill-opacity="0.10"/>
+<text x="690" y="1428" text-anchor="middle" font-size="12" font-weight="500" fill="var(--color-text-primary)">Legend</text>
+
+<rect x="80" y="1452" width="158" height="36" rx="8" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
+<text x="159" y="1474" text-anchor="middle" font-size="11" fill="#042C53">Client (Student)</text>
+
+<rect x="258" y="1452" width="158" height="36" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="337" y="1474" text-anchor="middle" font-size="11" fill="#085041">Client (Teacher)</text>
+
+<rect x="436" y="1452" width="158" height="36" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="515" y="1474" text-anchor="middle" font-size="11" fill="#26215C">Backend</text>
+
+<rect x="614" y="1452" width="158" height="36" rx="8" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+<text x="693" y="1474" text-anchor="middle" font-size="11" fill="#412402">MongoDB</text>
+
+<rect x="792" y="1452" width="158" height="36" rx="8" fill="#F5C4B3" stroke="#D85A30" stroke-width="0.5"/>
+<text x="871" y="1474" text-anchor="middle" font-size="11" fill="#4A1B0C">Redis</text>
+
+<line x1="970" y1="1470" x2="1070" y2="1470" stroke="#185FA5" stroke-width="1.5" marker-end="url(#arr-b)" fill="none"/>
+<text x="1080" y="1474" text-anchor="start" font-size="10" fill="var(--color-text-secondary)">REST / WebSocket event</text>
+
+<line x1="970" y1="1496" x2="1070" y2="1496" stroke="#888780" stroke-width="1" stroke-dasharray="4 3" fill="none"/>
+<text x="1080" y="1500" text-anchor="start" font-size="10" fill="var(--color-text-secondary)">Sequential flow (vertical)</text>
+
+</svg>
+</div>
+</body>
+</html>
