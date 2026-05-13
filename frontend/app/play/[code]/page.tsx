@@ -2,17 +2,18 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Spinner, Button, Card, CardContent, RadioGroup, Radio, Label } from "@heroui/react";
+import { Spinner, Button, Card, CardContent, RadioGroup, Radio, Label, Input } from "@heroui/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, Trophy, Wifi, WifiOff } from "lucide-react";
+import { ChevronLeft, Trophy, Wifi, WifiOff, RotateCcw } from "lucide-react";
 import { quizApi } from "@/services/quizApi";
 import type { Quiz } from "@/types/quiz";
 import { useLang } from "@/lib/i18n/LanguageContext";
 import { QuizProgress } from "../../quiz/components/QuizProgress";
 import { StudentNameModal } from "./StudentNameModal";
 import { useStudentSocket } from "@/hooks/useMonitoringSocket";
+import { useQuizSession } from "@/hooks/useQuizSession";
 
-// sessionId is based on the Quiz's MongoDB _id so Teacher & Student share the same room
+// sessionId must match the Teacher's monitoring page: quiz-session-{quizId}
 function sessionIdFromQuiz(quizId: string) {
   return `quiz-session-${quizId}`;
 }
@@ -24,28 +25,32 @@ export default function PlayQuizPage() {
 
   const code = (params.code as string)?.toUpperCase();
 
-  // ── Quiz data ──────────────────────────────────────────────
-  const [quiz, setQuiz] = useState<Quiz | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  // ── Quiz data ──────────────────────────────────────────────────────────────
+  const [quiz,    setQuiz]    = useState<Quiz | null>(null);
+  const [error,   setError]   = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // ── Student identity ───────────────────────────────────────
-  const [studentName, setStudentName] = useState("");
-  const [studentId, setStudentId]     = useState("");
+  // ── Student identity ───────────────────────────────────────────────────────
+  const [studentName, setStudentName]   = useState("");
+  const [studentId,   setStudentId]     = useState("");
   const [showNameModal, setShowNameModal] = useState(false);
 
-  // ── Quiz state ─────────────────────────────────────────────
-  const [started, setStarted]               = useState(false);
-  const [currentIndex, setCurrentIndex]     = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
-  const [currentSelection, setCurrentSelection] = useState<string | null>(null);
-  const [isFinished, setIsFinished]         = useState(false);
-  const [isPaused, setIsPaused]             = useState(false);
+  // ── Quiz progress ──────────────────────────────────────────────────────────
+  const [started,           setStarted]           = useState(false);
+  const [currentIndex,      setCurrentIndex]       = useState(0);
+  const [selectedAnswers,   setSelectedAnswers]    = useState<Record<string, string>>({});
+  const [currentSelection,  setCurrentSelection]   = useState<string | null>(null);
+  const [isFinished,        setIsFinished]         = useState(false);
+  const [isPaused,          setIsPaused]           = useState(false);
+  const [recoveredSession,  setRecoveredSession]   = useState(false); // banner flag
 
-  // ── Timing per question ────────────────────────────────────
+  // ── Timing per question ────────────────────────────────────────────────────
   const questionStartTime = useRef<number>(Date.now());
 
-  // ── Load quiz ──────────────────────────────────────────────
+  // ── Session persistence ────────────────────────────────────────────────────
+  const { loadSession, saveSession, clearSession } = useQuizSession(quiz?.id ?? "");
+
+  // ── Load quiz from API ─────────────────────────────────────────────────────
   useEffect(() => {
     if (!code) { setError("Invalid code"); setLoading(false); return; }
     quizApi.getQuizByCode(code)
@@ -54,8 +59,42 @@ export default function PlayQuizPage() {
       .finally(() => setLoading(false));
   }, [code]);
 
-  // ── Socket (only active after student confirmed name) ──────
-  // sessionId must match what Teacher's monitoring page uses: quiz-session-{quizId}
+  // ── Restore saved session once quiz is loaded ──────────────────────────────
+  useEffect(() => {
+    if (!quiz) return;
+    const saved = loadSession();
+    if (!saved || !saved.started) return;
+
+    // Restore all quiz state from localStorage
+    setStudentId(saved.studentId);
+    setStudentName(saved.studentName);
+    setCurrentIndex(saved.currentIndex);
+    setSelectedAnswers(saved.selectedAnswers);
+    setCurrentSelection(saved.currentSelection);
+    setStarted(saved.started);
+    setIsFinished(saved.isFinished);
+    setRecoveredSession(true);
+
+    // Banner auto-hides after 4 s
+    setTimeout(() => setRecoveredSession(false), 4000);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quiz?.id]);
+
+  // ── Auto-save on every state change ───────────────────────────────────────
+  useEffect(() => {
+    if (!quiz || !started || !studentId) return;
+    saveSession({
+      studentId,
+      studentName,
+      currentIndex,
+      selectedAnswers,
+      currentSelection,
+      started,
+      isFinished,
+    });
+  }, [quiz, started, studentId, studentName, currentIndex, selectedAnswers, currentSelection, isFinished, saveSession]);
+
+  // ── Socket (only active after student has an identity) ────────────────────
   const sessionId = quiz ? sessionIdFromQuiz(quiz.id) : "";
 
   const { isConnected, submitAnswer } = useStudentSocket({
@@ -75,19 +114,21 @@ export default function PlayQuizPage() {
     questionStartTime.current = Date.now();
   }, [currentIndex]);
 
-  // ── Handlers ───────────────────────────────────────────────
+  // ── Handlers ──────────────────────────────────────────────────────────────
   const handleStartQuiz = () => {
-    if (!studentName) {
-      setShowNameModal(true);
-    } else {
-      setStarted(true);
+    if (!studentName.trim()) {
+      setError("Please enter your name to start");
+      return;
     }
+    setError(null);
+    setStarted(true);
   };
 
-  const handleNameConfirm = (name: string, id: string) => {
-    setStudentName(name);
-    setStudentId(id);
-    setShowNameModal(false);
+  const handlePlayAgain = () => {
+    setCurrentIndex(0);
+    setSelectedAnswers({});
+    setCurrentSelection(null);
+    setIsFinished(false);
     setStarted(true);
   };
 
@@ -95,7 +136,6 @@ export default function PlayQuizPage() {
     if (isPaused) return;
     setCurrentSelection(optionId);
 
-    // Emit real-time selection change immediately
     if (quiz && studentId) {
       const currentQuestion = quiz.questions[currentIndex];
       const selectedChoice  = currentQuestion.choices.find(c => c.id === optionId);
@@ -124,10 +164,22 @@ export default function PlayQuizPage() {
       setCurrentSelection(null);
     } else {
       setIsFinished(true);
+      clearSession();
     }
   };
 
-  // ── Score calculation ──────────────────────────────────────
+  const handleRestartFresh = () => {
+    clearSession();
+    setStudentId("");
+    setStudentName("");
+    setCurrentIndex(0);
+    setSelectedAnswers({});
+    setCurrentSelection(null);
+    setStarted(false);
+    setIsFinished(false);
+    setRecoveredSession(false);
+  };
+
   const calcScore = () => {
     if (!quiz) return { correct: 0, total: 0 };
     const correct = quiz.questions.filter(q => {
@@ -138,9 +190,9 @@ export default function PlayQuizPage() {
     return { correct, total: quiz.questions.length };
   };
 
-  // ═══════════════════════════════════════════════════════════
-  //  Loading screen
-  // ═══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  Loading & Error Screens
+  // ═══════════════════════════════════════════════════════════════════════════
   if (loading) {
     return (
       <div className="quiz-bg fixed inset-0 flex flex-col items-center justify-center gap-4">
@@ -169,9 +221,9 @@ export default function PlayQuizPage() {
     );
   }
 
-  // ═══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════
   //  Finished Screen
-  // ═══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════
   if (isFinished) {
     const { correct, total } = calcScore();
     const percentage = Math.round((correct / total) * 100);
@@ -191,7 +243,7 @@ export default function PlayQuizPage() {
               </div>
               <div>
                 <h1 className="text-2xl font-extrabold text-white tracking-tight">Quiz Complete!</h1>
-                <p className="text-white/55 text-sm mt-1">Well done, {studentName || "Challenger"}!</p>
+                <p className="text-white/55 text-sm mt-1">Well done, {studentName}!</p>
               </div>
             </motion.div>
 
@@ -206,16 +258,25 @@ export default function PlayQuizPage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 w-full">
-                  <StatBox label="Score" value={`${correct}/${total}`} highlight={false} />
-                  <StatBox label="Accuracy" value={`${percentage}%`} highlight={percentage >= 70} />
+                  <StatBox label="Score"    value={`${correct}/${total}`} highlight={false} />
+                  <StatBox label="Accuracy" value={`${percentage}%`}     highlight={percentage >= 70} />
                 </div>
 
-                <Button
-                  className="w-full py-7 rounded-2xl font-black text-lg bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-xl"
-                  onPress={() => router.push("/")}
-                >
-                  Back to Home
-                </Button>
+                <div className="flex flex-col gap-3 w-full">
+                  <Button
+                    className="w-full py-7 rounded-2xl font-black text-lg bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-xl"
+                    onPress={handlePlayAgain}
+                  >
+                    Play Again
+                  </Button>
+                  <Button
+                    variant="light"
+                    className="w-full py-7 rounded-2xl font-bold text-zinc-500"
+                    onPress={() => router.push("/")}
+                  >
+                    Back to Home
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -224,9 +285,9 @@ export default function PlayQuizPage() {
     );
   }
 
-  // ═══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════
   //  Welcome Screen
-  // ═══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════
   if (!started) {
     return (
       <div className="quiz-bg fixed inset-0 overflow-y-auto">
@@ -246,6 +307,29 @@ export default function PlayQuizPage() {
                   <p className="text-zinc-500 dark:text-zinc-400 text-sm">{quiz.description}</p>
                 </div>
 
+                <div className="w-full space-y-2 mt-2">
+                  <div className="text-left">
+                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Your Name</label>
+                    <Input
+                      placeholder="Enter your name to join..."
+                      value={studentName}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setStudentName(val);
+                        if (!studentId && val.trim()) {
+                           setStudentId(`${val.trim().toLowerCase().replace(/\s+/g, "_")}_${Date.now().toString(36)}`);
+                        }
+                      }}
+                      className="mt-1"
+                      size="lg"
+                      variant="bordered"
+                      color="primary"
+                      // Use standard className for the wrapper styling
+                      className="mt-1 bg-white dark:bg-zinc-800 rounded-2xl"
+                    />
+                  </div>
+                </div>
+
                 <div className="flex gap-4 w-full mt-2 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl p-4 border border-zinc-100 dark:border-zinc-700/50">
                   <div className="flex-1">
                     <p className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider">Questions</p>
@@ -260,6 +344,7 @@ export default function PlayQuizPage() {
 
                 <Button
                   size="lg"
+                  isDisabled={!studentName.trim()}
                   className="w-full h-16 rounded-2xl font-black text-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-xl hover:shadow-violet-500/30 hover:-translate-y-1 transition-all"
                   onPress={handleStartQuiz}
                 >
@@ -273,27 +358,41 @@ export default function PlayQuizPage() {
             </Card>
           </motion.div>
         </div>
-
-        {/* Name input modal */}
-        <StudentNameModal
-          quizTitle={quiz.title}
-          isOpen={showNameModal}
-          onConfirm={handleNameConfirm}
-        />
       </div>
     );
   }
 
-  // ═══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════
   //  Quiz Player
-  // ═══════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════
   const question = quiz.questions[currentIndex];
 
   return (
     <div className="quiz-bg fixed inset-0 overflow-y-auto">
       <Blobs />
 
-      {/* Pause overlay */}
+      {/* ── Session Recovered Banner ───────────────────────────────────────── */}
+      <AnimatePresence>
+        {recoveredSession && (
+          <motion.div
+            initial={{ opacity: 0, y: -60 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -60 }}
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-emerald-500/90 backdrop-blur-md text-white px-5 py-3 rounded-2xl shadow-xl border border-emerald-400/30"
+          >
+            <RotateCcw className="w-4 h-4 shrink-0" />
+            <span className="font-bold text-sm">Session restored — continuing where you left off</span>
+            <button
+              onClick={handleRestartFresh}
+              className="text-xs underline opacity-70 hover:opacity-100 ml-1 font-medium"
+            >
+              Start over
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Pause Overlay ──────────────────────────────────────────────────── */}
       <AnimatePresence>
         {isPaused && (
           <motion.div
@@ -330,7 +429,7 @@ export default function PlayQuizPage() {
             {/* Connection indicator */}
             <div className={`flex items-center gap-1.5 backdrop-blur-md border border-white/25 rounded-full px-3 py-1.5 ${isConnected ? "bg-emerald-500/20" : "bg-white/20 dark:bg-white/10"}`}>
               {isConnected
-                ? <Wifi className="w-3.5 h-3.5 text-emerald-300" />
+                ? <Wifi    className="w-3.5 h-3.5 text-emerald-300" />
                 : <WifiOff className="w-3.5 h-3.5 text-white/50" />
               }
               <span className={`font-bold text-xs uppercase tracking-tight ${isConnected ? "text-emerald-300" : "text-white/50"}`}>
@@ -439,7 +538,7 @@ export default function PlayQuizPage() {
   );
 }
 
-// ── Shared UI Helpers ──────────────────────────────────────────
+// ── Shared UI Helpers ──────────────────────────────────────────────────────────
 
 function Blobs() {
   return (

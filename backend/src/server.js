@@ -7,11 +7,12 @@ const express = require("express");
 const cors    = require("cors");
 const path    = require("path");
 
-const { connectDB }      = require("./db");
-const quizRoutes         = require("./routes/quiz.routes");
-const monitoringRoutes   = require("./routes/monitoring.routes");
-const { getQuizByCode }  = require("./controllers/quiz.controller");
-const { initSocket }     = require("./socket");
+const { connectDB }        = require("./db");
+const { getRedisClient }   = require("./redis/redisClient");
+const quizRoutes           = require("./routes/quiz.routes");
+const monitoringRoutes     = require("./routes/monitoring.routes");
+const { getQuizByCode }    = require("./controllers/quiz.controller");
+const { initSocket }       = require("./socket");
 
 const app  = express();
 const PORT = process.env.PORT || 5000;
@@ -54,10 +55,23 @@ const httpServer = http.createServer(app);
 initSocket(httpServer);
 
 // ── Start ──────────────────────────────────────────────────────
-connectDB().then(() => {
-  httpServer.listen(PORT, "0.0.0.0", () => {
-    console.log(`🚀 Server running at http://0.0.0.0:${PORT}`);
-    console.log(`📂 Network IP: http://150.15.79.45:${PORT}`);
-    console.log(`🔌 Socket.IO ready at ws://0.0.0.0:${PORT}`);
+// Only MongoDB is required for startup. Redis connects lazily on
+// first socket event — server stays up even if Redis is offline.
+connectDB()
+  .then(() => {
+    // Attempt Redis warm-up in the background (non-blocking)
+    getRedisClient().then((rc) => {
+      if (rc) console.log("[redis] ✅ Warmed up and ready");
+      else    console.warn("[redis] ⚠️  Running without Redis — session state is in-memory only");
+    });
+
+    httpServer.listen(PORT, "0.0.0.0", () => {
+      console.log(`🚀 Server running at http://0.0.0.0:${PORT}`);
+      console.log(`📂 Network IP: http://150.15.79.45:${PORT}`);
+      console.log(`🔌 Socket.IO ready at ws://0.0.0.0:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("❌ MongoDB connection failed — cannot start:", err);
+    process.exit(1);
   });
-});

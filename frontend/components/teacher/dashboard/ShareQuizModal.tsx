@@ -24,9 +24,8 @@ export function ShareQuizModal({ quiz, isOpen, onClose }: ShareQuizModalProps) {
   const [currentQuiz, setCurrentQuiz] = useState<Quiz>(quiz);
 
   // When students join, they go to /play/[code]
-  const joinUrl = typeof window !== "undefined" && currentQuiz.accessCode
-    ? `${window.location.origin}/play/${currentQuiz.accessCode}`
-    : "";
+  const baseUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || (typeof window !== "undefined" ? window.location.origin : "");
+  const joinUrl = currentQuiz.accessCode ? `${baseUrl}/play/${currentQuiz.accessCode}` : "";
 
   useEffect(() => {
     let mounted = true;

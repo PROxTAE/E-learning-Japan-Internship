@@ -22,17 +22,16 @@ async function getSessionState(sessionId: string): Promise<{
       const body = await res.json();
       if (body.success) return body.data;
     }
-  } catch { /* fall through */ }
+  } catch (err) {
+    console.warn("[monitoringApi] REST load failed, waiting for socket snapshot:", err);
+  }
 
-  // Fallback: mock data so UI still works without backend
-  const { MOCK_STUDENTS, MOCK_QUESTIONS, MOCK_ANSWERS, MOCK_LIVE_STATS } = await import(
-    "@/lib/teacher/monitoring.mock"
-  );
+  // Return empty — socket snapshot will populate the real data on connect
   return {
-    students: [...MOCK_STUDENTS],
-    questions: [...MOCK_QUESTIONS],
-    answers: [...MOCK_ANSWERS],
-    stats: { ...MOCK_LIVE_STATS },
+    students:  [],
+    questions: [],
+    answers:   [],
+    stats: { totalStudents: 0, activeStudents: 0, averageScore: 0, completionPercentage: 0 } as LiveStats,
   };
 }
 
@@ -65,15 +64,18 @@ function setupRealtimeListeners(
 ) {
   const socket = getSocket();
 
-  // ── Join handler (called on connect + reconnect) ───────────
+  // ── Join + snapshot request (called on every connect / reconnect) ──
   const doJoin = () => {
     console.log(`[monitoringApi] Teacher joining room: ${sessionId}`);
-    socket.emit("join_quiz", { sessionId, role: "teacher" });
+    socket.emit("join_quiz",         { sessionId, role: "teacher" });
+    // Ask for full Redis snapshot — restores dashboard after page refresh
+    socket.emit("get_session_state", { sessionId });
   };
 
   // Remove any stale listeners before adding new ones (prevents duplicates)
   socket.off("connect",        doJoin);
   socket.off("session_joined");
+  socket.off("session_state");
   socket.off("answer_update");
   socket.off("student_joined");
   socket.off("student_left");
@@ -83,10 +85,25 @@ function setupRealtimeListeners(
   // Join immediately if socket is already connected
   if (socket.connected) doJoin();
 
-  // ── Full state snapshot when teacher joins ─────────────────
+  // ── Full snapshot via session_joined (initial connect) ──────
   socket.on("session_joined", (data: any) => {
     console.log("[monitoringApi] session_joined:", data);
     if (data.role === "teacher" && onSnapshot) {
+      onSnapshot({
+        students: data.students || [],
+        answers:  data.answers  || [],
+        stats:    data.stats    || {
+          totalStudents: 0, activeStudents: 0, averageScore: 0, completionPercentage: 0
+        },
+      });
+    }
+  });
+
+  // ── Full snapshot via session_state (reconnect / refresh) ────
+  // Sent by Redis after get_session_state request
+  socket.on("session_state", (data: any) => {
+    console.log("[monitoringApi] session_state (Redis restore):", data?.students?.length, "students");
+    if (onSnapshot) {
       onSnapshot({
         students: data.students || [],
         answers:  data.answers  || [],
@@ -124,6 +141,7 @@ function setupRealtimeListeners(
   return () => {
     socket.off("connect",        doJoin);
     socket.off("session_joined");
+    socket.off("session_state");
     socket.off("answer_update");
     socket.off("student_joined");
     socket.off("student_left");

@@ -6,21 +6,23 @@ import { Student, AnswerCellData, LiveStats } from "@/types/teacher/monitoring.t
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || "http://150.15.79.45:5000";
 
-// ── Event type constants (must match backend) ──────────────────
+// ── Event type constants (must match backend types.js) ─────────
 const CLIENT_EVENTS = {
-  JOIN_QUIZ:       "join_quiz",
-  SUBMIT_ANSWER:   "submit_answer",
-  CONTROL_SESSION: "control_session",
+  JOIN_QUIZ:         "join_quiz",
+  SUBMIT_ANSWER:     "submit_answer",
+  CONTROL_SESSION:   "control_session",
+  GET_SESSION_STATE: "get_session_state",   // ← teacher refresh/reconnect
 } as const;
 
 const SERVER_EVENTS = {
-  SESSION_JOINED: "session_joined",
-  STUDENT_JOINED: "student_joined",
-  STUDENT_LEFT:   "student_left",
-  ANSWER_UPDATE:  "answer_update",
-  SESSION_STATS:  "session_stats",
-  SESSION_CONTROL:"session_control",
-  ERROR:          "error",
+  SESSION_JOINED:  "session_joined",
+  SESSION_STATE:   "session_state",         // ← full snapshot for reconnect
+  STUDENT_JOINED:  "student_joined",
+  STUDENT_LEFT:    "student_left",
+  ANSWER_UPDATE:   "answer_update",
+  SESSION_STATS:   "session_stats",
+  SESSION_CONTROL: "session_control",
+  ERROR:           "error",
 } as const;
 
 // ── Hook options ───────────────────────────────────────────────
@@ -34,27 +36,35 @@ export interface UseTeacherSocketOptions {
   onError?:           (message: string) => void;
 }
 
-// ── Full session snapshot on join ──────────────────────────────
+// ── Full session snapshot on join / reconnect ──────────────────
 export interface SessionSnapshot {
-  students: Student[];
-  answers:  AnswerCellData[];
-  stats:    LiveStats;
+  students:   Student[];
+  answers:    AnswerCellData[];
+  stats:      LiveStats;
+  isPaused?:  boolean;
+  startedAt?: number;
 }
 
 export interface UseTeacherSocketReturn {
-  isConnected:    boolean;
-  controlSession: (action: "pause" | "resume" | "stop") => void;
+  isConnected:      boolean;
+  controlSession:   (action: "pause" | "resume" | "stop") => void;
+  /** Manually request a fresh state snapshot (e.g., after teacher-side refresh) */
+  requestSnapshot:  () => void;
 }
 
 // ─────────────────────────────────────────────────────────────
 //  useTeacherSocket — Teacher Dashboard real-time hook
+//
+//  On every connect (including after page refresh) the hook
+//  emits GET_SESSION_STATE so the teacher's monitoring dashboard
+//  is instantly restored from Redis.
 // ─────────────────────────────────────────────────────────────
 export function useTeacherSocket(
   options: UseTeacherSocketOptions,
   onSnapshot?: (snap: SessionSnapshot) => void
 ): UseTeacherSocketReturn {
-  const socketRef = useRef<Socket | null>(null);
-  const connectedRef = useRef(false);
+  const socketRef    = useRef<Socket | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
 
   const { sessionId, quizId, onStudentJoined, onStudentLeft, onAnswerUpdate, onSessionControl, onError } = options;
 
@@ -67,29 +77,51 @@ export function useTeacherSocket(
     });
     socketRef.current = socket;
 
+    // ── On (re)connect: restore full state from Redis ──────────
     socket.on("connect", () => {
       console.log("[teacher socket] connected:", socket.id);
-      connectedRef.current = true;
+      setIsConnected(true);
 
-      // Join as teacher
+      // 1. Join the session room so we receive future broadcasts
       socket.emit(CLIENT_EVENTS.JOIN_QUIZ, {
         sessionId,
         quizId,
         role: "teacher",
       });
+
+      // 2. Also explicitly request current snapshot.
+      //    This handles reconnects where JOIN_QUIZ alone may not
+      //    re-send the full state (e.g., server already has session).
+      socket.emit(CLIENT_EVENTS.GET_SESSION_STATE, { sessionId, quizId });
     });
 
-    // ── Handle initial snapshot ────────────────────────────────
+    // ── Initial snapshot via SESSION_JOINED (first connect) ────
     socket.on(SERVER_EVENTS.SESSION_JOINED, (data: any) => {
       if (data.role === "teacher" && onSnapshot) {
         onSnapshot({
-          students: data.students || [],
-          answers:  data.answers  || [],
-          stats:    data.stats    || { totalStudents: 0, activeStudents: 0, averageScore: 0, completionPercentage: 0 },
+          students:  data.students  || [],
+          answers:   data.answers   || [],
+          stats:     data.stats     || buildEmptyStats(),
+          isPaused:  data.isPaused  ?? false,
+          startedAt: data.startedAt,
         });
       }
     });
 
+    // ── Full snapshot via SESSION_STATE (refresh / reconnect) ──
+    socket.on(SERVER_EVENTS.SESSION_STATE, (data: any) => {
+      if (onSnapshot) {
+        onSnapshot({
+          students:  data.students  || [],
+          answers:   data.answers   || [],
+          stats:     data.stats     || buildEmptyStats(),
+          isPaused:  data.isPaused  ?? false,
+          startedAt: data.startedAt,
+        });
+      }
+    });
+
+    // ── Realtime incremental updates ───────────────────────────
     socket.on(SERVER_EVENTS.STUDENT_JOINED, ({ student, stats }: { student: Student; stats: LiveStats }) => {
       onStudentJoined?.(student, stats);
     });
@@ -112,7 +144,7 @@ export function useTeacherSocket(
     });
 
     socket.on("disconnect", () => {
-      connectedRef.current = false;
+      setIsConnected(false);
       console.log("[teacher socket] disconnected");
     });
 
@@ -127,9 +159,15 @@ export function useTeacherSocket(
     socketRef.current?.emit(CLIENT_EVENTS.CONTROL_SESSION, { sessionId, action });
   }, [sessionId]);
 
+  /** Imperatively pull the latest state (e.g. a "Refresh" button) */
+  const requestSnapshot = useCallback(() => {
+    socketRef.current?.emit(CLIENT_EVENTS.GET_SESSION_STATE, { sessionId, quizId });
+  }, [sessionId, quizId]);
+
   return {
-    isConnected:    connectedRef.current,
+    isConnected,
     controlSession,
+    requestSnapshot,
   };
 }
 
@@ -159,7 +197,6 @@ export interface UseStudentSocketReturn {
 
 export function useStudentSocket(options: UseStudentSocketOptions): UseStudentSocketReturn {
   const socketRef = useRef<Socket | null>(null);
-  // useState so UI re-renders when connection changes
   const [isConnected, setIsConnected] = useState(false);
 
   const { sessionId, quizId, studentId, name, avatar, onSessionControl, onError } = options;
@@ -237,3 +274,14 @@ export function useStudentSocket(options: UseStudentSocketOptions): UseStudentSo
   return { isConnected, submitAnswer };
 }
 
+// ── Utility ────────────────────────────────────────────────────
+function buildEmptyStats(): LiveStats {
+  return {
+    totalStudents:        0,
+    activeStudents:       0,
+    averageScore:         0,
+    completionPercentage: 0,
+    totalAnswers:         0,
+    correctAnswers:       0,
+  } as LiveStats;
+}

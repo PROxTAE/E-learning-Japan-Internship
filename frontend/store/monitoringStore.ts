@@ -40,15 +40,27 @@ export const useMonitoringStore = create<MonitoringStore>((set) => ({
   setLoading: (loading) => set({ loading }),
   
   setSessionData: (data) => set((state) => {
-    const nextStats = data.stats ?? state.stats;
-    const nextQuestions = mergeQuestionStats((data.questions ?? []).length > 0 ? data.questions! : state.questions, nextStats);
+    // Normalize students: in-memory fallback sends { studentId } but grid needs { id }
+    const normalizeStudents = (arr: Student[]) =>
+      arr.map((s: any) => ({
+        ...s,
+        id: s.id || s.studentId || "",
+      }));
+
+    const nextStudents  = data.students  !== undefined ? normalizeStudents(data.students as any[])  : state.students;
+    const nextAnswers   = data.answers   !== undefined ? data.answers   : state.answers;
+    const nextStats     = data.stats     !== undefined ? data.stats     : state.stats;
+    // Keep existing questions if snapshot didn't include them (questions come from MongoDB)
+    const nextQuestions = (data.questions !== undefined && data.questions.length > 0)
+      ? data.questions
+      : state.questions;
 
     return {
-      students:  (data.students  ?? []).length > 0 ? data.students!  : state.students,
-      questions: nextQuestions,
-      answers:   (data.answers   ?? []).length > 0 ? data.answers!   : state.answers,
+      students:  nextStudents,
+      questions: mergeQuestionStats(nextQuestions, nextStats),
+      answers:   nextAnswers,
       stats:     nextStats,
-      loading: false,
+      loading:   false,
     };
   }),
 

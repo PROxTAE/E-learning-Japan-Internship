@@ -52,6 +52,7 @@ export default function Home() {
         <form onSubmit={handleJoin} className="w-full max-w-xs sm:max-w-sm bg-white/10 backdrop-blur-md p-4 rounded-3xl border border-white/20 flex flex-col gap-3">
           <TextField className="w-full">
             <Input
+              suppressHydrationWarning
               placeholder="Enter Access Code"
               value={accessCode}
               onChange={(e) => setAccessCode(e.target.value)}
@@ -59,6 +60,7 @@ export default function Home() {
             />
           </TextField>
           <Button
+            suppressHydrationWarning
             type="submit"
             size="lg"
             className="w-full font-bold bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-lg shadow-violet-500/25 hover:-translate-y-0.5 flex items-center justify-center gap-2"
@@ -77,6 +79,7 @@ export default function Home() {
         {/* CTA button to Teacher Dashboard */}
         <Link href="/teacher/dashboard" className="w-full max-w-xs sm:max-w-sm">
           <button
+            suppressHydrationWarning
             className="
               w-full py-4 sm:py-4.5 rounded-2xl
               bg-white/10 text-white font-bold text-lg sm:text-xl

@@ -7,6 +7,7 @@ import { monitoringApi } from "@/services/monitoringApi";
 import { MonitoringStats } from "@/components/teacher/monitoring/MonitoringStats";
 import { QuizSessionHeader } from "@/components/teacher/monitoring/QuizSessionHeader";
 import { MonitoringGrid } from "@/components/teacher/monitoring/MonitoringGrid";
+import { useConnectionToast } from "@/components/teacher/monitoring/ConnectionToast";
 import { motion } from "framer-motion";
 import { quizApi } from "@/services/quizApi";
 import { ArrowLeft } from "lucide-react";
@@ -33,6 +34,8 @@ export default function MonitoringQuizPage() {
 
   const [quizTitle, setQuizTitle] = useState("Live Quiz Session");
   const [quizCode,  setQuizCode]  = useState("");
+
+  const { notify, ToastContainer } = useConnectionToast();
 
   // sessionId MUST match what Play page uses: quiz-session-{quiz._id}
   const sessionId = `quiz-session-${quizId}`;
@@ -87,25 +90,39 @@ export default function MonitoringQuizPage() {
   }, [sessionId, setLoading, setSessionData, quizId]);
 
   // ── Step 3: Real-time Socket.IO listeners ─────────────────────────
+  // Register socket IMMEDIATELY on mount — don't wait for loading.
+  // The `session_joined` and `session_state` events carry the full snapshot
+  // and will overwrite whatever the REST call returned.
   useEffect(() => {
-    if (loading) return;
+    if (!quizId) return;
 
     const cleanup = monitoringApi.setupRealtimeListeners(
       sessionId,
       {
-        onAnswerUpdate:  (answer)   => {
+        onAnswerUpdate: (answer) => {
           console.log("[monitoring] answer_update received:", answer.studentId, answer.questionId);
           addAnswer(answer);
         },
-        onStudentJoined: (student)  => updateStudent(student),
-        onStatsUpdate:   (newStats) => updateStats(newStats),
+        onStudentJoined: (student) => {
+          // Normalize id so grid dedup doesn't drop this student
+          const normalized = { ...student, id: student.id || (student as any).studentId || "" };
+          if (normalized.isOnline !== false) {
+            // true join
+            notify({ type: "join",  studentName: normalized.name });
+          } else {
+            // came in via student_left path
+            notify({ type: "leave", studentName: normalized.name });
+          }
+          updateStudent(normalized);
+        },
+        onStatsUpdate: (newStats) => updateStats(newStats),
       },
-      // onSnapshot: full sync on connect — preserve loaded questions
+      // onSnapshot: full sync on every connect/reconnect
       (snapshot) => {
-        console.log("[monitoring] snapshot:", snapshot.students.length, "students,", snapshot.answers.length, "answers");
+        console.log("[monitoring] snapshot restored:", snapshot.students.length, "students,", snapshot.answers.length, "answers");
         setSessionData({
           students:  snapshot.students,
-          questions: storeQuestions, // keep already-loaded questions
+          questions: storeQuestions.length > 0 ? storeQuestions : undefined as any,
           answers:   snapshot.answers,
           stats:     snapshot.stats,
         });
@@ -114,7 +131,7 @@ export default function MonitoringQuizPage() {
 
     return () => cleanup();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId, loading]);
+  }, [sessionId, quizId]);
 
   // ── Pause/Resume ──────────────────────────────────────────────────
   const handleStateChange = (newState: Partial<typeof uiState>) => {
@@ -182,6 +199,9 @@ export default function MonitoringQuizPage() {
           <MonitoringGrid />
         </div>
       </div>
+
+      {/* Student join/leave toast notifications */}
+      {ToastContainer}
     </div>
   );
 }

@@ -42,6 +42,7 @@ function upsertStudent(sessionId, student) {
   const existing = session.students.get(student.studentId) || {};
   const updated = {
     studentId: student.studentId,
+    id:        student.studentId,   // ← alias so monitoring grid can render
     name: student.name,
     avatar: student.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${student.studentId}`,
     isOnline: true,
