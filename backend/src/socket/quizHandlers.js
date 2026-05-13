@@ -171,6 +171,40 @@ module.exports = function registerHandlers(io, socket) {
 
       if (action === "pause")  await redis.setSessionPaused(sessionId, true);
       if (action === "resume") await redis.setSessionPaused(sessionId, false);
+      
+      if (action === "end") {
+        const snapshot = await redis.getFullSessionState(sessionId);
+        const actualQuizId = snapshot?.quizId || sessionId.replace("quiz-session-", "");
+        
+        if (snapshot && actualQuizId) {
+          const QuizSessionResult = require("../models/QuizSessionResult.model");
+          
+          const studentScores = snapshot.students.map(st => {
+            const studentAnswers = snapshot.answers.filter(a => a.studentId === st.studentId);
+            const score = studentAnswers.filter(a => a.isCorrect).length;
+            return {
+              studentId: st.studentId,
+              name: st.name,
+              score,
+              joinedAt: st.joinedAt
+            };
+          });
+
+          await QuizSessionResult.create({
+            sessionId,
+            quizId: actualQuizId,
+            startedAt: new Date(snapshot.startedAt || Date.now()),
+            endedAt: new Date(),
+            stats: {
+              totalStudents: snapshot.stats?.totalStudents || 0,
+              averageScore: snapshot.stats?.averageScore || 0,
+              completionPercentage: snapshot.stats?.completionPercentage || 0,
+            },
+            students: studentScores,
+            answers: snapshot.answers,
+          }).catch(err => console.error("[control_session] Archive error:", err));
+        }
+      }
 
       // Broadcast control state to all in session
       io.to(sessionRoom(sessionId)).emit(SERVER_EVENTS.SESSION_CONTROL, { action });

@@ -133,8 +133,16 @@ export default function MonitoringQuizPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId, quizId]);
 
-  // ── Pause/Resume ──────────────────────────────────────────────────
+  // ── Pause/Resume/End ──────────────────────────────────────────────
   const handleStateChange = (newState: Partial<typeof uiState>) => {
+    if ("isEnded" in (newState as any)) {
+      if (window.confirm("Are you sure you want to end the session? This will finalize scores and save them permanently.")) {
+        monitoringApi.controlSession(sessionId, "end");
+        router.push("/teacher/quizzes");
+      }
+      return;
+    }
+
     if ("isPaused" in newState) {
       monitoringApi.controlSession(sessionId, newState.isPaused ? "pause" : "resume");
     }

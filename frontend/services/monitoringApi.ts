@@ -152,7 +152,7 @@ function setupRealtimeListeners(
 
 // ── Teacher session control ────────────────────────────────────
 
-function controlSession(sessionId: string, action: "pause" | "resume" | "stop") {
+function controlSession(sessionId: string, action: "pause" | "resume" | "stop" | "end") {
   getSocket().emit("control_session", { sessionId, action });
 }
 

@@ -79,8 +79,14 @@ export function QuizSessionHeader({ quizTitle, quizCode, state, onStateChange }:
           {state.isPaused ? "Resume" : "Pause"}
         </Button>
 
-        <Button size="sm" variant="secondary" className="px-2" title="Export Results">
-          <Download className="w-4 h-4" />
+        <Button 
+          size="sm" 
+          color="danger"
+          variant="flat"
+          className="flex items-center gap-2 font-bold ml-2"
+          onPress={() => onStateChange({ isEnded: true } as any)} // Let the parent component handle the actual ending logic
+        >
+          End Session
         </Button>
       </div>
     </div>

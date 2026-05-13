@@ -106,6 +106,10 @@ export default function PlayQuizPage() {
     onSessionControl: (action) => {
       if (action === "pause")  setIsPaused(true);
       if (action === "resume") setIsPaused(false);
+      if (action === "end") {
+        clearSession();
+        setIsFinished(true);
+      }
     },
   });
 
