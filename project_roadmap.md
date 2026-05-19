@@ -20,6 +20,7 @@
 - [x] **Live Score & Stats:** ระบบคำนวณคะแนนเฉลี่ย และเปอร์เซ็นต์การทำเสร็จแบบเรียลไทม์
 - [x] **Confusion Detection:** ระบบวิเคราะห์ความสับสนของนักเรียนจากพฤติกรรมการตอบ
 - [x] **Session Control:** อาจารย์สามารถสั่ง Pause/Resume ห้องสอบได้ทันที
+- [x] **Final Score Archiving:** ระบบย้ายข้อมูลจาก Redis ลง MongoDB เมื่อจบการสอบ (Save results permanently)
 
 #### **3. ส่วนติดต่อผู้ใช้ (Frontend UI)**
 - [x] **Modern Dashboard:** UI สำหรับอาจารย์ (Grid/Table view) ที่สวยงามและตอบสนองเร็ว
@@ -32,7 +33,6 @@
 
 ### 🔴 ความสำคัญสูง (High Priority - ต้องทำเพื่อให้ระบบสมบูรณ์)
 - [ ] **Teacher Authentication:** ระบบ Login สำหรับอาจารย์เพื่อความปลอดภัยของข้อมูล
-- [ ] **Final Score Archiving:** ระบบย้ายข้อมูลจาก Redis ลง MongoDB เมื่อจบการสอบ (Save results permanently)
 - [ ] **Student Result Screen:** หน้าสรุปคะแนนและเฉลยสำหรับนักเรียนเมื่อทำเสร็จ
 
 ### 🟡 ความสำคัญปานกลาง (Medium Priority - เพิ่มความสมบูรณ์ของ UX)

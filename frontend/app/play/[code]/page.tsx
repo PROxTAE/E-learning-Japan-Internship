@@ -12,6 +12,7 @@ import { QuizProgress } from "../../quiz/components/QuizProgress";
 import { StudentNameModal } from "./StudentNameModal";
 import { useStudentSocket } from "@/hooks/useMonitoringSocket";
 import { useQuizSession } from "@/hooks/useQuizSession";
+import { StudentResultScreen } from "@/components/student/result/StudentResultScreen";
 
 // sessionId must match the Teacher's monitoring page: quiz-session-{quizId}
 function sessionIdFromQuiz(quizId: string) {
@@ -229,61 +230,18 @@ export default function PlayQuizPage() {
   //  Finished Screen
   // ═══════════════════════════════════════════════════════════════════════════
   if (isFinished) {
-    const { correct, total } = calcScore();
-    const percentage = Math.round((correct / total) * 100);
-
     return (
       <div className="quiz-bg fixed inset-0 overflow-y-auto">
         <Blobs />
         <div className="relative min-h-full flex flex-col items-center justify-center px-4 py-10">
-          <div className="w-full max-w-md flex flex-col gap-6 mx-auto">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.5, y: -20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              className="flex flex-col items-center gap-3 text-center"
-            >
-              <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm border-2 border-white/20 flex items-center justify-center shadow-2xl">
-                <Trophy className="w-10 h-10 text-yellow-300 drop-shadow-lg" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-extrabold text-white tracking-tight">Quiz Complete!</h1>
-                <p className="text-white/55 text-sm mt-1">Well done, {studentName}!</p>
-              </div>
-            </motion.div>
-
-            <Card className="w-full rounded-[32px] border-0 shadow-2xl overflow-hidden bg-white dark:bg-zinc-900">
-              <div className={`h-1.5 w-full ${percentage >= 70 ? "bg-gradient-to-r from-emerald-400 to-green-500" : "bg-gradient-to-r from-amber-400 to-orange-500"}`} />
-              <CardContent className="flex flex-col items-center gap-6 py-10 px-8">
-                <div className="text-center">
-                  <div className="text-6xl font-black text-violet-600 dark:text-violet-300">{percentage}%</div>
-                  <p className="text-zinc-500 dark:text-zinc-400 mt-1">
-                    <span className="font-bold text-zinc-800 dark:text-white">{correct}</span> of {total} correct
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 w-full">
-                  <StatBox label="Score"    value={`${correct}/${total}`} highlight={false} />
-                  <StatBox label="Accuracy" value={`${percentage}%`}     highlight={percentage >= 70} />
-                </div>
-
-                <div className="flex flex-col gap-3 w-full">
-                  <Button
-                    className="w-full py-7 rounded-2xl font-black text-lg bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-xl"
-                    onPress={handlePlayAgain}
-                  >
-                    Play Again
-                  </Button>
-                  <Button
-                    variant="light"
-                    className="w-full py-7 rounded-2xl font-bold text-zinc-500"
-                    onPress={() => router.push("/")}
-                  >
-                    Back to Home
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <StudentResultScreen 
+            quizId={quiz.id}
+            studentId={studentId}
+            studentName={studentName}
+            selectedAnswers={selectedAnswers}
+            onPlayAgain={handlePlayAgain}
+            onGoHome={() => router.push("/")}
+          />
         </div>
       </div>
     );
