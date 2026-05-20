@@ -32,6 +32,8 @@ export interface Quiz {
   category: string;
   difficulty: Difficulty;
   durationMinutes: number;
+  hasTimeLimit: boolean;
+  showAnswersAfterQuiz: boolean;
   tags: string[];
   status: QuizStatus;
   accessCode?: string | null;

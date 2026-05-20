@@ -77,6 +77,8 @@ const DEFAULT_QUIZ: QuizFormData = {
   category: "",
   difficulty: "medium" as Difficulty,
   durationMinutes: 10,
+  hasTimeLimit: true,
+  showAnswersAfterQuiz: true,
   tags: [],
   status: "draft",
 };

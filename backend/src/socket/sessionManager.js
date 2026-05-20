@@ -74,7 +74,7 @@ function getStudents(sessionId) {
 
 // ── Answer management ──────────────────────────────────────────
 
-function recordAnswer(sessionId, { studentId, questionId, choiceId, choiceText, isCorrect, responseTime }) {
+async function recordAnswer(sessionId, { studentId, questionId, choiceId, choiceText, isCorrect, responseTime }) {
   const session = getOrCreate(sessionId);
   const key = `${studentId}:${questionId}`;
   const existing = session.answers.get(key);
@@ -104,7 +104,7 @@ function recordAnswer(sessionId, { studentId, questionId, choiceId, choiceText, 
   };
 
   session.answers.set(key, record);
-  _refreshStudentStats(session, studentId);
+  await _refreshStudentStats(session, studentId);
   return record;
 }
 
@@ -158,7 +158,7 @@ function calcConfusion(history, responseTime) {
   return "none";
 }
 
-function _refreshStudentStats(session, studentId) {
+async function _refreshStudentStats(session, studentId) {
   const student = session.students.get(studentId);
   if (!student) return;
 
@@ -166,9 +166,28 @@ function _refreshStudentStats(session, studentId) {
   const studentAnswers = allAnswers.filter(a => a.studentId === studentId);
   const correct = studentAnswers.filter(a => a.isCorrect).length;
 
-  student.score = studentAnswers.length > 0 ? Math.round((correct / studentAnswers.length) * 100) : 0;
-  // Calculate progress (this is tricky without totalQuestions, so we'll leave it to frontend or use a known count)
-  
+  let totalQuestions = session.totalQuestions || 0;
+  if (!totalQuestions && session.quizId && session.quizId !== "unknown" && session.quizId !== "undefined") {
+    try {
+      const Quiz = require("../models/Quiz.model");
+      const quiz = await Quiz.findById(session.quizId).lean();
+      if (quiz && quiz.questions) {
+        totalQuestions = quiz.questions.length;
+        session.totalQuestions = totalQuestions;
+      }
+    } catch (e) {
+      console.error("[sessionManager _refreshStudentStats] Error fetching quiz:", e);
+    }
+  }
+
+  if (totalQuestions > 0) {
+    student.score = Math.round((correct / totalQuestions) * 100);
+    student.progress = Math.round((studentAnswers.length / totalQuestions) * 100);
+  } else {
+    student.score = studentAnswers.length > 0 ? Math.round((correct / studentAnswers.length) * 100) : 0;
+    student.progress = 0;
+  }
+
   session.students.set(studentId, student);
 }
 

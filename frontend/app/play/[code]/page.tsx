@@ -45,6 +45,10 @@ export default function PlayQuizPage() {
   const [isPaused,          setIsPaused]           = useState(false);
   const [recoveredSession,  setRecoveredSession]   = useState(false); // banner flag
 
+  // ── Global Quiz Timer ──────────────────────────────────────────────────────
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+
   // ── Timing per question ────────────────────────────────────────────────────
   const questionStartTime = useRef<number>(Date.now());
 
@@ -74,6 +78,7 @@ export default function PlayQuizPage() {
     setCurrentSelection(saved.currentSelection);
     setStarted(saved.started);
     setIsFinished(saved.isFinished);
+    setStartTime(saved.startTime || null);
     setRecoveredSession(true);
 
     // Banner auto-hides after 4 s
@@ -92,8 +97,9 @@ export default function PlayQuizPage() {
       currentSelection,
       started,
       isFinished,
+      startTime: startTime || undefined,
     });
-  }, [quiz, started, studentId, studentName, currentIndex, selectedAnswers, currentSelection, isFinished, saveSession]);
+  }, [quiz, started, studentId, studentName, currentIndex, selectedAnswers, currentSelection, isFinished, startTime, saveSession]);
 
   // ── Socket (only active after student has an identity) ────────────────────
   const sessionId = quiz ? sessionIdFromQuiz(quiz.id) : "";
@@ -119,6 +125,27 @@ export default function PlayQuizPage() {
     questionStartTime.current = Date.now();
   }, [currentIndex]);
 
+  // Global Timer logic
+  useEffect(() => {
+    if (!started || isFinished || isPaused || quiz?.hasTimeLimit === false || !quiz?.durationMinutes || !startTime) return;
+    
+    const interval = setInterval(() => {
+      const elapsedMs = Date.now() - startTime;
+      const totalMs = quiz.durationMinutes * 60 * 1000;
+      const remaining = Math.max(0, totalMs - elapsedMs);
+      
+      setTimeLeft(remaining);
+      
+      if (remaining <= 0) {
+        clearInterval(interval);
+        setIsFinished(true);
+        clearSession();
+      }
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [started, isFinished, isPaused, quiz?.durationMinutes, quiz?.hasTimeLimit, startTime, clearSession]);
+
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleStartQuiz = () => {
     if (!studentName.trim()) {
@@ -126,6 +153,7 @@ export default function PlayQuizPage() {
       return;
     }
     setError(null);
+    setStartTime(Date.now());
     setStarted(true);
   };
 
@@ -182,6 +210,8 @@ export default function PlayQuizPage() {
     setCurrentSelection(null);
     setStarted(false);
     setIsFinished(false);
+    setStartTime(null);
+    setTimeLeft(null);
     setRecoveredSession(false);
   };
 
@@ -300,7 +330,7 @@ export default function PlayQuizPage() {
                   <div className="w-px bg-zinc-200 dark:bg-zinc-700" />
                   <div className="flex-1">
                     <p className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider">Duration</p>
-                    <p className="text-xl font-black text-zinc-800 dark:text-white">{quiz.durationMinutes}m</p>
+                    <p className="text-xl font-black text-zinc-800 dark:text-white">{quiz.hasTimeLimit !== false ? `${quiz.durationMinutes}m` : (t.detail?.noLimit || "No Limit")}</p>
                   </div>
                 </div>
 
@@ -399,6 +429,17 @@ export default function PlayQuizPage() {
               </span>
             </div>
           </div>
+          
+          {/* Global Timer Display */}
+          {timeLeft !== null && quiz.hasTimeLimit !== false && quiz.durationMinutes > 0 && (
+            <div className={`flex items-center justify-center py-2 px-4 rounded-xl border font-mono font-bold text-lg mb-2 shadow-sm transition-colors ${
+              timeLeft < 60000 
+                ? "bg-red-500/90 text-white border-red-400 animate-pulse" 
+                : "bg-white/20 dark:bg-black/20 text-white border-white/25"
+            }`}>
+              ⏱ {Math.floor(timeLeft / 60000)}:{String(Math.floor((timeLeft % 60000) / 1000)).padStart(2, '0')}
+            </div>
+          )}
 
           {/* Progress bar */}
           <QuizProgress currentQuestionIndex={currentIndex} totalQuestions={quiz.questions.length} />

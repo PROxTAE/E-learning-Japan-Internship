@@ -7,8 +7,11 @@ import { monitoringApi } from "@/services/monitoringApi";
 import { MonitoringStats } from "@/components/teacher/monitoring/MonitoringStats";
 import { QuizSessionHeader } from "@/components/teacher/monitoring/QuizSessionHeader";
 import { MonitoringGrid } from "@/components/teacher/monitoring/MonitoringGrid";
+import { Leaderboard } from "@/components/teacher/monitoring/Leaderboard";
+import { VisualAnalytics } from "@/components/teacher/monitoring/VisualAnalytics";
 import { useConnectionToast } from "@/components/teacher/monitoring/ConnectionToast";
 import { motion } from "framer-motion";
+import { Tabs, TabList, Tab, TabPanel } from "@heroui/react";
 import { quizApi } from "@/services/quizApi";
 import { ArrowLeft } from "lucide-react";
 import type { Question } from "@/types/teacher/monitoring.types";
@@ -203,8 +206,23 @@ export default function MonitoringQuizPage() {
 
         <MonitoringStats stats={stats} />
 
-        <div className="flex-1 min-h-0">
-          <MonitoringGrid />
+        <div className="flex-1 min-h-0 mt-4">
+          <Tabs aria-label="Monitoring Views">
+            <TabList className="bg-white dark:bg-[#0f0f1a] border-gray-200 dark:border-white/10 mb-4 rounded-xl p-1 shadow-sm">
+              <Tab id="grid">Live Matrix</Tab>
+              <Tab id="analytics">Visual Analytics</Tab>
+              <Tab id="leaderboard">Leaderboard</Tab>
+            </TabList>
+            <TabPanel id="grid" className="p-0">
+              <MonitoringGrid />
+            </TabPanel>
+            <TabPanel id="analytics" className="p-0">
+              <VisualAnalytics />
+            </TabPanel>
+            <TabPanel id="leaderboard" className="p-0">
+              <Leaderboard />
+            </TabPanel>
+          </Tabs>
         </div>
       </div>
 

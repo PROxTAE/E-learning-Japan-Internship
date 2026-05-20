@@ -47,6 +47,7 @@ const en = {
   detail: {
     infoTab: "Info", statsTab: "Stats",
     questions: "Questions", duration: (m: number) => `${m} min`, attempts: "Attempts",
+    noLimit: "No Limit",
     tags: "Tags", avgScore: "Average Score", completionRate: "Completion Rate",
     created: "Created", updated: "Updated", edit: "Edit",
     share: "Share", shareCode: "Access Code", shareLink: "Share Link", copy: "Copy",
@@ -128,6 +129,7 @@ const th: typeof en = {
   detail: {
     infoTab: "ข้อมูล", statsTab: "สถิติ",
     questions: "คำถาม", duration: (m: number) => `${m} นาที`, attempts: "ครั้งที่ทำ",
+    noLimit: "ไม่จำกัดเวลา",
     tags: "แท็ก", avgScore: "คะแนนเฉลี่ย", completionRate: "อัตราการทำสำเร็จ",
     created: "สร้างเมื่อ", updated: "แก้ไขเมื่อ", edit: "แก้ไข",
     share: "แชร์", shareCode: "รหัสเข้าทำ", shareLink: "คัดลอกลิงก์", copy: "คัดลอก",
@@ -209,6 +211,7 @@ const ja: typeof en = {
   detail: {
     infoTab: "情報", statsTab: "統計",
     questions: "問題数", duration: (m: number) => `${m} 分`, attempts: "受験回数",
+    noLimit: "制限時間なし",
     tags: "タグ", avgScore: "平均スコア", completionRate: "完了率",
     created: "作成日", updated: "更新日", edit: "編集",
     share: "共有", shareCode: "アクセスコード", shareLink: "リンクを共有", copy: "コピー",

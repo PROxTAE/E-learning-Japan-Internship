@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Spinner } from "@heroui/react";
+import { useLang } from "@/lib/i18n/LanguageContext";
 import { quizApi } from "@/services/quizApi";
 import type { StudentResult } from "@/services/studentResultApi";
 import { ResultScoreCard } from "./ResultScoreCard";
@@ -53,9 +54,11 @@ interface StudentResultScreenProps {
 }
 
 export function StudentResultScreen({ quizId, studentId, studentName, selectedAnswers, onPlayAgain, onGoHome }: StudentResultScreenProps) {
+  const { lang } = useLang();
   const [result, setResult] = useState<StudentResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showAnswers, setShowAnswers] = useState(true);
 
 
   useEffect(() => {
@@ -98,6 +101,7 @@ export function StudentResultScreen({ quizId, studentId, studentName, selectedAn
         };
         
         setResult(calculatedResult);
+        setShowAnswers(fullQuiz.showAnswersAfterQuiz !== false);
         
         if (percentage >= 50) {
           setShowConfetti(true);
@@ -136,7 +140,19 @@ export function StudentResultScreen({ quizId, studentId, studentName, selectedAn
         onGoHome={onGoHome}
       />
 
-      <AnswerReviewList reviews={result.reviews} />
+      {showAnswers ? (
+        <AnswerReviewList reviews={result.reviews} />
+      ) : (
+        <div className="mt-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-[32px] p-6 text-center text-white/70 shadow-xl">
+          <p className="font-semibold text-sm leading-relaxed">
+            {lang === "th" 
+              ? "ผู้สอนปิดการแสดงเฉลยและทบทวนคำตอบสำหรับแบบทดสอบนี้" 
+              : lang === "ja" 
+                ? "このクイズの解答とレビューは非表示に設定されています。" 
+                : "Answer review and correct answers are hidden for this quiz."}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

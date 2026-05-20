@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, Tag, BarChart3, BookOpen } from "lucide-react";
+import { Clock, Tag, BarChart3, BookOpen, Eye } from "lucide-react";
 import type { BuilderT } from "@/lib/i18n/quizBuilderTranslations";
 import type { QuizFormData, Difficulty } from "@/types/quiz";
 
@@ -108,6 +108,80 @@ export function QuizSettings({ t, quiz, onField }: QuizSettingsProps) {
           </select>
         </div>
 
+        {/* Show Answers Toggle */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
+            {t.showAnswers || "Show Answers"}
+          </label>
+          <button
+            id="quiz-show-answers-toggle"
+            type="button"
+            onClick={() => onField("showAnswersAfterQuiz", quiz.showAnswersAfterQuiz === false ? true : false)}
+            className={`
+              w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-sm font-medium transition-all duration-150
+              ${quiz.showAnswersAfterQuiz !== false
+                ? "border-violet-200 dark:border-violet-800 bg-violet-50/50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300"
+                : "border-slate-200 dark:border-slate-700 bg-transparent text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600"
+              }
+            `}
+          >
+            <span className="flex items-center gap-2 min-w-0">
+              <Eye size={14} className={quiz.showAnswersAfterQuiz !== false ? "text-violet-500 shrink-0" : "text-slate-400 shrink-0"} />
+              <span className="truncate">
+                {quiz.showAnswersAfterQuiz !== false
+                  ? t.showAnswersEnabled || "Reveal Answers"
+                  : t.showAnswersDisabled || "Hide Answers"}
+              </span>
+            </span>
+            <div className={`
+              w-8 h-4 rounded-full p-0.5 transition-colors duration-200 ease-in-out shrink-0
+              ${quiz.showAnswersAfterQuiz !== false ? "bg-violet-600" : "bg-slate-300 dark:bg-slate-600"}
+            `}>
+              <div className={`
+                w-3 h-3 rounded-full bg-white shadow-sm transform duration-200 ease-in-out
+                ${quiz.showAnswersAfterQuiz !== false ? "translate-x-4" : "translate-x-0"}
+              `} />
+            </div>
+          </button>
+        </div>
+
+        {/* Time Limit Toggle */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
+            {t.timeLimit || "Time Limit"}
+          </label>
+          <button
+            id="quiz-time-limit-toggle"
+            type="button"
+            onClick={() => onField("hasTimeLimit", quiz.hasTimeLimit === false ? true : false)}
+            className={`
+              w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-sm font-medium transition-all duration-150
+              ${quiz.hasTimeLimit !== false
+                ? "border-violet-200 dark:border-violet-800 bg-violet-50/50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300"
+                : "border-slate-200 dark:border-slate-700 bg-transparent text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600"
+              }
+            `}
+          >
+            <span className="flex items-center gap-2 min-w-0">
+              <Clock size={14} className={quiz.hasTimeLimit !== false ? "text-violet-500 shrink-0" : "text-slate-400 shrink-0"} />
+              <span className="truncate">
+                {quiz.hasTimeLimit !== false
+                  ? t.timeLimitEnabled || "Timer Enabled"
+                  : t.timeLimitDisabled || "No Timer"}
+              </span>
+            </span>
+            <div className={`
+              w-8 h-4 rounded-full p-0.5 transition-colors duration-200 ease-in-out shrink-0
+              ${quiz.hasTimeLimit !== false ? "bg-violet-600" : "bg-slate-300 dark:bg-slate-600"}
+            `}>
+              <div className={`
+                w-3 h-3 rounded-full bg-white shadow-sm transform duration-200 ease-in-out
+                ${quiz.hasTimeLimit !== false ? "translate-x-4" : "translate-x-0"}
+              `} />
+            </div>
+          </button>
+        </div>
+
         {/* Duration */}
         <div>
           <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
@@ -121,16 +195,18 @@ export function QuizSettings({ t, quiz, onField }: QuizSettingsProps) {
             type="number"
             min={1}
             max={180}
+            disabled={quiz.hasTimeLimit === false}
             value={quiz.durationMinutes}
             onChange={(e) => onField("durationMinutes", Number(e.target.value))}
-            className="
+            className={`
               w-full px-3.5 py-2.5 rounded-xl text-sm
               bg-white dark:bg-slate-900/60
               border border-slate-200 dark:border-slate-600/60
               text-slate-800 dark:text-slate-100
               focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-400
               transition-all duration-150
-            "
+              ${quiz.hasTimeLimit === false ? "opacity-50 cursor-not-allowed select-none bg-slate-100 dark:bg-slate-950/60" : ""}
+            `}
           />
         </div>
 

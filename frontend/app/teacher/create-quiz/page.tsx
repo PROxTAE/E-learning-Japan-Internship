@@ -13,7 +13,7 @@ import { QuizForm } from "@/components/quiz/QuizForm";
 
 // ── Inner component (uses useSearchParams — must be inside Suspense) ──
 function CreateQuizInner() {
-  const { lang } = useLang();
+  const { lang, t } = useLang();
   const tb = quizBuilderTranslations[lang]?.builder ?? quizBuilderTranslations.en.builder;
   const searchParams = useSearchParams();
   const editId = searchParams.get("id"); // ?id=<mongoId> when editing
@@ -76,7 +76,7 @@ function CreateQuizInner() {
                 <QuizSettings t={tb} quiz={quiz} onField={setQuizField} />
                 <div className="grid grid-cols-2 gap-3">
                   <StatCard label="Questions" value={String(questions.length)} color="violet" />
-                  <StatCard label="Duration"  value={`${quiz.durationMinutes}m`} color="purple" />
+                  <StatCard label="Duration"  value={quiz.hasTimeLimit !== false ? `${quiz.durationMinutes}m` : (t.detail?.noLimit || "No Limit")} color="purple" />
                 </div>
               </div>
               {/* Right: Question builder */}

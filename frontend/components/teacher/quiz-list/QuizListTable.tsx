@@ -63,7 +63,7 @@ export function QuizListTable({ quizzes, onEdit, onDelete, onShare, onMonitor, o
             <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-default-400 justify-center">
               <Clock className="w-3.5 h-3.5" />
               <span className="font-semibold text-gray-700 dark:text-default-300">
-                {(quiz as any).duration ?? quiz.durationMinutes ?? 0}m
+                {quiz.hasTimeLimit === false ? "No limit" : `${(quiz as any).duration ?? (quiz as any).durationMinutes ?? 0}m`}
               </span>
             </div>
 

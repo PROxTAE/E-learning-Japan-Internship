@@ -32,13 +32,13 @@
 ## 🛠️ สิ่งที่กำลังดำเนินการ / ยังเหลืออยู่ (Remaining Tasks)
 
 ### 🔴 ความสำคัญสูง (High Priority - ต้องทำเพื่อให้ระบบสมบูรณ์)
-- [ ] **Teacher Authentication:** ระบบ Login สำหรับอาจารย์เพื่อความปลอดภัยของข้อมูล
-- [ ] **Student Result Screen:** หน้าสรุปคะแนนและเฉลยสำหรับนักเรียนเมื่อทำเสร็จ
+<!-- - [ ] **Teacher Authentication:** ระบบ Login สำหรับอาจารย์เพื่อความปลอดภัยของข้อมูล -->
+- [x] **Student Result Screen:** หน้าสรุปคะแนนและเฉลยสำหรับนักเรียนเมื่อทำเสร็จ
 
 ### 🟡 ความสำคัญปานกลาง (Medium Priority - เพิ่มความสมบูรณ์ของ UX)
-- [ ] **Visual Analytics:** กราฟวิเคราะห์ผลรายข้อ (Question breakdown chart) ในหน้า Monitoring
-- [ ] **Leaderboard Component:** ระบบแสดงอันดับ Top 5 สำหรับเปิดโชว์ในห้องเรียน
-- [ ] **Timed Quizzes:** ระบบจำกัดเวลาในแต่ละข้อ หรือเวลาจำกัดรวมของทั้งควิซ
+- [x] **Visual Analytics:** กราฟวิเคราะห์ผลรายข้อ (Question breakdown chart) ในหน้า Monitoring
+- [x] **Leaderboard Component:** ระบบแสดงอันดับ Top 5 สำหรับเปิดโชว์ในห้องเรียน
+- [x] **Timed Quizzes:** ระบบจำกัดเวลาในแต่ละข้อ หรือเวลาจำกัดรวมของทั้งควิซ
 
 ### 🟢 ความสำคัญต่ำ (Low Priority - ฟีเจอร์เสริมในอนาคต)
 - [ ] **Export Reports:** ปุ่มดาวน์โหลดสรุปผลเป็นไฟล์ Excel หรือ CSV

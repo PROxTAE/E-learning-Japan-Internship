@@ -120,6 +120,8 @@ export const MOCK_QUIZ: Quiz = {
   category: "Programming",
   difficulty: "medium",
   durationMinutes: 15,
+  hasTimeLimit: true,
+  showAnswersAfterQuiz: true,
   tags: ["javascript", "web"],
   status: "draft",
   createdAt: new Date(Date.now() - 86_400_000 * 3).toISOString(),

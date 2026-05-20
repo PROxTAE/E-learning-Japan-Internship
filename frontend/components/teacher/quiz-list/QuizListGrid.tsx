@@ -129,8 +129,8 @@ function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onStatusChange }
             {(quiz as any).questionCount ?? quiz.questions?.length ?? 0} Qs
           </span>
           <span className="flex items-center gap-1">
-            <Clock className="w-3 h-3" />
-            {(quiz as any).duration ?? quiz.durationMinutes ?? 0}m
+            <Clock className="w-3.5 h-3.5" />
+            {quiz.hasTimeLimit === false ? "No limit" : `${(quiz as any).duration ?? (quiz as any).durationMinutes ?? 0}m`}
           </span>
           <span className="flex items-center gap-1 ml-auto">
             <Users className="w-3 h-3" />

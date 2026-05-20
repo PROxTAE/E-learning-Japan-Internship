@@ -72,7 +72,7 @@ async function getQuiz(req, res) {
 // POST /api/quizzes
 async function createQuiz(req, res) {
   try {
-    const { title, description, category, difficulty, durationMinutes, tags, status } = req.body;
+    const { title, description, category, difficulty, durationMinutes, tags, status, hasTimeLimit, showAnswersAfterQuiz } = req.body;
     if (!title) return fail(res, "title is required");
 
     const quiz = await Quiz.create({
@@ -81,6 +81,8 @@ async function createQuiz(req, res) {
       category,
       difficulty,
       durationMinutes,
+      hasTimeLimit: hasTimeLimit !== undefined ? hasTimeLimit : true,
+      showAnswersAfterQuiz: showAnswersAfterQuiz !== undefined ? showAnswersAfterQuiz : true,
       tags: Array.isArray(tags) ? tags : (tags || "").split(",").map(t => t.trim()).filter(Boolean),
       status: status || "draft",
       questions: [],
@@ -95,7 +97,7 @@ async function createQuiz(req, res) {
 // PUT /api/quizzes/:id
 async function updateQuiz(req, res) {
   try {
-    const { title, description, category, difficulty, durationMinutes, tags, status, questions } = req.body;
+    const { title, description, category, difficulty, durationMinutes, tags, status, questions, hasTimeLimit, showAnswersAfterQuiz } = req.body;
 
     const update = {
       ...(title            !== undefined && { title }),
@@ -108,6 +110,8 @@ async function updateQuiz(req, res) {
         tags: Array.isArray(tags) ? tags : tags.split(",").map(t => t.trim()).filter(Boolean)
       }),
       ...(questions        !== undefined && { questions }),
+      ...(hasTimeLimit     !== undefined && { hasTimeLimit }),
+      ...(showAnswersAfterQuiz !== undefined && { showAnswersAfterQuiz }),
     };
 
     const quiz = await Quiz.findByIdAndUpdate(

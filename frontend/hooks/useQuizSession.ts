@@ -31,6 +31,7 @@ export interface QuizSessionState {
   currentSelection: string | null;
   started:          boolean;
   isFinished:       boolean;
+  startTime?:       number;
 }
 
 function storageKey(quizId: string) {

@@ -43,6 +43,8 @@ const quizSchema = new mongoose.Schema(
     category:       { type: String, trim: true, default: "" },
     difficulty:     { type: String, enum: ["easy", "medium", "hard"], default: "medium" },
     durationMinutes:{ type: Number, min: 1, max: 300, default: 10 },
+    hasTimeLimit:   { type: Boolean, default: true },
+    showAnswersAfterQuiz: { type: Boolean, default: true },
     tags:           { type: [String], default: [] },
     status:         { type: String, enum: ["draft", "published", "archived"], default: "draft" },
     questions:      { type: [questionSchema], default: [] },

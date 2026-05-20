@@ -41,13 +41,13 @@ export const useMonitoringStore = create<MonitoringStore>((set) => ({
   
   setSessionData: (data) => set((state) => {
     // Normalize students: in-memory fallback sends { studentId } but grid needs { id }
-    const normalizeStudents = (arr: Student[]) =>
-      arr.map((s: any) => ({
+    const normalizeStudents = (arr: (Student & { studentId?: string })[]) =>
+      arr.map((s) => ({
         ...s,
         id: s.id || s.studentId || "",
       }));
 
-    const nextStudents  = data.students  !== undefined ? normalizeStudents(data.students as any[])  : state.students;
+    const nextStudents  = data.students  !== undefined ? normalizeStudents(data.students as (Student & { studentId?: string })[])  : state.students;
     const nextAnswers   = data.answers   !== undefined ? data.answers   : state.answers;
     const nextStats     = data.stats     !== undefined ? data.stats     : state.stats;
     // Keep existing questions if snapshot didn't include them (questions come from MongoDB)
@@ -72,19 +72,43 @@ export const useMonitoringStore = create<MonitoringStore>((set) => ({
 
   addAnswer: (answer) => set((state) => {
     const existingIndex = state.answers.findIndex(a => a.studentId === answer.studentId && a.questionId === answer.questionId);
-    let newAnswers = [...state.answers];
+    const newAnswers = [...state.answers];
     if (existingIndex >= 0) {
       newAnswers[existingIndex] = answer;
     } else {
       newAnswers.push(answer);
     }
-    return { answers: newAnswers };
+
+    // Dynamic real-time calculation of student's progress and score
+    const totalQuestions = state.questions.length;
+    const studentAnswers = newAnswers.filter(a => a.studentId === answer.studentId);
+    const correctCount = studentAnswers.filter(a => a.isCorrect).length;
+
+    const progress = totalQuestions > 0 ? Math.round((studentAnswers.length / totalQuestions) * 100) : 0;
+    const score = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+
+    const nextStudents = state.students.map((s) => {
+      const studentKey = s.id || (s as Student & { studentId?: string }).studentId || "";
+      if (studentKey === answer.studentId) {
+        return {
+          ...s,
+          score,
+          progress,
+        };
+      }
+      return s;
+    });
+
+    return { 
+      answers: newAnswers,
+      students: nextStudents
+    };
   }),
 
   updateStudent: (student: Student) => set((state) => {
     const normalized: Student = {
       ...student,
-      id: student.id || (student as any).studentId || "",
+      id: student.id || (student as Student & { studentId?: string }).studentId || "",
     };
     if (!normalized.id) return {};
     const existsAt = state.students.findIndex((s) => s.id === normalized.id);

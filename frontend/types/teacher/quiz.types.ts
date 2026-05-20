@@ -31,6 +31,8 @@ export interface Quiz {
   tags: string[];
   emoji: string;
   gradient: string;
+  hasTimeLimit?: boolean;
+  showAnswersAfterQuiz?: boolean;
 }
 
 export interface QuizStats {

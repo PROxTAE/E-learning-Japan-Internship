@@ -54,7 +54,7 @@ async function getOrCreateSession(accessCode, quizId = "") {
   const client = await getRedisClient();
   if (!client) {
     // Fallback: use in-memory sessionManager
-    const s = fallback.getOrCreate(accessCode, quizId);
+    const s = await fallback.getOrCreate(accessCode, quizId);
     return { isPaused: s.isPaused, startedAt: s.startedAt || Date.now(), quizId: s.quizId };
   }
 
@@ -62,18 +62,51 @@ async function getOrCreateSession(accessCode, quizId = "") {
   const exists = await client.exists(key);
 
   if (!exists) {
-    const initial = { isPaused: "false", startedAt: String(Date.now()), quizId };
+    let totalQuestions = 0;
+    if (quizId) {
+      try {
+        const Quiz = require("../models/Quiz.model");
+        const quiz = await Quiz.findById(quizId).lean();
+        if (quiz && quiz.questions) {
+          totalQuestions = quiz.questions.length;
+        }
+      } catch (err) {
+        console.error("[getOrCreateSession] Error fetching quiz:", err);
+      }
+    }
+    const initial = {
+      isPaused: "false",
+      startedAt: String(Date.now()),
+      quizId,
+      totalQuestions: String(totalQuestions)
+    };
     await client.hSet(key, initial);
     await client.expire(key, SESSION_TTL);
-    return { isPaused: false, startedAt: Number(initial.startedAt), quizId };
+    return { isPaused: false, startedAt: Number(initial.startedAt), quizId, totalQuestions };
   }
 
   await _touch(client, accessCode);
   const raw = await client.hGetAll(key);
+  let totalQuestions = Number(raw.totalQuestions || 0);
+
+  if (!totalQuestions && (raw.quizId || quizId)) {
+    try {
+      const Quiz = require("../models/Quiz.model");
+      const quiz = await Quiz.findById(raw.quizId || quizId).lean();
+      if (quiz && quiz.questions) {
+        totalQuestions = quiz.questions.length;
+        await client.hSet(key, "totalQuestions", String(totalQuestions));
+      }
+    } catch (err) {
+      console.error("[getOrCreateSession] Error fetching quiz on existing session:", err);
+    }
+  }
+
   return {
     isPaused:  raw.isPaused === "true",
     startedAt: Number(raw.startedAt),
     quizId:    raw.quizId || quizId,
+    totalQuestions,
   };
 }
 
@@ -373,8 +406,34 @@ async function _refreshStudentStats(client, accessCode, studentId) {
   const answersRaw = await client.hGetAll(keys.answers(accessCode, studentId));
   const answers    = Object.values(answersRaw).map(safeJSON).filter(Boolean);
 
-  const correct          = answers.filter((a) => a.isCorrect).length;
-  student.score          = answers.length > 0 ? Math.round((correct / answers.length) * 100) : 0;
+  // Retrieve totalQuestions from session
+  const sessionKey = keys.session(accessCode);
+  const sessionMeta = await client.hGetAll(sessionKey);
+  let totalQuestions = sessionMeta ? Number(sessionMeta.totalQuestions || 0) : 0;
+
+  if (!totalQuestions && sessionMeta && sessionMeta.quizId) {
+    try {
+      const Quiz = require("../models/Quiz.model");
+      const quiz = await Quiz.findById(sessionMeta.quizId).lean();
+      if (quiz && quiz.questions) {
+        totalQuestions = quiz.questions.length;
+        await client.hSet(sessionKey, "totalQuestions", String(totalQuestions));
+      }
+    } catch (e) {
+      console.error("[_refreshStudentStats] Error fetching quiz:", e);
+    }
+  }
+
+  const correct = answers.filter((a) => a.isCorrect).length;
+
+  if (totalQuestions > 0) {
+    student.score = Math.round((correct / totalQuestions) * 100);
+    student.progress = Math.round((answers.length / totalQuestions) * 100);
+  } else {
+    student.score = answers.length > 0 ? Math.round((correct / answers.length) * 100) : 0;
+    student.progress = 0;
+  }
+
   student.confusionLevel = _dominantConfusion(answers);
   student.updatedAt      = Date.now();
 
