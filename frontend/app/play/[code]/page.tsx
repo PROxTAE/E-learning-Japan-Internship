@@ -148,10 +148,13 @@ export default function PlayQuizPage() {
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleStartQuiz = () => {
-    if (!studentName.trim()) {
+    const cleanName = studentName.trim();
+    if (!cleanName) {
       setError("Please enter your name to start");
       return;
     }
+    const finalId = studentId || `${cleanName.toLowerCase().replace(/\s+/g, "_")}_${Date.now().toString(36)}`;
+    setStudentId(finalId);
     setError(null);
     setStartTime(Date.now());
     setStarted(true);
@@ -306,11 +309,7 @@ export default function PlayQuizPage() {
                       placeholder="Enter your name to join..."
                       value={studentName}
                       onChange={(e) => {
-                        const val = e.target.value;
-                        setStudentName(val);
-                        if (!studentId && val.trim()) {
-                           setStudentId(`${val.trim().toLowerCase().replace(/\s+/g, "_")}_${Date.now().toString(36)}`);
-                        }
+                        setStudentName(e.target.value);
                       }}
                       className="mt-1"
                       size="lg"
