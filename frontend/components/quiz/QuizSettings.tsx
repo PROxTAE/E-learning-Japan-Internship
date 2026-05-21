@@ -1,6 +1,8 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Clock, Tag, BarChart3, BookOpen, Eye } from "lucide-react";
+import { Select, ListBox, ListBoxItem } from "@heroui/react";
 import type { BuilderT } from "@/lib/i18n/quizBuilderTranslations";
 import type { QuizFormData, Difficulty } from "@/types/quiz";
 
@@ -17,8 +19,25 @@ const DIFFICULTY_OPTIONS: { value: Difficulty; emoji: string; colorClass: string
 ];
 
 export function QuizSettings({ t, quiz, onField }: QuizSettingsProps) {
-  const handleTagsInput = (raw: string) => {
-    onField("tags", raw.split(",").map((s) => s.trim()).filter(Boolean));
+  const [tagsInput, setTagsInput] = useState(() => quiz.tags.join(", "));
+
+  useEffect(() => {
+    const currentParsed = tagsInput.split(",").map((s) => s.trim()).filter(Boolean);
+    const match =
+      currentParsed.length === quiz.tags.length &&
+      currentParsed.every((val, idx) => val === quiz.tags[idx]);
+    if (!match) {
+      setTagsInput(quiz.tags.join(", "));
+    }
+  }, [quiz.tags]);
+
+  const handleTagsInputChange = (val: string) => {
+    setTagsInput(val);
+    const parsedTags = val
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    onField("tags", parsedTags);
   };
 
   return (
@@ -88,24 +107,54 @@ export function QuizSettings({ t, quiz, onField }: QuizSettingsProps) {
           <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
             {t.category} <span className="text-red-400">*</span>
           </label>
-          <select
-            id="quiz-category-select"
-            value={quiz.category}
-            onChange={(e) => onField("category", e.target.value)}
-            className="
-              w-full px-3.5 py-2.5 rounded-xl text-sm
+          <Select
+            selectedKey={quiz.category || null}
+            onSelectionChange={(key) => onField("category", String(key || ""))}
+            className="w-full"
+          >
+            <Select.Trigger className="
+              w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm
               bg-white dark:bg-slate-900/60
               border border-slate-200 dark:border-slate-600/60
               text-slate-800 dark:text-slate-100
               focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-400
-              transition-all duration-150 cursor-pointer
-            "
-          >
-            <option value="">{t.categoryPlaceholder}</option>
-            {t.categories.map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
+              transition-all duration-150 cursor-pointer text-left
+            ">
+              <Select.Value className="text-slate-800 dark:text-slate-100 text-sm font-medium">
+                {({ defaultChildren, isPlaceholder }) =>
+                  isPlaceholder ? (
+                    <span className="text-slate-400 dark:text-slate-500">{t.categoryPlaceholder}</span>
+                  ) : (
+                    defaultChildren
+                  )
+                }
+              </Select.Value>
+              <Select.Indicator className="w-4 h-4 text-slate-400 dark:text-slate-500 transition-transform duration-250 data-[open=true]:rotate-180" />
+            </Select.Trigger>
+            <Select.Popover className="
+              z-50 min-w-[200px] mt-1 p-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg
+            ">
+              <ListBox className="focus:outline-none">
+                {t.categories.map((cat) => (
+                  <ListBoxItem
+                    key={cat}
+                    id={cat}
+                    className="
+                      px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors duration-150
+                      text-slate-700 dark:text-slate-300
+                      hover:bg-slate-100 dark:hover:bg-slate-800/80
+                      focus:bg-slate-100 dark:focus:bg-slate-800/80
+                      focus:outline-none select-none
+                      data-[selected=true]:bg-violet-50 dark:data-[selected=true]:bg-violet-900/30
+                      data-[selected=true]:text-violet-700 dark:data-[selected=true]:text-violet-300
+                    "
+                  >
+                    {cat}
+                  </ListBoxItem>
+                ))}
+              </ListBox>
+            </Select.Popover>
+          </Select>
         </div>
 
         {/* Show Answers Toggle */}
@@ -254,8 +303,8 @@ export function QuizSettings({ t, quiz, onField }: QuizSettingsProps) {
           <input
             id="quiz-tags-input"
             type="text"
-            value={quiz.tags.join(", ")}
-            onChange={(e) => handleTagsInput(e.target.value)}
+            value={tagsInput}
+            onChange={(e) => handleTagsInputChange(e.target.value)}
             placeholder={t.tagsPlaceholder}
             className="
               w-full px-3.5 py-2.5 rounded-xl text-sm
