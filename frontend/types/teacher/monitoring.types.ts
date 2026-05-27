@@ -53,6 +53,7 @@ export interface LiveStats {
   activeStudents: number;
   averageScore: number;
   completionPercentage: number;
+  efficiencyScore?: number;
   questionStats?: Record<string, {
     answerCount: number;
     correctCount: number;

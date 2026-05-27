@@ -11,6 +11,7 @@ const { connectDB }        = require("./db");
 const { getRedisClient }   = require("./redis/redisClient");
 const quizRoutes           = require("./routes/quiz.routes");
 const monitoringRoutes     = require("./routes/monitoring.routes");
+const dashboardRoutes      = require("./routes/dashboard.routes");
 const { getQuizByCode }    = require("./controllers/quiz.controller");
 const { initSocket }       = require("./socket");
 
@@ -32,6 +33,7 @@ app.get("/", (_req, res) => {
 
 app.use("/api/quizzes", quizRoutes);
 app.use("/api/monitoring", monitoringRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 app.get("/api/play/:code", getQuizByCode);
 
 app.get("/api/health", (_req, res) => {

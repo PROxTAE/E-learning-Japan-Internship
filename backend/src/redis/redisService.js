@@ -386,13 +386,27 @@ function _calcStats(students, answers) {
     q.correctPercentage = q.answerCount > 0 ? Math.round((q.correctCount / q.answerCount) * 100) : 0;
   });
 
+  const totalAnswers = answers.length;
+  const correctAnswers = answers.filter((a) => a.isCorrect).length;
+  
+  // Calculate Efficiency Score
+  // Accuracy weighted by speed. Optimal average time is 15 seconds.
+  let efficiencyScore = 0;
+  if (totalAnswers > 0) {
+    const accuracy = correctAnswers / totalAnswers;
+    const avgResponseTime = answers.reduce((acc, a) => acc + (a.responseTime || 0), 0) / totalAnswers;
+    const timeFactor = avgResponseTime > 15 ? (15 / avgResponseTime) : 1;
+    efficiencyScore = Math.round(accuracy * timeFactor * 100);
+  }
+
   return {
     totalStudents,
     activeStudents,
     averageScore:         totalStudents ? Math.round(totalScore / totalStudents) : 0,
     completionPercentage: totalStudents ? Math.round((totalCompleted / totalStudents) * 100) : 0,
-    totalAnswers:         answers.length,
-    correctAnswers:       answers.filter((a) => a.isCorrect).length,
+    totalAnswers,
+    correctAnswers,
+    efficiencyScore,
     questionStats,
   };
 }

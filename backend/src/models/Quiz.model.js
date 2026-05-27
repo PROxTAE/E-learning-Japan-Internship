@@ -55,7 +55,12 @@ const quizSchema = new mongoose.Schema(
     // ── Access control ─────────────────────────────────────────────
     // 6-character alphanumeric code students use to join the quiz.
     // Auto-generated on publish, null when draft/archived.
-    accessCode:     { type: String, default: null, uppercase: true, trim: true },
+    // Uses undefined (not null) so the sparse unique index skips missing values.
+    accessCode: { type: String, default: undefined, uppercase: true, trim: true },
+
+    // ── UI display metadata (optional, set by frontend/seed) ───────
+    emoji:    { type: String, default: "📄" },
+    gradient: { type: String, default: "from-violet-500 to-purple-700" },
   },
   {
     timestamps: true, // adds createdAt / updatedAt automatically
