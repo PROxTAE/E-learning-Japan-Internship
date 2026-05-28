@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { LanguageProvider } from "@/lib/i18n/LanguageContext";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
+import AIAssistant from "@/components/shared/AIAssistant";
 
 /* ── Fonts — universal stack covering all supported scripts ── */
 const inter = Inter({
@@ -54,7 +55,7 @@ export default function RootLayout({
         <Providers>
           <LanguageProvider>
             {children}
-
+            <AIAssistant />
           </LanguageProvider>
         </Providers>
       </body>

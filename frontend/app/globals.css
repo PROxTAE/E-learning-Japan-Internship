@@ -65,3 +65,17 @@ html {
   outline: 2px solid #7c3aed;
   outline-offset: 2px;
 }
+
+/* AI Context Inspector Hover styles */
+.ai-inspect-highlight {
+  outline: 2.5px dashed #7c3aed !important;
+  outline-offset: 4px;
+  background-color: rgba(124, 58, 237, 0.05) !important;
+  cursor: crosshair !important;
+  transition: outline 0.15s ease, background-color 0.15s ease;
+}
+
+.dark .ai-inspect-highlight {
+  outline-color: #a78bfa !important;
+  background-color: rgba(167, 139, 250, 0.05) !important;
+}

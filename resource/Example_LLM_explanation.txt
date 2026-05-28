@@ -1,0 +1,294 @@
+-------------------------------- Quiz ------------------------------------------------
+{
+  "_id": {
+    "$oid": "6a0fea5717a00c9b06da0c5f"
+  },
+  "title": "Python Programming Basics",
+  "description": "Introduction to Python: variables, loops, functions, and data structures for beginners.",
+  "category": "Computer Science",
+  "difficulty": "easy",
+  "durationMinutes": 35,
+  "hasTimeLimit": true,
+  "showAnswersAfterQuiz": true,
+  "tags": [
+    "python",
+    "programming",
+    "basics"
+  ],
+  "status": "draft",
+  "questions": [
+    {
+      "text": "Which keyword is used to define a function in Python?",
+      "type": "multiple_choice",
+      "order": 0,
+      "imageUrl": null,
+      "choices": [
+        {
+          "text": "func",
+          "isCorrect": false,
+          "imageUrl": null,
+          "_id": {
+            "$oid": "6a0fea5717a00c9b06da0c61"
+          }
+        },
+        {
+          "text": "def",
+          "isCorrect": true,
+          "imageUrl": null,
+          "_id": {
+            "$oid": "6a0fea5717a00c9b06da0c62"
+          }
+        },
+        {
+          "text": "function",
+          "isCorrect": false,
+          "imageUrl": null,
+          "_id": {
+            "$oid": "6a0fea5717a00c9b06da0c63"
+          }
+        },
+        {
+          "text": "define",
+          "isCorrect": false,
+          "imageUrl": null,
+          "_id": {
+            "$oid": "6a0fea5717a00c9b06da0c64"
+          }
+        }
+      ],
+      "_id": {
+        "$oid": "6a0fea5717a00c9b06da0c60"
+      }
+    },
+    {
+      "text": "Python is an interpreted language.",
+      "type": "true_false",
+      "order": 1,
+      "imageUrl": null,
+      "choices": [
+        {
+          "text": "True",
+          "isCorrect": true,
+          "imageUrl": null,
+          "_id": {
+            "$oid": "6a0fea5717a00c9b06da0c66"
+          }
+        },
+        {
+          "text": "False",
+          "isCorrect": false,
+          "imageUrl": null,
+          "_id": {
+            "$oid": "6a0fea5717a00c9b06da0c67"
+          }
+        }
+      ],
+      "_id": {
+        "$oid": "6a0fea5717a00c9b06da0c65"
+      }
+    },
+    {
+      "text": "What is the output of: print(type(3.14))?",
+      "type": "multiple_choice",
+      "order": 2,
+      "imageUrl": null,
+      "choices": [
+        {
+          "text": "<class 'int'>",
+          "isCorrect": false,
+          "imageUrl": null,
+          "_id": {
+            "$oid": "6a0fea5717a00c9b06da0c69"
+          }
+        },
+        {
+          "text": "<class 'float'>",
+          "isCorrect": true,
+          "imageUrl": null,
+          "_id": {
+            "$oid": "6a0fea5717a00c9b06da0c6a"
+          }
+        },
+        {
+          "text": "<class 'str'>",
+          "isCorrect": false,
+          "imageUrl": null,
+          "_id": {
+            "$oid": "6a0fea5717a00c9b06da0c6b"
+          }
+        },
+        {
+          "text": "<class 'double'>",
+          "isCorrect": false,
+          "imageUrl": null,
+          "_id": {
+            "$oid": "6a0fea5717a00c9b06da0c6c"
+          }
+        }
+      ],
+      "_id": {
+        "$oid": "6a0fea5717a00c9b06da0c68"
+      }
+    }
+  ],
+  "createdBy": "teacher",
+  "emoji": "💻",
+  "gradient": "from-indigo-500 to-blue-700",
+  "createdAt": {
+    "$date": "2026-05-22T05:32:07.989Z"
+  },
+  "updatedAt": {
+    "$date": "2026-05-22T05:32:07.989Z"
+  },
+  "__v": 0
+}
+
+---------------------------------------------------------------------------
+
+------------------------ result Quiz --------------------------------------
+
+{
+  "_id": {
+    "$oid": "6a0fea5717a00c9b06da0c5f"
+  },
+  "title": "Python Programming Basics",
+  "description": "Introduction to Python: variables, loops, functions, and data structures for beginners.",
+  "category": "Computer Science",
+  "difficulty": "easy",
+  "durationMinutes": 35,
+  "hasTimeLimit": true,
+  "showAnswersAfterQuiz": true,
+  "tags": [
+    "python",
+    "programming",
+    "basics"
+  ],
+  "status": "draft",
+  "questions": [
+    {
+      "text": "Which keyword is used to define a function in Python?",
+      "type": "multiple_choice",
+      "order": 0,
+      "imageUrl": null,
+      "choices": [
+        {
+          "text": "func",
+          "isCorrect": false,
+          "imageUrl": null,
+          "_id": {
+            "$oid": "6a0fea5717a00c9b06da0c61"
+          }
+        },
+        {
+          "text": "def",
+          "isCorrect": true,
+          "imageUrl": null,
+          "_id": {
+            "$oid": "6a0fea5717a00c9b06da0c62"
+          }
+        },
+        {
+          "text": "function",
+          "isCorrect": false,
+          "imageUrl": null,
+          "_id": {
+            "$oid": "6a0fea5717a00c9b06da0c63"
+          }
+        },
+        {
+          "text": "define",
+          "isCorrect": false,
+          "imageUrl": null,
+          "_id": {
+            "$oid": "6a0fea5717a00c9b06da0c64"
+          }
+        }
+      ],
+      "_id": {
+        "$oid": "6a0fea5717a00c9b06da0c60"
+      }
+    },
+    {
+      "text": "Python is an interpreted language.",
+      "type": "true_false",
+      "order": 1,
+      "imageUrl": null,
+      "choices": [
+        {
+          "text": "True",
+          "isCorrect": true,
+          "imageUrl": null,
+          "_id": {
+            "$oid": "6a0fea5717a00c9b06da0c66"
+          }
+        },
+        {
+          "text": "False",
+          "isCorrect": false,
+          "imageUrl": null,
+          "_id": {
+            "$oid": "6a0fea5717a00c9b06da0c67"
+          }
+        }
+      ],
+      "_id": {
+        "$oid": "6a0fea5717a00c9b06da0c65"
+      }
+    },
+    {
+      "text": "What is the output of: print(type(3.14))?",
+      "type": "multiple_choice",
+      "order": 2,
+      "imageUrl": null,
+      "choices": [
+        {
+          "text": "<class 'int'>",
+          "isCorrect": false,
+          "imageUrl": null,
+          "_id": {
+            "$oid": "6a0fea5717a00c9b06da0c69"
+          }
+        },
+        {
+          "text": "<class 'float'>",
+          "isCorrect": true,
+          "imageUrl": null,
+          "_id": {
+            "$oid": "6a0fea5717a00c9b06da0c6a"
+          }
+        },
+        {
+          "text": "<class 'str'>",
+          "isCorrect": false,
+          "imageUrl": null,
+          "_id": {
+            "$oid": "6a0fea5717a00c9b06da0c6b"
+          }
+        },
+        {
+          "text": "<class 'double'>",
+          "isCorrect": false,
+          "imageUrl": null,
+          "_id": {
+            "$oid": "6a0fea5717a00c9b06da0c6c"
+          }
+        }
+      ],
+      "_id": {
+        "$oid": "6a0fea5717a00c9b06da0c68"
+      }
+    }
+  ],
+  "createdBy": "teacher",
+  "emoji": "💻",
+  "gradient": "from-indigo-500 to-blue-700",
+  "createdAt": {
+    "$date": "2026-05-22T05:32:07.989Z"
+  },
+  "updatedAt": {
+    "$date": "2026-05-22T05:32:07.989Z"
+  },
+  "__v": 0
+}
+
+
