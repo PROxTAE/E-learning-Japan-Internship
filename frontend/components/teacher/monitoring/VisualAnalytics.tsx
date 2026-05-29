@@ -11,7 +11,12 @@ export function VisualAnalytics() {
   const totalStudents = students.length;
 
   return (
-    <div className="flex flex-col w-full max-w-6xl mx-auto py-8">
+    <div
+      className="flex flex-col w-full max-w-6xl mx-auto py-8"
+      data-ai-context-type="analytics"
+      data-ai-context-name="Visual Analytics"
+      data-ai-context-data={JSON.stringify({ questionCount: questions.length, totalStudents, totalAnswers: answers.length })}
+    >
       <h2 className="text-2xl font-black mb-6 flex items-center gap-3 text-foreground">
         <BarChart3 className="w-7 h-7 text-blue-500" />
         Question Analytics

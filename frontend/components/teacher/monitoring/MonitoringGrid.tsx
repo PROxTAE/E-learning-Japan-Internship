@@ -39,7 +39,12 @@ export function MonitoringGrid() {
   });
 
   return (
-    <div className="relative rounded-3xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 backdrop-blur-xl shadow-xl dark:shadow-2xl overflow-hidden flex flex-col h-full min-h-[600px]">
+    <div
+      className="relative rounded-3xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 backdrop-blur-xl shadow-xl dark:shadow-2xl overflow-hidden flex flex-col h-full min-h-[600px]"
+      data-ai-context-type="monitoring"
+      data-ai-context-name="Monitoring Grid"
+      data-ai-context-data={JSON.stringify({ studentCount: students.length, questionCount: questions.length, filter: uiState.filter, sortBy: uiState.sortBy })}
+    >
       <ScrollShadow className="flex-1 overflow-auto" orientation="horizontal">
         <div className="min-w-max">
 

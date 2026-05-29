@@ -43,10 +43,16 @@ export async function POST(req: Request) {
     const userLanguage = lang === "th" ? "Thai" : lang === "ja" ? "Japanese" : "English";
 
     // System instruction for the assistant
-    const systemPrompt = `You are a helpful, smart, and friendly teaching assistant integrated into an E-Learning Web Application. 
+    let systemPrompt = `You are a helpful, smart, and friendly teaching assistant integrated into an E-Learning Web Application. 
 Your goal is to support teachers and students with their learning needs, creating quizzes, analyzing data, and answering questions.
 Keep your answers clear, concise, and structured.
 IMPORTANT: You MUST respond in ${userLanguage} language ONLY. This is critical as the user's active interface language is set to ${userLanguage}.`;
+
+    if (lang === "th") {
+      systemPrompt += `\n\nคำชี้แจงพิเศษ: กรุณาตอบผู้ใช้เป็นภาษาไทยตลอดการสนทนา ห้ามใช้ภาษาอังกฤษยกเว้นคำศัพท์เฉพาะทางด้านเทคนิค ตอบด้วยภาษาไทยที่สละสลวย เป็นธรรมชาติ และสะกดถูกต้อง`;
+    } else if (lang === "ja") {
+      systemPrompt += `\n\n特別指示：必ず日本語で回答してください。専門用語を除き、外国語での回答は避けてください。自然で丁寧な日本語を使用してください。`;
+    }
 
     apiMessages.push({ role: "system", content: systemPrompt });
 
@@ -58,12 +64,18 @@ IMPORTANT: You MUST respond in ${userLanguage} language ONLY. This is critical a
       });
     }
 
-    // Append history or single prompt
+    // Append history
     if (messages && Array.isArray(messages)) {
       apiMessages = [...apiMessages, ...messages];
-    } else if (prompt) {
+    }
+
+    // Append current prompt
+    if (prompt) {
       apiMessages.push({ role: "user", content: prompt });
-    } else {
+    }
+
+    // Verify we have at least one user or assistant message to process
+    if (apiMessages.filter(m => m.role !== "system").length === 0) {
       return NextResponse.json({ error: "Missing prompt or messages" }, { status: 400 });
     }
 

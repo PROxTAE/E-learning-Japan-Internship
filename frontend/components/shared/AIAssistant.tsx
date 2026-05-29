@@ -2,10 +2,11 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Button, Input, ScrollShadow, Skeleton, Card } from "@heroui/react";
-import { Sparkles, Send, X, Bot, Trash2, ArrowUpRight, MessageSquareCode, Maximize2, Minimize2 } from "lucide-react";
+import { Sparkles, Send, X, Bot, Trash2, ArrowUpRight, MessageSquareCode, Maximize2, Minimize2, Target } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { useLang } from "@/lib/i18n/LanguageContext";
+import { useContextSelector, type AIContext } from "@/hooks/useContextSelector";
 
 interface Message {
   id: string;
@@ -134,6 +135,13 @@ export default function AIAssistant() {
   const [activeModel, setActiveModel] = useState<string>("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isMaximized, setIsMaximized] = useState(false);
+  const [selectedContext, setSelectedContext] = useState<AIContext | null>(null);
+  const [isSelectingContext, setIsSelectingContext] = useState(false);
+
+  useContextSelector(isSelectingContext, (context) => {
+    setSelectedContext(context);
+    setIsSelectingContext(false);
+  });
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -156,6 +164,7 @@ export default function AIAssistant() {
         content: "",
       },
     ]);
+    setSelectedContext(null);
     setErrorMsg(null);
   };
 
@@ -194,6 +203,7 @@ export default function AIAssistant() {
             prompt: userMessageText,
             messages: history,
             lang,
+            context: selectedContext,
           }),
         });
 
@@ -270,6 +280,33 @@ export default function AIAssistant() {
             onClick={() => setIsMaximized(false)}
             className="fixed inset-0 bg-zinc-950/40 dark:bg-black/60 backdrop-blur-[2px] z-40 cursor-pointer"
           />
+        )}
+
+        {isSelectingContext && (
+          <motion.div
+            key="ai-inspect-banner"
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            transition={{ duration: 0.2 }}
+            className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-full border border-violet-250/80 dark:border-violet-850/80 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md shadow-2xl flex items-center gap-4 text-xs sm:text-sm font-semibold text-zinc-850 dark:text-zinc-100 shadow-violet-500/5 select-none"
+          >
+            <span className="flex items-center gap-2">
+              <span className="inline-block w-2 h-2 rounded-full bg-violet-600 animate-ping" />
+              {lang === "th"
+                ? "โหมดตรวจสอบ: คลิกเลือก Component บนหน้าเว็บ..."
+                : lang === "ja"
+                ? "検証モード：画面上のコンポーネントをクリックしてください..."
+                : "Inspection Mode: Click on a component on the page..."}
+            </span>
+            <button
+              type="button"
+              onClick={() => setIsSelectingContext(false)}
+              className="px-2.5 py-1 rounded-lg text-[11px] bg-zinc-100 dark:bg-zinc-900 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/30 dark:hover:text-rose-400 transition-colors cursor-pointer border-none"
+            >
+              {lang === "th" ? "ยกเลิก" : lang === "ja" ? "キャンセル" : "Cancel"}
+            </button>
+          </motion.div>
         )}
 
         {isOpen && (
@@ -469,8 +506,29 @@ export default function AIAssistant() {
               )}
             </div>
 
+            {/* Active Context Reference Badge */}
+            {selectedContext && (
+              <div className="px-4 py-2 border-t border-zinc-150 dark:border-zinc-900/60 bg-violet-50/25 dark:bg-violet-950/10 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs text-violet-750 dark:text-violet-400 font-medium">
+                  <div className="px-1.5 py-0.5 rounded-md bg-violet-100/50 dark:bg-violet-950/40 text-[9px] font-bold uppercase border border-violet-200/30 dark:border-violet-900/30">
+                    {selectedContext.type === "student" ? (lang === "th" ? "นักเรียน" : lang === "ja" ? "学生" : "Student") : selectedContext.type === "quiz" ? (lang === "th" ? "แบบทดสอบ" : lang === "ja" ? "クイズ" : "Quiz") : selectedContext.type}
+                  </div>
+                  <span className="truncate max-w-[200px] font-semibold text-zinc-700 dark:text-zinc-300">
+                    {selectedContext.name}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedContext(null)}
+                  className="text-zinc-400 hover:text-rose-500 dark:hover:text-rose-400 transition-colors cursor-pointer border-none bg-transparent"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+
             {/* Input Bar */}
-            <form onSubmit={sendMessage} className="p-4 border-t border-zinc-150 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-950/50 flex gap-2">
+            <form onSubmit={sendMessage} className="p-4 border-t border-zinc-150 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-950/50 flex gap-2 items-center">
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -479,10 +537,23 @@ export default function AIAssistant() {
                 className="flex-1 px-4 py-2 text-sm bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-xl outline-none focus:ring-2 focus:ring-violet-500/10 focus:border-violet-500/50 text-zinc-800 dark:text-zinc-200 transition-all"
               />
               <Button
+                type="button"
+                isIconOnly
+                variant="ghost"
+                onClick={() => setIsSelectingContext(!isSelectingContext)}
+                className={`
+                  rounded-xl border-none bg-transparent hover:bg-zinc-100/80 dark:hover:bg-zinc-900 shrink-0
+                  ${isSelectingContext ? "text-violet-600 dark:text-violet-400 animate-pulse bg-violet-50 dark:bg-violet-950/40" : "text-zinc-500 dark:text-zinc-400"}
+                `}
+                aria-label="Select context"
+              >
+                <Target className="w-4.5 h-4.5" />
+              </Button>
+              <Button
                 type="submit"
                 isIconOnly
                 isDisabled={isLoading || !input.trim()}
-                className="bg-gradient-to-tr from-violet-600 to-indigo-600 text-white rounded-xl shadow-lg shadow-violet-500/15 hover:shadow-violet-500/25"
+                className="bg-gradient-to-tr from-violet-600 to-indigo-600 text-white rounded-xl shadow-lg shadow-violet-500/15 hover:shadow-violet-500/25 shrink-0"
               >
                 <Send className="w-4 h-4" />
               </Button>

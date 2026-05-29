@@ -24,7 +24,12 @@ export function ResultScoreCard({ studentName, score, total, percentage, onPlayA
     : "from-amber-400 to-orange-500";
 
   return (
-    <div className="w-full flex flex-col gap-6">
+    <div
+      className="w-full flex flex-col gap-6"
+      data-ai-context-type="result"
+      data-ai-context-name={`${studentName}'s Quiz Result`}
+      data-ai-context-data={JSON.stringify({ studentName, score, total, percentage, isPassed })}
+    >
       <motion.div
         initial={{ opacity: 0, scale: 0.5, y: -20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}

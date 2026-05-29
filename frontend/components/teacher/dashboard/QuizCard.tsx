@@ -35,6 +35,9 @@ export function QuizCard({ quiz, isSelected, onSelect, onEdit, onDelete, onShare
       onClick={() => onSelect(quiz)}
       onKeyDown={(e) => e.key === "Enter" && onSelect(quiz)}
       suppressHydrationWarning
+      data-ai-context-type="quiz"
+      data-ai-context-name={quiz.title}
+      data-ai-context-data={JSON.stringify(quiz)}
       className={`group border transition-all duration-200 overflow-hidden rounded-xl cursor-pointer
         ${isSelected
           ? "border-violet-500 shadow-xl shadow-violet-500/20 ring-2 ring-violet-500/30"

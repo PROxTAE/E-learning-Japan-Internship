@@ -95,6 +95,9 @@ export function ActivityFeed({ activities, loading = false }: ActivityFeedProps)
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.15 }}
+      data-ai-context-type="activity"
+      data-ai-context-name="Activity Feed"
+      data-ai-context-data={JSON.stringify({ count: activities.length, activities: activities.slice(0, 5) })}
       className="rounded-2xl border border-default-200/40 dark:border-default-700/30 bg-white dark:bg-white/5 backdrop-blur-sm overflow-hidden"
     >
       {/* Header */}

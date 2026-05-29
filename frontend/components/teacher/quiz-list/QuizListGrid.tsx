@@ -78,7 +78,12 @@ function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onStatusChange }
   const emoji    = (quiz as any).emoji     || getEmoji(quiz.id);
 
   return (
-    <div className="group relative flex flex-col rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 hover:border-violet-300 dark:hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-500/10 transition-all duration-300 overflow-hidden">
+    <div
+      className="group relative flex flex-col rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 hover:border-violet-300 dark:hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-500/10 transition-all duration-300 overflow-hidden"
+      data-ai-context-type="quiz"
+      data-ai-context-name={quiz.title}
+      data-ai-context-data={JSON.stringify(quiz)}
+    >
       
       {/* Banner */}
       <div className={`h-28 bg-gradient-to-br ${getGradient(quiz.id)} relative flex items-center justify-center`}>

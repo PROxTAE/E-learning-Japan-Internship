@@ -31,7 +31,12 @@ export function QuizDetailPanel({ quiz, onClose, onEdit }: QuizDetailPanelProps)
   const completionColor = quiz.completionRate >= 70 ? "bg-emerald-500" : quiz.completionRate >= 50 ? "bg-amber-500" : "bg-red-500";
 
   return (
-    <aside className="w-full h-full flex flex-col border-l border-default-200/50 dark:border-default-700/30 bg-white/80 dark:bg-white/5 backdrop-blur-xl overflow-y-auto">
+    <aside
+      className="w-full h-full flex flex-col border-l border-default-200/50 dark:border-default-700/30 bg-white/80 dark:bg-white/5 backdrop-blur-xl overflow-y-auto"
+      data-ai-context-type="quiz"
+      data-ai-context-name={quiz.title}
+      data-ai-context-data={JSON.stringify(quiz)}
+    >
       <div className={`h-32 bg-gradient-to-br ${quiz.gradient} flex items-center justify-center relative shrink-0`}>
         <span className="text-5xl">{quiz.emoji}</span>
         <button onClick={onClose} className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm flex items-center justify-center" aria-label="Close">

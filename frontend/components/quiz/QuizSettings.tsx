@@ -41,12 +41,17 @@ export function QuizSettings({ t, quiz, onField }: QuizSettingsProps) {
   };
 
   return (
-    <div className="
+    <div
+      className="
       rounded-2xl border border-slate-200/80 dark:border-slate-700/60
       bg-white/70 dark:bg-slate-800/60 backdrop-blur-sm
       shadow-sm shadow-slate-100 dark:shadow-slate-900/30
       overflow-hidden
-    ">
+    "
+      data-ai-context-type="quiz-settings"
+      data-ai-context-name={quiz.title ? `Quiz Settings: ${quiz.title}` : "Quiz Settings"}
+      data-ai-context-data={JSON.stringify({ title: quiz.title, description: quiz.description, category: quiz.category, difficulty: quiz.difficulty, tags: quiz.tags, durationMinutes: quiz.durationMinutes, hasTimeLimit: quiz.hasTimeLimit, showAnswersAfterQuiz: quiz.showAnswersAfterQuiz })}
+    >
       {/* Card header */}
       <div className="px-5 py-4 border-b border-slate-200/60 dark:border-slate-700/40 bg-gradient-to-r from-violet-50/50 to-transparent dark:from-violet-900/10">
         <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">

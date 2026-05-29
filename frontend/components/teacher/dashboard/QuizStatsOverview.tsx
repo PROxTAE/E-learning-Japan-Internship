@@ -117,7 +117,12 @@ export function QuizStatsOverview({ stats, loading = false }: { stats: QuizStats
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div
+      className="grid grid-cols-2 lg:grid-cols-4 gap-3"
+      data-ai-context-type="stats"
+      data-ai-context-name="Quiz Stats Overview"
+      data-ai-context-data={JSON.stringify(stats)}
+    >
       {items.map((item) => (
         <StatCard key={item.label} {...item} />
       ))}

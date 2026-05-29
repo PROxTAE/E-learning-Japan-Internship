@@ -54,6 +54,9 @@ export function TopQuizzes({ quizzes, loading = false }: TopQuizzesProps) {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.25 }}
+      data-ai-context-type="leaderboard"
+      data-ai-context-name="Top Quizzes"
+      data-ai-context-data={JSON.stringify({ quizzes: quizzes.slice(0, 5) })}
       className="rounded-2xl border border-default-200/40 dark:border-default-700/30 bg-white dark:bg-white/5 backdrop-blur-sm overflow-hidden"
     >
       {/* Header */}

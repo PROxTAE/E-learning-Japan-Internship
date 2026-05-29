@@ -74,7 +74,12 @@ export function QuizPreview({ t, title, description, questions }: QuizPreviewPro
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div
+      className="flex flex-col gap-6"
+      data-ai-context-type="quiz"
+      data-ai-context-name={title || "Quiz Preview"}
+      data-ai-context-data={JSON.stringify({ title, description, questionCount: questions.length })}
+    >
       {/* Quiz title bar */}
       <div className="text-center">
         <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">{title || "Untitled Quiz"}</h2>

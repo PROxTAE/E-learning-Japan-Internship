@@ -28,7 +28,12 @@ export function MonitoringStats({ stats }: MonitoringStatsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div
+      className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
+      data-ai-context-type="stats"
+      data-ai-context-name="Monitoring Stats"
+      data-ai-context-data={JSON.stringify(stats)}
+    >
       {items.map((item, i) => (
         <motion.div
           key={item.label}

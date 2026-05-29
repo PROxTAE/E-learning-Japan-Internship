@@ -81,6 +81,9 @@ export function WelcomeBanner() {
       initial={{ opacity: 0, y: -16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: "easeOut" }}
+      data-ai-context-type="dashboard"
+      data-ai-context-name="Welcome Banner"
+      data-ai-context-data={JSON.stringify({ section: "welcome", teacher: "Mr. Takajo" })}
       className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 p-6 lg:p-8 text-white shadow-2xl shadow-violet-500/30"
     >
       {/* Background decorative blobs */}

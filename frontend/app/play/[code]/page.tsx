@@ -289,7 +289,12 @@ export default function PlayQuizPage() {
         <Blobs />
         <div className="relative min-h-full flex flex-col items-center justify-center px-4 py-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
-            <Card className="w-full rounded-[32px] border-0 shadow-2xl overflow-hidden bg-white dark:bg-zinc-900">
+            <Card
+              className="w-full rounded-[32px] border-0 shadow-2xl overflow-hidden bg-white dark:bg-zinc-900"
+              data-ai-context-type="quiz"
+              data-ai-context-name={quiz.title}
+              data-ai-context-data={JSON.stringify({ title: quiz.title, description: quiz.description, questionCount: quiz.questions.length, durationMinutes: quiz.durationMinutes, hasTimeLimit: quiz.hasTimeLimit, category: quiz.category, code })}
+            >
               <div className="h-32 bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center relative">
                 <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '16px 16px' }} />
                 <span className="text-6xl relative z-10 drop-shadow-lg">📚</span>
@@ -452,7 +457,12 @@ export default function PlayQuizPage() {
               exit={{ opacity: 0, y: -20 }}
               className="flex flex-col gap-5 sm:gap-6"
             >
-              <Card className="w-full rounded-[32px] border-0 shadow-2xl bg-white dark:bg-zinc-900 overflow-hidden">
+              <Card
+                className="w-full rounded-[32px] border-0 shadow-2xl bg-white dark:bg-zinc-900 overflow-hidden"
+                data-ai-context-type="question"
+                data-ai-context-name={question.text}
+                data-ai-context-data={JSON.stringify({ questionIndex: currentIndex + 1, total: quiz.questions.length, questionId: question.id, choiceCount: question.choices.length, category: quiz.category, studentName })}
+              >
                 <CardContent className="px-6 sm:px-8 pt-8 sm:pt-10 pb-2">
                   <span className="text-[10px] font-bold uppercase tracking-widest text-violet-500 mb-2 block">
                     {quiz.category || "General"}

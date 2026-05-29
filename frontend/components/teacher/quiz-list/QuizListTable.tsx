@@ -31,7 +31,13 @@ export function QuizListTable({ quizzes, onEdit, onDelete, onShare, onMonitor, o
       {/* Rows */}
       <div className="divide-y divide-gray-100 dark:divide-white/5">
         {quizzes.map((quiz) => (
-          <div key={quiz.id} className="group grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 items-center px-5 py-4 hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-colors">
+          <div
+            key={quiz.id}
+            className="group grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 items-center px-5 py-4 hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-colors"
+            data-ai-context-type="quiz"
+            data-ai-context-name={quiz.title}
+            data-ai-context-data={JSON.stringify(quiz)}
+          >
             
             {/* Title + badges */}
             <div className="flex items-center gap-3 min-w-0">

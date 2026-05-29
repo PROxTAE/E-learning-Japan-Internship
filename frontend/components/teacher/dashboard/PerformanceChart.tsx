@@ -83,6 +83,9 @@ export function PerformanceChart({ data, loading = false }: PerformanceChartProp
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.2 }}
+      data-ai-context-type="chart"
+      data-ai-context-name="Performance Chart"
+      data-ai-context-data={JSON.stringify({ totalAttempts, avgScore, weeklyData: data })}
       className="rounded-2xl border border-default-200/40 dark:border-default-700/30 bg-white dark:bg-white/5 backdrop-blur-sm p-5"
     >
       {/* Header */}

@@ -31,6 +31,9 @@ export function UpcomingSchedule() {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.1 }}
+      data-ai-context-type="schedule"
+      data-ai-context-name="Upcoming Schedule"
+      data-ai-context-data={JSON.stringify({ scheduleItems: MOCK_SCHEDULE })}
       className="rounded-2xl border border-default-200/40 dark:border-default-700/30 bg-white dark:bg-white/5 backdrop-blur-sm overflow-hidden"
     >
       {/* Header */}

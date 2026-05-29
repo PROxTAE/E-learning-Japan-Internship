@@ -16,6 +16,9 @@ export function AnswerReviewList({ reviews }: AnswerReviewListProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
       className="w-full mt-6"
+      data-ai-context-type="answer-review"
+      data-ai-context-name="Answer Review"
+      data-ai-context-data={JSON.stringify({ total: reviews.length, correct: reviews.filter(r => r.isCorrect).length, incorrect: reviews.filter(r => !r.isCorrect && r.selectedChoiceId !== null).length, skipped: reviews.filter(r => r.selectedChoiceId === null).length })}
     >
       <h3 className="text-xl font-bold text-white mb-4 px-2">Answer Review</h3>
       

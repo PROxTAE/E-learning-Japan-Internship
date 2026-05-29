@@ -43,7 +43,12 @@ export function LiveStatsPanel({ stats }: LiveStatsPanelProps) {
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div
+      className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6"
+      data-ai-context-type="stats"
+      data-ai-context-name="Live Stats Panel"
+      data-ai-context-data={JSON.stringify(stats)}
+    >
       {statItems.map((item, idx) => (
         <Card key={idx} className="bg-default-50 border border-white/5 backdrop-blur-md shadow-sm">
           <div className="flex flex-row items-center gap-4 p-4">

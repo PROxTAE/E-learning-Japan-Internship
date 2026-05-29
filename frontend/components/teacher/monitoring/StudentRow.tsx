@@ -4,6 +4,7 @@ import { Student } from "@/types/teacher/monitoring.types";
 import { Avatar, ProgressBar } from "@heroui/react";
 import { motion } from "framer-motion";
 import { Wifi, WifiOff } from "lucide-react";
+import { useMonitoringStore } from "@/store/monitoringStore";
 
 interface StudentRowProps {
   student: Student;
@@ -11,9 +12,37 @@ interface StudentRowProps {
 
 export function StudentRow({ student }: StudentRowProps) {
   const isOnline = student.isOnline;
+  const { answers, questions } = useMonitoringStore();
+
+  // Find and format student's answers for AI context
+  const studentAnswers = answers.filter((a) => a.studentId === student.id);
+  const enrichedAnswers = studentAnswers
+    .map((ans) => {
+      const question = questions.find((q) => q.id === ans.questionId);
+      return {
+        questionNumber: question ? question.number : undefined,
+        questionTitle: question ? question.title : "Unknown Question",
+        difficulty: question ? question.difficulty : undefined,
+        status: ans.state, // "correct" | "wrong" | "unanswered" | "answering"
+        studentAnswerText: ans.finalAnswerText || "No answer",
+        isCorrect: ans.isCorrect,
+        responseTimeSeconds: ans.responseTime,
+        confusionLevel: ans.confusionLevel, // "none" | "low" | "high"
+        answerChangesCount: ans.history ? ans.history.length : 0,
+      };
+    })
+    .sort((a, b) => (a.questionNumber || 0) - (b.questionNumber || 0));
+
+  const aiContextData = {
+    ...student,
+    detailedAnswers: enrichedAnswers,
+  };
 
   return (
     <div
+      data-ai-context-type="student"
+      data-ai-context-name={student.name}
+      data-ai-context-data={JSON.stringify(aiContextData)}
       className={`
         flex items-center gap-3 p-3 w-56 shrink-0 group transition-all duration-300
         ${isOnline ? "" : "opacity-50"}
