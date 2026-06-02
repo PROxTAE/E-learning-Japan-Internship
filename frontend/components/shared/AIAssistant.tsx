@@ -243,6 +243,7 @@ export default function AIAssistant() {
       {/* 1. Floating Action Button */}
       <div className="fixed bottom-6 right-6 z-50">
         <button
+          suppressHydrationWarning
           onClick={() => setIsOpen(!isOpen)}
           className={`
             relative p-4 rounded-full shadow-2xl flex items-center justify-center

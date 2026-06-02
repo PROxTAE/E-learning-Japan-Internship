@@ -101,12 +101,12 @@ function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onStatusChange }
 
         {/* Status badge top-left */}
         <div className="absolute top-2 left-2">
-          <Chip size="sm" color={STATUS_COLOR[quiz.status]} className="text-[10px] h-5 capitalize font-semibold">
+          <Chip {...{ size: "sm", color: STATUS_COLOR[quiz.status] } as any} className="text-[10px] h-5 capitalize font-semibold">
             {quiz.status}
           </Chip>
         </div>
       </div>
-
+ 
       {/* Body */}
       <div className="flex-1 p-4 flex flex-col gap-3">
         <div>
@@ -115,14 +115,14 @@ function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onStatusChange }
             <p className="text-xs text-gray-500 dark:text-default-400 mt-1 line-clamp-2">{quiz.description}</p>
           )}
         </div>
-
+ 
         <div className="flex items-center gap-1.5 flex-wrap">
-          <Chip size="sm" color={DIFF_COLOR[quiz.difficulty]} variant="flat" className="text-[10px] h-5">
+          <Chip {...{ size: "sm", color: DIFF_COLOR[quiz.difficulty], variant: "flat" } as any} className="text-[10px] h-5">
             {DIFF_LABEL[quiz.difficulty]}
           </Chip>
-          {quiz.category && (
-            <Chip size="sm" variant="flat" className="text-[10px] h-5 bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-default-400">
-              {quiz.category}
+          {(quiz as any).category && (
+            <Chip {...{ size: "sm", variant: "flat" } as any} className="text-[10px] h-5 bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-default-400">
+              {(quiz as any).category}
             </Chip>
           )}
         </div>
@@ -131,7 +131,7 @@ function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onStatusChange }
         <div className="flex items-center gap-3 text-[11px] text-gray-500 dark:text-default-400 pt-2 border-t border-gray-100 dark:border-white/5">
           <span className="flex items-center gap-1">
             <HelpCircle className="w-3 h-3" />
-            {(quiz as any).questionCount ?? quiz.questions?.length ?? 0} Qs
+            {(quiz as any).questionCount ?? (quiz as any).questions?.length ?? 0} Qs
           </span>
           <span className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5" />

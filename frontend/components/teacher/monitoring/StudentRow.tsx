@@ -105,11 +105,13 @@ export function StudentRow({ student }: StudentRowProps) {
           <div className="flex items-center gap-2 mt-1">
             <div className="flex-1">
               <ProgressBar
-                size="sm"
-                value={student.progress ?? 0}
-                className="h-1"
-                color={student.progress === 100 ? "success" : "primary"}
-                classNames={{ indicator: "bg-gradient-to-r from-violet-500 to-fuchsia-500" }}
+                {...{
+                  size: "sm",
+                  value: student.progress ?? 0,
+                  className: "h-1",
+                  color: student.progress === 100 ? "success" : "primary",
+                  classNames: { indicator: "bg-gradient-to-r from-violet-500 to-fuchsia-500" }
+                } as any}
               />
             </div>
             <span className="text-[9px] font-bold text-gray-500 dark:text-default-400 tabular-nums">

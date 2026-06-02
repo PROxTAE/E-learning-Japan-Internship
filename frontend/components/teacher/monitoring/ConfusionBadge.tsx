@@ -20,8 +20,8 @@ export function ConfusionBadge({ level }: ConfusionBadgeProps) {
     >
       <Chip
         size="sm"
-        variant="flat"
-        color={level === "high" ? "danger" : "warning"}
+        variant={"flat" as any}
+        color={(level === "high" ? "danger" : "warning") as any}
         className="text-[10px] h-5"
       >
         <div className="flex items-center gap-1">

@@ -1,13 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Spinner } from "@heroui/react";
+import { Spinner, Button } from "@heroui/react";
 import { useLang } from "@/lib/i18n/LanguageContext";
 import { quizApi } from "@/services/quizApi";
 import type { StudentResult } from "@/services/studentResultApi";
 import { ResultScoreCard } from "./ResultScoreCard";
 import { AnswerReviewList } from "./AnswerReviewList";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import ReactMarkdown from "react-markdown";
+import { Sparkles, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
+import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 
 function SimpleConfetti() {
   const colors = ["#fce18a", "#ff726d", "#b48def", "#f4306d", "#00b8a9"];
@@ -49,16 +53,25 @@ interface StudentResultScreenProps {
   studentId: string;
   studentName: string;
   selectedAnswers: Record<string, string>;
+  /** logId returned after the interaction log is submitted; enables AI analysis */
+  logId?: string | null;
   onPlayAgain: () => void;
   onGoHome: () => void;
 }
 
-export function StudentResultScreen({ quizId, studentId, studentName, selectedAnswers, onPlayAgain, onGoHome }: StudentResultScreenProps) {
+export function StudentResultScreen({ quizId, studentId, studentName, selectedAnswers, logId, onPlayAgain, onGoHome }: StudentResultScreenProps) {
   const { lang } = useLang();
   const [result, setResult] = useState<StudentResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showAnswers, setShowAnswers] = useState(true);
+
+  // ── AI Analysis state ─────────────────────────────────────────
+  const [aiAnalysis, setAiAnalysis]         = useState<string | null>(null);
+  const [aiLoading, setAiLoading]           = useState(false);
+  const [aiError, setAiError]               = useState<string | null>(null);
+  const [showAiPanel, setShowAiPanel]       = useState(false);
+  const [aiModel, setAiModel]               = useState<string>("");
 
 
   useEffect(() => {
@@ -118,6 +131,33 @@ export function StudentResultScreen({ quizId, studentId, studentName, selectedAn
     };
   }, [quizId, selectedAnswers]);
 
+  // ── AI Analysis handler ───────────────────────────────────────
+  const handleAiAnalysis = async () => {
+    if (aiAnalysis) {
+      // Toggle panel if already analysed
+      setShowAiPanel((p) => !p);
+      return;
+    }
+    setAiLoading(true);
+    setAiError(null);
+    setShowAiPanel(true);
+    try {
+      const res  = await fetch("/api/analyze-quiz-log", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ logId, lang }),
+      });
+      const body = await res.json();
+      if (!res.ok || !body.success) throw new Error(body.message || "Analysis failed");
+      setAiAnalysis(body.data.analysis);
+      setAiModel(body.data.model || "");
+    } catch (err: any) {
+      setAiError(err.message || "Could not connect to AI");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   if (loading || !result) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-20">
@@ -130,6 +170,12 @@ export function StudentResultScreen({ quizId, studentId, studentName, selectedAn
   return (
     <div className="w-full max-w-md mx-auto">
       {showConfetti && <SimpleConfetti />}
+
+      {/* Floating controls: Language + Theme */}
+      <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+        <LanguageSwitcher />
+        <ThemeSwitcher />
+      </div>
       
       <ResultScoreCard 
         studentName={studentName}
@@ -140,6 +186,105 @@ export function StudentResultScreen({ quizId, studentId, studentName, selectedAn
         onGoHome={onGoHome}
       />
 
+      {/* ── AI Analysis Panel ────────────────────────────────────────── */}
+      {logId && (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mt-5"
+        >
+          <button
+            onClick={handleAiAnalysis}
+            disabled={aiLoading}
+            className={`
+              w-full flex items-center justify-between gap-3 px-5 py-4 rounded-2xl font-bold text-sm
+              transition-all duration-200 shadow-lg
+              ${
+                aiLoading
+                  ? "bg-violet-500/80 text-white cursor-wait"
+                  : showAiPanel
+                  ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-violet-500/25"
+                  : "bg-white/15 hover:bg-white/25 text-white border border-white/20 backdrop-blur-md"
+              }
+            `}
+          >
+            <span className="flex items-center gap-2">
+              {aiLoading ? (
+                <Spinner size="sm" className="text-white" />
+              ) : (
+                <Sparkles className="w-4 h-4" />
+              )}
+              {aiLoading
+                ? (lang === "th" ? "AI กำลังวิเคราะห์..." : lang === "ja" ? "AI分析中..." : "AI is analysing...")
+                : (lang === "th" ? "วิเคราะห์ด้วย AI" : lang === "ja" ? "AIで分析する" : "Analyse with AI")
+              }
+            </span>
+            {!aiLoading && (
+              showAiPanel
+                ? <ChevronUp className="w-4 h-4 shrink-0" />
+                : <ChevronDown className="w-4 h-4 shrink-0" />
+            )}
+          </button>
+
+          <AnimatePresence>
+            {showAiPanel && (
+              <motion.div
+                key="ai-panel"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.25 }}
+                className="overflow-hidden"
+              >
+                <div className="mt-3 rounded-2xl bg-white/10 dark:bg-zinc-900/60 backdrop-blur-md border border-white/15 dark:border-zinc-700/50 p-5 shadow-xl">
+                  {aiLoading && (
+                    <div className="flex items-center gap-3 text-white/70">
+                      <Spinner size="sm" />
+                      <span className="text-sm font-medium">
+                        {lang === "th" ? "กำลังวิเคราะห์ผลการทดสอบ..." : lang === "ja" ? "テスト結果を分析中..." : "Analysing your quiz performance..."}
+                      </span>
+                    </div>
+                  )}
+
+                  {aiError && (
+                    <div className="flex items-start gap-2.5 text-rose-300 text-sm">
+                      <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                      <div>
+                        <p className="font-semibold">
+                          {lang === "th" ? "ไม่สามารถเชื่อมต่อ AI ได้" : lang === "ja" ? "AIへの接続に失敗しました" : "Could not connect to AI"}
+                        </p>
+                        <p className="text-xs opacity-75 mt-0.5">{aiError}</p>
+                        <p className="text-xs opacity-60 mt-1">
+                          {lang === "th" ? "โปรดตรวจสอบว่า Ollama รันอยู่" : lang === "ja" ? "Ollamaが起動しているか確認してください" : "Please ensure Ollama is running."}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {aiAnalysis && !aiLoading && (
+                    <div>
+                      {aiModel && (
+                        <div className="flex items-center gap-1.5 mb-3">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-violet-500/20 text-violet-200 border border-violet-400/20 select-none uppercase tracking-wider">
+                            <Sparkles className="w-2.5 h-2.5" />
+                            {aiModel}
+                          </span>
+                        </div>
+                      )}
+                      <div className="prose prose-sm prose-invert max-w-none text-white/90 [&_h1]:text-white [&_h2]:text-white [&_h3]:text-violet-200 [&_strong]:text-white [&_p]:text-white/85 [&_li]:text-white/80 [&_ul]:text-white/80">
+                        <ReactMarkdown>{aiAnalysis}</ReactMarkdown>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      )}
+
+      {/* ── Answer review ────────────────────────────────────────────── */}
       {showAnswers ? (
         <AnswerReviewList reviews={result.reviews} />
       ) : (

@@ -74,7 +74,7 @@ export function StudentNameModal({ quizTitle, isOpen, onConfirm }: StudentNameMo
                     onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                     autoFocus
                     className="w-full"
-                    size="lg"
+                    size={"lg" as any}
                   />
                   {error && (
                     <p className="text-xs text-red-500 text-left font-medium">{error}</p>

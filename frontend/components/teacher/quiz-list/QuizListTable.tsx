@@ -44,10 +44,10 @@ export function QuizListTable({ quizzes, onEdit, onDelete, onShare, onMonitor, o
               <div className="flex flex-col gap-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">{quiz.title}</span>
-                  <Chip size="sm" color={STATUS_COLOR[quiz.status]} className="text-[10px] h-5 capitalize shrink-0">
+                  <Chip {...{ size: "sm", color: STATUS_COLOR[quiz.status] } as any} className="text-[10px] h-5 capitalize shrink-0">
                     {quiz.status}
                   </Chip>
-                  <Chip size="sm" color={DIFF_COLOR[quiz.difficulty]} variant="flat" className="text-[10px] h-5 capitalize shrink-0">
+                  <Chip {...{ size: "sm", color: DIFF_COLOR[quiz.difficulty], variant: "flat" } as any} className="text-[10px] h-5 capitalize shrink-0">
                     {quiz.difficulty}
                   </Chip>
                 </div>
@@ -61,7 +61,7 @@ export function QuizListTable({ quizzes, onEdit, onDelete, onShare, onMonitor, o
             <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-default-400 justify-center">
               <HelpCircle className="w-3.5 h-3.5" />
               <span className="font-semibold text-gray-700 dark:text-default-300">
-                {(quiz as any).questionCount ?? quiz.questions?.length ?? 0}
+                {(quiz as any).questionCount ?? (quiz as any).questions?.length ?? 0}
               </span>
             </div>
 

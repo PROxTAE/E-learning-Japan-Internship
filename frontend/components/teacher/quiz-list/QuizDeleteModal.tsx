@@ -58,7 +58,7 @@ export function QuizDeleteModal({ quiz, isOpen, onClose, onConfirm, isDeleting }
                 <div className="px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10">
                   <p className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-1">{quiz.title}</p>
                   <p className="text-xs text-gray-500 dark:text-default-400 mt-0.5">
-                    {(quiz as any).questionCount ?? quiz.questions?.length ?? 0} questions · {quiz.status}
+                    {(quiz as any).questionCount ?? (quiz as any).questions?.length ?? 0} questions · {quiz.status}
                   </p>
                 </div>
 
@@ -77,9 +77,9 @@ export function QuizDeleteModal({ quiz, isOpen, onClose, onConfirm, isDeleting }
                     Cancel
                   </Button>
                   <Button
+                    {...{ isLoading: isDeleting } as any}
                     className="flex-1 bg-gradient-to-r from-red-500 to-rose-600 text-white font-semibold"
                     onPress={onConfirm}
-                    isLoading={isDeleting}
                   >
                     <Trash2 className="w-4 h-4" />
                     Delete

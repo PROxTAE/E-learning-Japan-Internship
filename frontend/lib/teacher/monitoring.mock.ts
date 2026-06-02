@@ -40,15 +40,19 @@ MOCK_STUDENTS.forEach(student => {
       let lastTime = 0;
       for (let j = 0; j < changesCount; j++) {
         lastTime += Math.floor(Math.random() * 5) + 1;
+        const choiceId = question.choices[Math.floor(Math.random() * 4)].id;
         history.push({
-          answer: question.choices[Math.floor(Math.random() * 4)].id,
+          choiceId,
+          answer: choiceId,
           timestamp: lastTime
         });
       }
       
       const responseTime = lastTime + Math.floor(Math.random() * 10) + 2;
+      const finalAns = finalAnswer || "";
       history.push({
-        answer: finalAnswer || "",
+        choiceId: finalAns,
+        answer: finalAns,
         timestamp: responseTime
       });
 

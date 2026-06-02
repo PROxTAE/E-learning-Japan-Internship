@@ -65,7 +65,7 @@ export function QuizSessionHeader({ quizTitle, quizCode, state, onStateChange }:
           <Switch 
             size="sm" 
             isSelected={state.heatmapMode}
-            onChange={(e) => onStateChange({ heatmapMode: e.target.checked })}
+            onChange={(checked: any) => onStateChange({ heatmapMode: !!checked })}
           />
         </div>
 
@@ -80,9 +80,7 @@ export function QuizSessionHeader({ quizTitle, quizCode, state, onStateChange }:
         </Button>
 
         <Button 
-          size="sm" 
-          color="danger"
-          variant="flat"
+          {...{ size: "sm", color: "danger", variant: "flat" } as any}
           className="flex items-center gap-2 font-bold ml-2"
           onPress={() => onStateChange({ isEnded: true } as any)} // Let the parent component handle the actual ending logic
         >

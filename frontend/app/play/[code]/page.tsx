@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Spinner, Button, Card, CardContent, RadioGroup, Radio, Label, Input } from "@heroui/react";
+import { Spinner, Button, Card, CardContent, RadioGroup, Radio, Input } from "@heroui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, Trophy, Wifi, WifiOff, RotateCcw } from "lucide-react";
 import { quizApi } from "@/services/quizApi";
@@ -13,6 +13,8 @@ import { StudentNameModal } from "./StudentNameModal";
 import { useStudentSocket } from "@/hooks/useMonitoringSocket";
 import { useQuizSession } from "@/hooks/useQuizSession";
 import { StudentResultScreen } from "@/components/student/result/StudentResultScreen";
+import { useQuizInteractionLog } from "@/hooks/useQuizInteractionLog";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 
 // sessionId must match the Teacher's monitoring page: quiz-session-{quizId}
 function sessionIdFromQuiz(quizId: string) {
@@ -22,7 +24,7 @@ function sessionIdFromQuiz(quizId: string) {
 export default function PlayQuizPage() {
   const params = useParams();
   const router = useRouter();
-  const { t } = useLang();
+  const { t, lang } = useLang();
 
   const code = (params.code as string)?.toUpperCase();
 
@@ -51,6 +53,16 @@ export default function PlayQuizPage() {
 
   // ── Timing per question ────────────────────────────────────────────────────
   const questionStartTime = useRef<number>(Date.now());
+
+  // ── Interaction log ────────────────────────────────────────────────────────
+  const [submittedLogId, setSubmittedLogId] = useState<string | null>(null);
+  const interactionLog = useQuizInteractionLog({
+    quizId:      quiz?.id ?? "",
+    quizTitle:   quiz?.title ?? "",
+    studentId,
+    studentName,
+    lang,
+  });
 
   // ── Session persistence ────────────────────────────────────────────────────
   const { loadSession, saveSession, clearSession } = useQuizSession(quiz?.id ?? "");
@@ -120,10 +132,25 @@ export default function PlayQuizPage() {
     },
   });
 
-  // Reset question timer when question changes
+  // Reset question timer and log view when question changes
   useEffect(() => {
     questionStartTime.current = Date.now();
-  }, [currentIndex]);
+    if (started && quiz) {
+      interactionLog.logView(currentIndex);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIndex, started]);
+
+  // Start heartbeat tracking when quiz begins; stop when finished
+  useEffect(() => {
+    if (started && !isFinished) {
+      interactionLog.startHeartbeat();
+    }
+    if (isFinished) {
+      interactionLog.stopHeartbeat();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [started, isFinished]);
 
   // Global Timer logic
   useEffect(() => {
@@ -156,8 +183,12 @@ export default function PlayQuizPage() {
     const finalId = studentId || `${cleanName.toLowerCase().replace(/\s+/g, "_")}_${Date.now().toString(36)}`;
     setStudentId(finalId);
     setError(null);
-    setStartTime(Date.now());
+    interactionLog.resetLog();
+    const now = Date.now();
+    setStartTime(now);
     setStarted(true);
+    // Log the first question view after state update
+    setTimeout(() => interactionLog.logView(0), 50);
   };
 
   const handlePlayAgain = () => {
@@ -170,11 +201,24 @@ export default function PlayQuizPage() {
 
   const handleSelectOption = (optionId: string) => {
     if (isPaused) return;
+
+    // ── Interaction log ──────────────────────────────────────────
+    const selectedChoice = quiz?.questions[currentIndex].choices.find(
+      (c) => ((c as any)._id?.toString() || c.id) === optionId
+    );
+    if (currentSelection) {
+      // Student is changing their answer
+      interactionLog.logChange(currentIndex, currentSelection, optionId, selectedChoice?.text);
+    } else {
+      // First selection on this question
+      interactionLog.logSelect(currentIndex, optionId, selectedChoice?.text);
+    }
+    // ────────────────────────────────────────────────────────────
+
     setCurrentSelection(optionId);
 
     if (quiz && studentId) {
       const currentQuestion = quiz.questions[currentIndex];
-      const selectedChoice  = currentQuestion.choices.find(c => c.id === optionId);
       const correctChoice   = currentQuestion.choices.find(c => c.isCorrect);
       const responseTime    = Math.round((Date.now() - questionStartTime.current) / 1000);
 
@@ -182,25 +226,36 @@ export default function PlayQuizPage() {
         questionId:   currentQuestion.id,
         choiceId:     optionId,
         choiceText:   selectedChoice?.text,
-        isCorrect:    optionId === correctChoice?.id,
+        isCorrect:    optionId === (correctChoice?.id || (correctChoice as any)?._id?.toString()),
         responseTime,
       });
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!currentSelection || isPaused) return;
 
     const currentQuestion = quiz!.questions[currentIndex];
-    const updated = { ...selectedAnswers, [currentQuestion.id]: currentSelection };
+    const qId = (currentQuestion as any)._id?.toString() || currentQuestion.id;
+    const updated = { ...selectedAnswers, [qId]: currentSelection };
     setSelectedAnswers(updated);
 
     if (currentIndex < quiz!.questions.length - 1) {
       setCurrentIndex((prev) => prev + 1);
       setCurrentSelection(null);
     } else {
+      // ── Quiz finished: build & submit interaction log ────────
       setIsFinished(true);
       clearSession();
+
+      if (quiz && studentId) {
+        const payload = interactionLog.buildFinalLog(quiz, updated, startTime);
+        const logId   = await interactionLog.submitLog(payload);
+        if (logId) {
+          setSubmittedLogId(logId);
+          console.log("[QuizLog] Submitted interaction log:", logId);
+        }
+      }
     }
   };
 
@@ -234,8 +289,12 @@ export default function PlayQuizPage() {
   if (loading) {
     return (
       <div className="quiz-bg fixed inset-0 flex flex-col items-center justify-center gap-4">
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+          <QuizLangSwitcher />
+          <ThemeSwitcher />
+        </div>
         <Spinner size="lg" className="text-white" />
-        <p className="text-white/70 font-semibold text-lg">Loading quiz...</p>
+        <p className="text-white/70 font-semibold text-lg">{t.play.loading}</p>
       </div>
     );
   }
@@ -243,15 +302,19 @@ export default function PlayQuizPage() {
   if (error || !quiz) {
     return (
       <div className="quiz-bg fixed inset-0 flex flex-col items-center justify-center p-4">
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+          <QuizLangSwitcher />
+          <ThemeSwitcher />
+        </div>
         <Card className="w-full max-w-md bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl">
           <CardContent className="text-center py-12 px-8 flex flex-col items-center gap-6">
             <div className="text-6xl mb-2">🤔</div>
             <div className="space-y-2">
-              <h2 className="text-2xl font-black text-white">Oops!</h2>
-              <p className="text-white/60">{error || "Quiz not found or not available."}</p>
+              <h2 className="text-2xl font-black text-white">{t.play.oops}</h2>
+              <p className="text-white/60">{error || t.play.notFound}</p>
             </div>
             <Button className="w-full h-14 rounded-2xl font-bold bg-white text-violet-600 shadow-xl" onPress={() => router.push("/")}>
-              Back to Home
+              {t.play.backHome}
             </Button>
           </CardContent>
         </Card>
@@ -272,6 +335,7 @@ export default function PlayQuizPage() {
             studentId={studentId}
             studentName={studentName}
             selectedAnswers={selectedAnswers}
+            logId={submittedLogId}
             onPlayAgain={handlePlayAgain}
             onGoHome={() => router.push("/")}
           />
@@ -287,6 +351,13 @@ export default function PlayQuizPage() {
     return (
       <div className="quiz-bg fixed inset-0 overflow-y-auto">
         <Blobs />
+
+        {/* ── Floating controls: Language + Theme ─────────────────────── */}
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+          <QuizLangSwitcher />
+          <ThemeSwitcher />
+        </div>
+
         <div className="relative min-h-full flex flex-col items-center justify-center px-4 py-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
             <Card
@@ -302,25 +373,23 @@ export default function PlayQuizPage() {
 
               <CardContent className="text-center py-10 px-8 flex flex-col items-center gap-6">
                 <div className="space-y-2">
-                  <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-violet-500">Ready to start?</span>
+                  <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-violet-500">{t.play.readyToStart}</span>
                   <h1 className="text-3xl font-black text-zinc-800 dark:text-white leading-tight">{quiz.title}</h1>
                   <p className="text-zinc-500 dark:text-zinc-400 text-sm">{quiz.description}</p>
                 </div>
 
                 <div className="w-full space-y-2 mt-2">
                   <div className="text-left">
-                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Your Name</label>
+                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">{t.play.yourName}</label>
                     <Input
-                      placeholder="Enter your name to join..."
+                      placeholder={t.play.namePlaceholder}
                       value={studentName}
                       onChange={(e) => {
                         setStudentName(e.target.value);
                       }}
-                      className="mt-1"
-                      size="lg"
-                      variant="bordered"
-                      color="primary"
-                      // Use standard className for the wrapper styling
+                      size={"lg" as any}
+                      variant={"bordered" as any}
+                      color={"primary" as any}
                       className="mt-1 bg-white dark:bg-zinc-800 rounded-2xl"
                     />
                   </div>
@@ -328,13 +397,13 @@ export default function PlayQuizPage() {
 
                 <div className="flex gap-4 w-full mt-2 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl p-4 border border-zinc-100 dark:border-zinc-700/50">
                   <div className="flex-1">
-                    <p className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider">Questions</p>
+                    <p className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider">{t.play.questions}</p>
                     <p className="text-xl font-black text-zinc-800 dark:text-white">{quiz.questions.length}</p>
                   </div>
                   <div className="w-px bg-zinc-200 dark:bg-zinc-700" />
                   <div className="flex-1">
-                    <p className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider">Duration</p>
-                    <p className="text-xl font-black text-zinc-800 dark:text-white">{quiz.hasTimeLimit !== false ? `${quiz.durationMinutes}m` : (t.detail?.noLimit || "No Limit")}</p>
+                    <p className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider">{t.play.duration}</p>
+                    <p className="text-xl font-black text-zinc-800 dark:text-white">{quiz.hasTimeLimit !== false ? `${quiz.durationMinutes}m` : t.play.noLimit}</p>
                   </div>
                 </div>
 
@@ -344,11 +413,11 @@ export default function PlayQuizPage() {
                   className="w-full h-16 rounded-2xl font-black text-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-xl hover:shadow-violet-500/30 hover:-translate-y-1 transition-all"
                   onPress={handleStartQuiz}
                 >
-                  Start Quiz
+                  {t.play.startQuiz}
                 </Button>
 
                 <button onClick={() => router.push("/")} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 text-sm font-semibold transition-colors">
-                  Not now, take me home
+                  {t.play.notNow}
                 </button>
               </CardContent>
             </Card>
@@ -377,12 +446,12 @@ export default function PlayQuizPage() {
             className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-emerald-500/90 backdrop-blur-md text-white px-5 py-3 rounded-2xl shadow-xl border border-emerald-400/30"
           >
             <RotateCcw className="w-4 h-4 shrink-0" />
-            <span className="font-bold text-sm">Session restored — continuing where you left off</span>
+            <span className="font-bold text-sm">{t.play.sessionRestored}</span>
             <button
               onClick={handleRestartFresh}
               className="text-xs underline opacity-70 hover:opacity-100 ml-1 font-medium"
             >
-              Start over
+              {t.play.startOver}
             </button>
           </motion.div>
         )}
@@ -398,8 +467,8 @@ export default function PlayQuizPage() {
             className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center gap-3"
           >
             <div className="text-5xl">⏸️</div>
-            <p className="text-white font-black text-xl">Quiz Paused</p>
-            <p className="text-white/60 text-sm">Waiting for your teacher to resume…</p>
+            <p className="text-white font-black text-xl">{t.play.quizPaused}</p>
+            <p className="text-white/60 text-sm">{t.play.waitingResume}</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -422,15 +491,24 @@ export default function PlayQuizPage() {
               {String(quiz.questions.length).padStart(2, "0")}
             </span>
 
-            {/* Connection indicator */}
-            <div className={`flex items-center gap-1.5 backdrop-blur-md border border-white/25 rounded-full px-3 py-1.5 ${isConnected ? "bg-emerald-500/20" : "bg-white/20 dark:bg-white/10"}`}>
-              {isConnected
-                ? <Wifi    className="w-3.5 h-3.5 text-emerald-300" />
-                : <WifiOff className="w-3.5 h-3.5 text-white/50" />
-              }
-              <span className={`font-bold text-xs uppercase tracking-tight ${isConnected ? "text-emerald-300" : "text-white/50"}`}>
-                {isConnected ? "Live" : "Offline"}
-              </span>
+            {/* Right side: connection indicator + language + theme */}
+            <div className="flex items-center gap-2">
+              {/* Connection indicator */}
+              <div className={`flex items-center gap-1.5 backdrop-blur-md border border-white/25 rounded-full px-3 py-1.5 ${isConnected ? "bg-emerald-500/20" : "bg-white/20 dark:bg-white/10"}`}>
+                {isConnected
+                  ? <Wifi    className="w-3.5 h-3.5 text-emerald-300" />
+                  : <WifiOff className="w-3.5 h-3.5 text-white/50" />
+                }
+                <span className={`font-bold text-xs uppercase tracking-tight ${isConnected ? "text-emerald-300" : "text-white/50"}`}>
+                  {isConnected ? t.play.live : t.play.offline}
+                </span>
+              </div>
+
+              {/* Language switcher */}
+              <QuizLangSwitcher />
+
+              {/* Dark / light mode */}
+              <ThemeSwitcher />
             </div>
           </div>
           
@@ -507,9 +585,9 @@ export default function PlayQuizPage() {
                           </div>
 
                           <div className="flex-1 flex items-center justify-between gap-4">
-                            <Label className={`font-bold ${isSelected ? "text-violet-700 dark:text-violet-300" : "text-zinc-700 dark:text-zinc-200"}`}>
+                            <label className={`font-bold ${isSelected ? "text-violet-700 dark:text-violet-300" : "text-zinc-700 dark:text-zinc-200"}`}>
                               {choice.text}
-                            </Label>
+                            </label>
                             {choice.imageUrl && (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img src={choice.imageUrl} alt="" className="h-10 w-10 object-cover rounded-lg bg-black/10 shrink-0" />
@@ -540,7 +618,7 @@ export default function PlayQuizPage() {
                   }
                 `}
               >
-                {currentIndex === quiz.questions.length - 1 ? "Finish Quiz 🎉" : "Next Question →"}
+                {currentIndex === quiz.questions.length - 1 ? t.play.finishQuiz : t.play.nextQuestion}
               </motion.button>
             </motion.div>
           </AnimatePresence>
@@ -570,6 +648,93 @@ function StatBox({ label, value, highlight }: { label: string; value: string; hi
     }`}>
       <span className={`text-2xl font-black ${highlight ? "text-violet-600 dark:text-violet-300" : "text-zinc-800 dark:text-white"}`}>{value}</span>
       <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">{label}</span>
+    </div>
+  );
+}
+
+// ── QuizLangSwitcher ─────────────────────────────────────────────
+// A compact language picker styled for the quiz's dark gradient background.
+// Uses white glassmorphism for the trigger button and a dark card for the dropdown.
+
+import { useLang as _useLang } from "@/lib/i18n/LanguageContext";
+import { LANGUAGES, type Language } from "@/lib/i18n/translations";
+
+function QuizLangSwitcher() {
+  const { lang, setLang } = _useLang();
+  const [langOpen, setLangOpen] = useState(false);
+  const current = LANGUAGES.find((l) => l.code === lang) ?? LANGUAGES[0];
+
+  return (
+    <div className="relative">
+      <button
+        suppressHydrationWarning
+        onClick={() => setLangOpen((v) => !v)}
+        aria-label="Change language"
+        className="
+          h-10 px-3 rounded-2xl
+          bg-white/20 hover:bg-white/30
+          backdrop-blur-sm border border-white/30
+          flex items-center gap-1.5
+          text-white transition-all duration-200
+          hover:scale-105 active:scale-95
+          shadow-lg text-sm font-bold
+        "
+      >
+        <span className="text-base leading-none">{current.flag}</span>
+        <span className="hidden sm:inline text-xs">{current.code.toUpperCase()}</span>
+        <svg
+          className={`w-3 h-3 opacity-70 transition-transform ${langOpen ? "rotate-180" : ""}`}
+          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      <AnimatePresence>
+        {langOpen && (
+          <>
+            {/* Backdrop */}
+            <div className="fixed inset-0 z-40" onClick={() => setLangOpen(false)} />
+
+            {/* Dropdown */}
+            <motion.div
+              key="lang-dropdown"
+              initial={{ opacity: 0, scale: 0.95, y: -4 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -4 }}
+              transition={{ duration: 0.15 }}
+              className="absolute right-0 top-full mt-2 w-44 z-50 rounded-2xl overflow-hidden
+                         bg-zinc-900/95 backdrop-blur-xl border border-white/10
+                         shadow-[0_20px_60px_rgba(0,0,0,0.5)] py-1.5"
+            >
+              {LANGUAGES.map((l) => (
+                <button
+                  suppressHydrationWarning
+                  key={l.code}
+                  onClick={() => { setLang(l.code as Language); setLangOpen(false); }}
+                  className={`
+                    w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-all
+                    ${
+                      lang === l.code
+                        ? "bg-violet-600/25 text-violet-200 font-semibold"
+                        : "text-zinc-300 hover:bg-white/8 hover:text-white"
+                    }
+                  `}
+                >
+                  <span className="text-lg">{l.flag}</span>
+                  <div className="text-left">
+                    <p className="text-xs font-semibold">{l.code.toUpperCase()}</p>
+                    <p className="text-[10px] opacity-60">{l.nativeName}</p>
+                  </div>
+                  {lang === l.code && (
+                    <span className="ml-auto w-1.5 h-1.5 rounded-full bg-violet-400 shrink-0" />
+                  )}
+                </button>
+              ))}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

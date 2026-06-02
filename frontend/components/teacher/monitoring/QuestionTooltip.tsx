@@ -11,7 +11,7 @@ interface QuestionTooltipProps {
 
 export function QuestionTooltip({ question, children }: QuestionTooltipProps) {
   return (
-    <Popover placement="bottom" showArrow offset={10}>
+    <Popover {...{ placement: "bottom", showArrow: true, offset: 10 } as any}>
       <PopoverTrigger>
         {children}
       </PopoverTrigger>
@@ -47,10 +47,12 @@ export function QuestionTooltip({ question, children }: QuestionTooltipProps) {
                     <span className="text-default-400">{choice.answerCount} ({percentage}%)</span>
                   </div>
                   <ProgressBar 
-                    size="sm" 
-                    value={percentage} 
-                    color={choice.isCorrect ? "success" : "default"}
-                    classNames={{ track: "bg-default-100" }}
+                    {...{ 
+                      size: "sm", 
+                      value: percentage, 
+                      color: choice.isCorrect ? "success" : "default",
+                      classNames: { track: "bg-default-100" }
+                    } as any}
                   />
                 </div>
               );

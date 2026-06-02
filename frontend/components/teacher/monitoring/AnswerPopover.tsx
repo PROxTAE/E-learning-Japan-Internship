@@ -24,7 +24,7 @@ export function AnswerPopover({ student, question, answer, children }: AnswerPop
   const correctChoiceText  = question.choices.find(c => c.isCorrect)?.text ?? "—";
 
   return (
-    <Popover placement="top" showArrow offset={15}>
+    <Popover {...{ placement: "top", showArrow: true, offset: 15 } as any}>
       <PopoverTrigger>
         <div>{children}</div>
       </PopoverTrigger>

@@ -61,7 +61,7 @@ export function Leaderboard() {
                 {index + 1}
               </div>
               
-              <Avatar src={student.avatar} className="w-16 h-16 text-large" />
+              <Avatar {...{ src: student.avatar } as any} className="w-16 h-16 text-large" />
               
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-foreground">{student.name}</h3>
