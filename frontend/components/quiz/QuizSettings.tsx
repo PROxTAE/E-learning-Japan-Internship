@@ -107,6 +107,55 @@ export function QuizSettings({ t, quiz, onField }: QuizSettingsProps) {
           />
         </div>
 
+        {/* Subject */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
+            <span className="inline-flex items-center gap-1">
+              <BookOpen size={11} />
+              Subject / วิชา
+            </span>
+          </label>
+          <input
+            id="quiz-subject-input"
+            type="text"
+            value={(quiz as any).subject || ""}
+            onChange={(e) => onField("subject" as any, e.target.value)}
+            placeholder="e.g. Computer Programming"
+            className="
+              w-full px-3.5 py-2.5 rounded-xl text-sm
+              bg-white dark:bg-slate-900/60
+              border border-slate-200 dark:border-slate-600/60
+              text-slate-800 dark:text-slate-100
+              placeholder-slate-400 dark:placeholder-slate-500
+              focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-400
+              transition-all duration-150
+            "
+          />
+        </div>
+
+        {/* Chapter */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
+            Chapter / บทเรียน
+          </label>
+          <input
+            id="quiz-chapter-input"
+            type="text"
+            value={(quiz as any).chapter || ""}
+            onChange={(e) => onField("chapter" as any, e.target.value)}
+            placeholder="e.g. บทที่ 1"
+            className="
+              w-full px-3.5 py-2.5 rounded-xl text-sm
+              bg-white dark:bg-slate-900/60
+              border border-slate-200 dark:border-slate-600/60
+              text-slate-800 dark:text-slate-100
+              placeholder-slate-400 dark:placeholder-slate-500
+              focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-400
+              transition-all duration-150
+            "
+          />
+        </div>
+
         {/* Category */}
         <div>
           <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">

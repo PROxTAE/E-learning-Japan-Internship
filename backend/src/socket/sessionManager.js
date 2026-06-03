@@ -26,6 +26,11 @@ function getOrCreate(sessionId, quizId) {
       isPaused: false,
       students: new Map(),
       answers: new Map(),
+      isLocked: false,
+      isTeacherLed: false,
+      currentQuestionIndex: 0,
+      timer: 0,
+      timerActive: false,
     });
   }
   return sessions.get(sessionId);
@@ -161,6 +166,47 @@ function setSessionPaused(sessionId, isPaused) {
   if (session) session.isPaused = isPaused;
 }
 
+function setSessionLocked(sessionId, isLocked) {
+  const session = sessions.get(sessionId);
+  if (session) session.isLocked = isLocked;
+}
+
+function setSessionTeacherLed(sessionId, isTeacherLed) {
+  const session = sessions.get(sessionId);
+  if (session) session.isTeacherLed = isTeacherLed;
+}
+
+function setSessionQuestionIndex(sessionId, index) {
+  const session = sessions.get(sessionId);
+  if (session) session.currentQuestionIndex = index;
+}
+
+function setSessionTimer(sessionId, timer, timerActive) {
+  const session = sessions.get(sessionId);
+  if (session) {
+    session.timer = timer;
+    session.timerActive = timerActive;
+  }
+}
+
+function resetStudentAnswers(sessionId, studentId) {
+  const session = sessions.get(sessionId);
+  if (!session) return;
+
+  for (const key of session.answers.keys()) {
+    if (key.startsWith(`${studentId}:`)) {
+      session.answers.delete(key);
+    }
+  }
+
+  const student = session.students.get(studentId);
+  if (student) {
+    student.score = 0;
+    student.progress = 0;
+    student.confusionLevel = "none";
+  }
+}
+
 // ── Private helpers ────────────────────────────────────────────
 
 function calcConfusion(history, responseTime) {
@@ -241,6 +287,10 @@ function getQuestionStats(sessionId) {
   return stats;
 }
 
+function deleteSession(sessionId) {
+  sessions.delete(sessionId);
+}
+
 module.exports = {
   getOrCreate,
   getSession,
@@ -252,4 +302,10 @@ module.exports = {
   calcStats,
   getQuestionStats,
   setSessionPaused,
+  setSessionLocked,
+  setSessionTeacherLed,
+  setSessionQuestionIndex,
+  setSessionTimer,
+  resetStudentAnswers,
+  deleteSession,
 };

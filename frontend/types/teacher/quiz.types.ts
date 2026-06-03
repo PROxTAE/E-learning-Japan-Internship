@@ -33,6 +33,8 @@ export interface Quiz {
   gradient: string;
   hasTimeLimit?: boolean;
   showAnswersAfterQuiz?: boolean;
+  subject?: string;
+  chapter?: string;
 }
 
 export interface QuizStats {

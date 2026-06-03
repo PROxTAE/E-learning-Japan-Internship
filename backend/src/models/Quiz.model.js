@@ -58,6 +58,11 @@ const quizSchema = new mongoose.Schema(
     // Uses undefined (not null) so the sparse unique index skips missing values.
     accessCode: { type: String, default: undefined, uppercase: true, trim: true },
 
+    // ── Course organization (subject / chapter) ────────────────────
+    // e.g. subject = "Computer Programming", chapter = "บทที่ 1"
+    subject: { type: String, trim: true, default: "" },
+    chapter:  { type: String, trim: true, default: "" },
+
     // ── UI display metadata (optional, set by frontend/seed) ───────
     emoji:    { type: String, default: "📄" },
     gradient: { type: String, default: "from-violet-500 to-purple-700" },

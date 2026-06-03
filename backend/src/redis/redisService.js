@@ -55,7 +55,17 @@ async function getOrCreateSession(accessCode, quizId = "") {
   if (!client) {
     // Fallback: use in-memory sessionManager
     const s = await fallback.getOrCreate(accessCode, quizId);
-    return { isPaused: s.isPaused, startedAt: s.startedAt || Date.now(), quizId: s.quizId };
+    return { 
+      isPaused: s.isPaused, 
+      startedAt: s.startedAt || Date.now(), 
+      quizId: s.quizId, 
+      totalQuestions: s.totalQuestions || 0,
+      isLocked: s.isLocked || false,
+      isTeacherLed: s.isTeacherLed || false,
+      currentQuestionIndex: s.currentQuestionIndex || 0,
+      timer: s.timer || 0,
+      timerActive: s.timerActive || false
+    };
   }
 
   const key    = keys.session(accessCode);
@@ -78,11 +88,26 @@ async function getOrCreateSession(accessCode, quizId = "") {
       isPaused: "false",
       startedAt: String(Date.now()),
       quizId,
-      totalQuestions: String(totalQuestions)
+      totalQuestions: String(totalQuestions),
+      isLocked: "false",
+      isTeacherLed: "false",
+      currentQuestionIndex: "0",
+      timer: "0",
+      timerActive: "false",
     };
     await client.hSet(key, initial);
     await client.expire(key, SESSION_TTL);
-    return { isPaused: false, startedAt: Number(initial.startedAt), quizId, totalQuestions };
+    return { 
+      isPaused: false, 
+      startedAt: Number(initial.startedAt), 
+      quizId, 
+      totalQuestions,
+      isLocked: false,
+      isTeacherLed: false,
+      currentQuestionIndex: 0,
+      timer: 0,
+      timerActive: false
+    };
   }
 
   await _touch(client, accessCode);
@@ -107,19 +132,33 @@ async function getOrCreateSession(accessCode, quizId = "") {
     startedAt: Number(raw.startedAt),
     quizId:    raw.quizId || quizId,
     totalQuestions,
+    isLocked: raw.isLocked === "true",
+    isTeacherLed: raw.isTeacherLed === "true",
+    currentQuestionIndex: Number(raw.currentQuestionIndex || 0),
+    timer: Number(raw.timer || 0),
+    timerActive: raw.timerActive === "true"
   };
 }
 
 /**
  * Get session metadata.
- * @returns {Promise<{ isPaused: boolean, startedAt: number, quizId: string } | null>}
+ * @returns {Promise<{ isPaused: boolean, startedAt: number, quizId: string, isLocked: boolean, isTeacherLed: boolean, currentQuestionIndex: number, timer: number, timerActive: boolean } | null>}
  */
 async function getSession(accessCode) {
   const client = await getRedisClient();
   if (!client) {
     const s = fallback.getSession(accessCode);
     if (!s) return null;
-    return { isPaused: s.isPaused, startedAt: s.startedAt || Date.now(), quizId: s.quizId };
+    return { 
+      isPaused: s.isPaused, 
+      startedAt: s.startedAt || Date.now(), 
+      quizId: s.quizId,
+      isLocked: s.isLocked || false,
+      isTeacherLed: s.isTeacherLed || false,
+      currentQuestionIndex: s.currentQuestionIndex || 0,
+      timer: s.timer || 0,
+      timerActive: s.timerActive || false
+    };
   }
 
   const raw = await client.hGetAll(keys.session(accessCode));
@@ -128,6 +167,11 @@ async function getSession(accessCode) {
     isPaused:  raw.isPaused === "true",
     startedAt: Number(raw.startedAt),
     quizId:    raw.quizId || "",
+    isLocked:  raw.isLocked === "true",
+    isTeacherLed: raw.isTeacherLed === "true",
+    currentQuestionIndex: Number(raw.currentQuestionIndex || 0),
+    timer: Number(raw.timer || 0),
+    timerActive: raw.timerActive === "true"
   };
 }
 
@@ -142,6 +186,87 @@ async function setSessionPaused(accessCode, isPaused) {
   }
   await client.hSet(keys.session(accessCode), "isPaused", String(isPaused));
   await _touch(client, accessCode);
+}
+
+/**
+ * Set lock state.
+ */
+async function setSessionLocked(accessCode, isLocked) {
+  const client = await getRedisClient();
+  if (!client) {
+    fallback.setSessionLocked(accessCode, isLocked);
+    return;
+  }
+  await client.hSet(keys.session(accessCode), "isLocked", String(isLocked));
+  await _touch(client, accessCode);
+}
+
+/**
+ * Set teacher-led pacing state.
+ */
+async function setSessionTeacherLed(accessCode, isTeacherLed) {
+  const client = await getRedisClient();
+  if (!client) {
+    fallback.setSessionTeacherLed(accessCode, isTeacherLed);
+    return;
+  }
+  await client.hSet(keys.session(accessCode), "isTeacherLed", String(isTeacherLed));
+  await _touch(client, accessCode);
+}
+
+/**
+ * Set current question index in teacher-led mode.
+ */
+async function setSessionQuestionIndex(accessCode, index) {
+  const client = await getRedisClient();
+  if (!client) {
+    fallback.setSessionQuestionIndex(accessCode, index);
+    return;
+  }
+  await client.hSet(keys.session(accessCode), "currentQuestionIndex", String(index));
+  await _touch(client, accessCode);
+}
+
+/**
+ * Set session timer state.
+ */
+async function setSessionTimer(accessCode, timer, timerActive) {
+  const client = await getRedisClient();
+  if (!client) {
+    fallback.setSessionTimer(accessCode, timer, timerActive);
+    return;
+  }
+  await client.hSet(keys.session(accessCode), {
+    timer: String(timer),
+    timerActive: String(timerActive)
+  });
+  await _touch(client, accessCode);
+}
+
+/**
+ * Reset all answers and stats for a specific student.
+ */
+async function resetStudentAnswers(accessCode, studentId) {
+  const client = await getRedisClient();
+  if (!client) {
+    fallback.resetStudentAnswers(accessCode, studentId);
+    return;
+  }
+  const ansKey = keys.answers(accessCode, studentId);
+  await client.del(ansKey);
+
+  const studentsKey = keys.students(accessCode);
+  const rawStudent = await client.hGet(studentsKey, studentId);
+  if (rawStudent) {
+    const student = safeJSON(rawStudent);
+    if (student) {
+      student.score = 0;
+      student.progress = 0;
+      student.confusionLevel = "none";
+      student.updatedAt = Date.now();
+      await client.hSet(studentsKey, studentId, JSON.stringify(student));
+    }
+  }
 }
 
 // ── Students ──────────────────────────────────────────────────────────────────
@@ -467,12 +592,37 @@ function _calcConfusion(history, responseTime) {
   return "none";
 }
 
+/**
+ * Completely delete a session and all its associated students and answers.
+ */
+async function deleteSession(accessCode) {
+  const client = await getRedisClient();
+  if (!client) {
+    fallback.deleteSession(accessCode);
+    return;
+  }
+  const students = await getStudents(accessCode);
+  const deletePromises = [
+    client.del(keys.session(accessCode)),
+    client.del(keys.students(accessCode))
+  ];
+  students.forEach(st => {
+    deletePromises.push(client.del(keys.answers(accessCode, st.studentId)));
+  });
+  await Promise.all(deletePromises);
+}
+
 // ── Exports ───────────────────────────────────────────────────────────────────
 
 module.exports = {
   getOrCreateSession,
   getSession,
   setSessionPaused,
+  setSessionLocked,
+  setSessionTeacherLed,
+  setSessionQuestionIndex,
+  setSessionTimer,
+  resetStudentAnswers,
   upsertStudent,
   setStudentOffline,
   getStudents,
@@ -481,4 +631,5 @@ module.exports = {
   getStudentAnswers,
   getFullSessionState,
   calcStats,
+  deleteSession,
 };

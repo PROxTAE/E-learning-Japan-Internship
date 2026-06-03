@@ -9,8 +9,11 @@ import { QuizSessionHeader } from "@/components/teacher/monitoring/QuizSessionHe
 import { MonitoringGrid } from "@/components/teacher/monitoring/MonitoringGrid";
 import { Leaderboard } from "@/components/teacher/monitoring/Leaderboard";
 import { VisualAnalytics } from "@/components/teacher/monitoring/VisualAnalytics";
+import { ConfirmModal } from "@/components/teacher/monitoring/ConfirmModal";
+import { ShareQuizModal } from "@/components/teacher/dashboard/ShareQuizModal";
 import { useConnectionToast } from "@/components/teacher/monitoring/ConnectionToast";
 import { motion } from "framer-motion";
+import { useLang } from "@/lib/i18n/LanguageContext";
 import { Tabs, TabList, Tab, TabPanel } from "@heroui/react";
 import { quizApi } from "@/services/quizApi";
 import { ArrowLeft } from "lucide-react";
@@ -20,6 +23,7 @@ export default function MonitoringQuizPage() {
   const params  = useParams();
   const router  = useRouter();
   const quizId  = params.quizId as string;
+  const { t } = useLang();
 
   const {
     loading,
@@ -33,21 +37,53 @@ export default function MonitoringQuizPage() {
     uiState,
     updateUIState,
     questions: storeQuestions,
+    
+    // Store values & actions
+    timer,
+    timerActive,
+    tickTimer,
+    students,
   } = useMonitoringStore();
 
   const [quizTitle, setQuizTitle] = useState("Live Quiz Session");
   const [quizCode,  setQuizCode]  = useState("");
+  const [showEndConfirm, setShowEndConfirm] = useState(false);
+  const [sessionLabel, setSessionLabel] = useState("");
+  const [quiz, setQuiz] = useState<any | null>(null);
+  const [shareQuiz, setShareQuiz] = useState<any | null>(null);
 
   const { notify, ToastContainer } = useConnectionToast();
 
   // sessionId MUST match what Play page uses: quiz-session-{quiz._id}
   const sessionId = `quiz-session-${quizId}`;
 
+  // ── Timer Loop Effect ───────────────────────────────────────────
+  useEffect(() => {
+    if (!timerActive || timer <= 0) return;
+
+    const interval = setInterval(() => {
+      const newTimer = timer - 1;
+      monitoringApi.controlSession(sessionId, "set_timer", { timer: newTimer, timerActive: newTimer > 0 });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [timerActive, timer, sessionId]);
+
+  // Timer Times Up Notification
+  useEffect(() => {
+    if (timer === 0 && timerActive) {
+      alert("Time is up! The session timer has expired.");
+      monitoringApi.controlSession(sessionId, "set_timer", { timer: 0, timerActive: false });
+    }
+  }, [timer, timerActive, sessionId]);
+
+
   // ── Step 1: Load quiz questions into store ────────────────────────
   useEffect(() => {
     if (!quizId) return;
     quizApi.getQuiz(quizId)
       .then((quiz) => {
+        setQuiz(quiz);
         setQuizTitle(quiz.title);
         setQuizCode(quiz.accessCode || "");
 
@@ -93,9 +129,6 @@ export default function MonitoringQuizPage() {
   }, [sessionId, setLoading, setSessionData, quizId]);
 
   // ── Step 3: Real-time Socket.IO listeners ─────────────────────────
-  // Register socket IMMEDIATELY on mount — don't wait for loading.
-  // The `session_joined` and `session_state` events carry the full snapshot
-  // and will overwrite whatever the REST call returned.
   useEffect(() => {
     if (!quizId) return;
 
@@ -107,28 +140,51 @@ export default function MonitoringQuizPage() {
           addAnswer(answer);
         },
         onStudentJoined: (student) => {
-          // Normalize id so grid dedup doesn't drop this student
           const normalized = { ...student, id: student.id || (student as any).studentId || "" };
           if (normalized.isOnline !== false) {
-            // true join
             notify({ type: "join",  studentName: normalized.name });
           } else {
-            // came in via student_left path
             notify({ type: "leave", studentName: normalized.name });
           }
           updateStudent(normalized);
         },
         onStatsUpdate: (newStats) => updateStats(newStats),
+        onSessionControl: (payload) => {
+          const { action } = payload;
+          if (action === "pause") {
+            updateUIState({ isPaused: true });
+          } else if (action === "resume") {
+            updateUIState({ isPaused: false });
+          } else if (action === "lock") {
+            useMonitoringStore.getState().setRoomLocked(true);
+          } else if (action === "unlock") {
+            useMonitoringStore.getState().setRoomLocked(false);
+          } else if (action === "teacher_led") {
+            useMonitoringStore.getState().setTeacherLed(!!payload.isTeacherLed);
+          } else if (action === "set_question_index") {
+            useMonitoringStore.getState().setCurrentQuestionIndex(Number(payload.index || 0));
+          } else if (action === "set_timer") {
+            useMonitoringStore.getState().setTimer(Number(payload.timer || 0));
+            useMonitoringStore.getState().setTimerActive(!!payload.timerActive);
+          } else if (action === "regenerate_code") {
+            if (payload.accessCode) {
+              useMonitoringStore.getState().setAccessCode(payload.accessCode);
+              setQuizCode(payload.accessCode);
+            }
+          }
+        }
       },
-      // onSnapshot: full sync on every connect/reconnect
       (snapshot) => {
         console.log("[monitoring] snapshot restored:", snapshot.students.length, "students,", snapshot.answers.length, "answers");
         setSessionData({
           students:  snapshot.students,
-          questions: storeQuestions.length > 0 ? storeQuestions : undefined as any,
+          questions: storeQuestions.length > 0 ? storeQuestions : (undefined as any),
           answers:   snapshot.answers,
           stats:     snapshot.stats,
         });
+        if (snapshot.isPaused !== undefined) {
+          updateUIState({ isPaused: snapshot.isPaused });
+        }
       }
     );
 
@@ -139,10 +195,7 @@ export default function MonitoringQuizPage() {
   // ── Pause/Resume/End ──────────────────────────────────────────────
   const handleStateChange = (newState: Partial<typeof uiState>) => {
     if ("isEnded" in (newState as any)) {
-      if (window.confirm("Are you sure you want to end the session? This will finalize scores and save them permanently.")) {
-        monitoringApi.controlSession(sessionId, "end");
-        router.push("/teacher/quizzes");
-      }
+      setShowEndConfirm(true);
       return;
     }
 
@@ -150,6 +203,11 @@ export default function MonitoringQuizPage() {
       monitoringApi.controlSession(sessionId, newState.isPaused ? "pause" : "resume");
     }
     updateUIState(newState);
+  };
+
+  const confirmEndSession = () => {
+    monitoringApi.controlSession(sessionId, "end", { sessionLabel });
+    router.push(`/teacher/quizzes/${quizId}/history`);
   };
 
   // ── Debug bar (dev only) ──────────────────────────────────────────
@@ -178,7 +236,7 @@ export default function MonitoringQuizPage() {
 
   return (
     <div className="min-h-[calc(100vh-64px)] text-foreground p-4 md:p-6 flex flex-col relative">
-      <div className="flex flex-col h-full w-full max-w-[1600px] mx-auto space-y-4">
+      <div className="flex flex-col h-full w-full max-w-[1600px] mx-auto space-y-4 flex-1">
 
         {/* Back button */}
         <button
@@ -203,10 +261,12 @@ export default function MonitoringQuizPage() {
           state={uiState}
           onStateChange={handleStateChange}
           sessionId={sessionId}
+          onShare={quiz ? () => setShareQuiz(quiz) : undefined}
         />
 
         <MonitoringStats stats={stats} />
 
+        {/* Monitoring views grid */}
         <div className="flex-1 min-h-0 mt-4">
           <Tabs aria-label="Monitoring Views">
             <TabList className="bg-white dark:bg-[#0f0f1a] border-gray-200 dark:border-white/10 mb-4 rounded-xl p-1 shadow-sm">
@@ -229,6 +289,30 @@ export default function MonitoringQuizPage() {
 
       {/* Student join/leave toast notifications */}
       {ToastContainer}
+
+      {/* HeroUI Confirm Modal for ending session */}
+      <ConfirmModal
+        isOpen={showEndConfirm}
+        onClose={() => setShowEndConfirm(false)}
+        onConfirm={confirmEndSession}
+        title={t.monitoring.controls.endSessionTitle}
+        message={t.monitoring.controls.endSessionConfirm}
+        confirmText={t.monitoring.controls.endSessionText}
+        cancelText={t.modal.cancel}
+        isDanger={true}
+        inputLabel={t.monitoring.controls.sessionLabelLabel}
+        inputPlaceholder={t.monitoring.controls.sessionLabelPlaceholder}
+        inputValue={sessionLabel}
+        onInputChange={setSessionLabel}
+      />
+
+      {shareQuiz && (
+        <ShareQuizModal
+          quiz={shareQuiz}
+          isOpen={true}
+          onClose={() => setShareQuiz(null)}
+        />
+      )}
     </div>
   );
 }

@@ -1,8 +1,34 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Trophy, TrendingUp, Users } from "lucide-react";
+import { 
+  Trophy, 
+  TrendingUp, 
+  Users,
+  BookOpen,
+  Brain,
+  Lightbulb,
+  Target,
+  Microscope,
+  Globe,
+  BarChart3,
+  Pencil,
+  Zap 
+} from "lucide-react";
 import { useLang } from "@/lib/i18n/LanguageContext";
+
+const EMOJI_TO_ICON: Record<string, React.ComponentType<any>> = {
+  "📚": BookOpen,
+  "🧠": Brain,
+  "💡": Lightbulb,
+  "🎯": Target,
+  "🔬": Microscope,
+  "🌐": Globe,
+  "📊": BarChart3,
+  "✏️": Pencil,
+  "🏆": Trophy,
+  "⚡": Zap,
+};
 import type { TopQuizEntry } from "@/services/dashboardApi";
 
 interface TopQuizzesProps {
@@ -91,9 +117,16 @@ export function TopQuizzes({ quizzes, loading = false }: TopQuizzesProps) {
                   {rankBadge[idx] ?? String(idx + 1)}
                 </span>
 
-                {/* Emoji */}
-                <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-base shrink-0 bg-gradient-to-br ${quiz.gradient}`}>
-                  {quiz.emoji}
+                {/* Icon/Emoji */}
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-br ${quiz.gradient}`}>
+                  {(() => {
+                    const MappedIcon = quiz.emoji ? EMOJI_TO_ICON[quiz.emoji] : null;
+                    return MappedIcon ? (
+                      <MappedIcon className="w-4 h-4 text-white/90 drop-shadow" />
+                    ) : (
+                      <span className="text-base">{quiz.emoji}</span>
+                    );
+                  })()}
                 </div>
 
                 {/* Info */}

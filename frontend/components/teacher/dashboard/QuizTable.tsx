@@ -2,10 +2,39 @@
 
 import { useState } from "react";
 import { Chip } from "@heroui/react";
-import { Clock, HelpCircle, Pencil, Trash2, Eye, Share2 } from "lucide-react";
+import { 
+  Clock, 
+  HelpCircle, 
+  Pencil, 
+  Trash2, 
+  Eye, 
+  Share2,
+  BookOpen,
+  Brain,
+  Lightbulb,
+  Target,
+  Microscope,
+  Globe,
+  BarChart3,
+  Trophy,
+  Zap 
+} from "lucide-react";
 import type { Quiz, QuizDifficulty, QuizStatus } from "@/types/teacher/quiz.types";
 import { useLang } from "@/lib/i18n/LanguageContext";
 import { ShareQuizModal } from "./ShareQuizModal";
+
+const EMOJI_TO_ICON: Record<string, React.ComponentType<any>> = {
+  "📚": BookOpen,
+  "🧠": Brain,
+  "💡": Lightbulb,
+  "🎯": Target,
+  "🔬": Microscope,
+  "🌐": Globe,
+  "📊": BarChart3,
+  "✏️": Pencil,
+  "🏆": Trophy,
+  "⚡": Zap,
+};
 
 const DIFFICULTY_COLOR: Record<QuizDifficulty, "success" | "warning" | "danger"> = {
   easy: "success", medium: "warning", hard: "danger",
@@ -51,7 +80,14 @@ export function QuizTable({ quizzes, selectedId, onSelect, onEdit, onDelete }: Q
             >
               <td className="px-4 py-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">{quiz.emoji}</span>
+                  {(() => {
+                    const MappedIcon = quiz.emoji ? EMOJI_TO_ICON[quiz.emoji] : null;
+                    return MappedIcon ? (
+                      <MappedIcon className="w-5 h-5 text-violet-500 shrink-0" />
+                    ) : (
+                      <span className="text-lg shrink-0">{quiz.emoji}</span>
+                    );
+                  })()}
                   <div>
                     <p className="font-medium text-sm text-default-900 dark:text-default-100 line-clamp-1">{quiz.title}</p>
                     <p className="text-xs text-default-400 flex items-center gap-1">

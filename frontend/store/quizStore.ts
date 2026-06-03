@@ -81,6 +81,8 @@ const DEFAULT_QUIZ: QuizFormData = {
   showAnswersAfterQuiz: true,
   tags: [],
   status: "draft",
+  subject: "",
+  chapter: "",
 };
 
 // ── Store ──────────────────────────────────────────────────────

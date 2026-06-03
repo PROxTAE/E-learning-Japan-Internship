@@ -2,6 +2,7 @@
 //  quiz.controller.js — CRUD handlers
 // ─────────────────────────────────────────────
 const Quiz = require("../models/Quiz.model");
+const mongoose = require("mongoose");
 const fs   = require("fs");
 const path = require("path");
 
@@ -72,20 +73,18 @@ async function getQuiz(req, res) {
 // POST /api/quizzes
 async function createQuiz(req, res) {
   try {
-    const { title, description, category, difficulty, durationMinutes, tags, status, hasTimeLimit, showAnswersAfterQuiz } = req.body;
+    const { title, description, category, difficulty, durationMinutes, tags, status, hasTimeLimit, showAnswersAfterQuiz, subject, chapter } = req.body;
     if (!title) return fail(res, "title is required");
 
     const quiz = await Quiz.create({
-      title,
-      description,
-      category,
-      difficulty,
-      durationMinutes,
+      title, description, category, difficulty, durationMinutes,
       hasTimeLimit: hasTimeLimit !== undefined ? hasTimeLimit : true,
       showAnswersAfterQuiz: showAnswersAfterQuiz !== undefined ? showAnswersAfterQuiz : true,
       tags: Array.isArray(tags) ? tags : (tags || "").split(",").map(t => t.trim()).filter(Boolean),
       status: status || "draft",
       questions: [],
+      subject: subject || "",
+      chapter: chapter || "",
     });
     ok(res, quiz, 201);
   } catch (err) {
@@ -97,7 +96,28 @@ async function createQuiz(req, res) {
 // PUT /api/quizzes/:id
 async function updateQuiz(req, res) {
   try {
-    const { title, description, category, difficulty, durationMinutes, tags, status, questions, hasTimeLimit, showAnswersAfterQuiz } = req.body;
+    const { title, description, category, difficulty, durationMinutes, tags, status, questions, hasTimeLimit, showAnswersAfterQuiz, subject, chapter } = req.body;
+
+    if (questions && Array.isArray(questions)) {
+      questions.forEach(q => {
+        if (q.id && mongoose.Types.ObjectId.isValid(q.id)) {
+          q._id = q.id;
+        } else {
+          delete q._id;
+          delete q.id;
+        }
+        if (q.choices && Array.isArray(q.choices)) {
+          q.choices.forEach(c => {
+            if (c.id && mongoose.Types.ObjectId.isValid(c.id)) {
+              c._id = c.id;
+            } else {
+              delete c._id;
+              delete c.id;
+            }
+          });
+        }
+      });
+    }
 
     const update = {
       ...(title            !== undefined && { title }),
@@ -112,6 +132,8 @@ async function updateQuiz(req, res) {
       ...(questions        !== undefined && { questions }),
       ...(hasTimeLimit     !== undefined && { hasTimeLimit }),
       ...(showAnswersAfterQuiz !== undefined && { showAnswersAfterQuiz }),
+      ...(subject          !== undefined && { subject }),
+      ...(chapter          !== undefined && { chapter }),
     };
 
     const quiz = await Quiz.findByIdAndUpdate(

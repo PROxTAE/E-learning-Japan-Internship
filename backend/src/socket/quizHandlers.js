@@ -58,13 +58,27 @@ module.exports = function registerHandlers(io, socket) {
       }
 
       // ── Student ────────────────────────────────────────────────────────────
+      // Check if session is locked
+      const sessionMeta = await redis.getSession(sessionId);
+      if (sessionMeta && sessionMeta.isLocked) {
+        return socket.emit(SERVER_EVENTS.ERROR, { message: "ROOM_LOCKED" });
+      }
+
       const student = await redis.upsertStudent(sessionId, {
         studentId, name, avatar, socketId: socket.id,
       });
       const stats = await redis.calcStats(sessionId);
 
       console.log(`[join_quiz] Student joined. Broadcasting to: ${teacherRoom(sessionId)}`);
-      socket.emit(SERVER_EVENTS.SESSION_JOINED, { role: "student", sessionId, student });
+      socket.emit(SERVER_EVENTS.SESSION_JOINED, {
+        role: "student",
+        sessionId,
+        student,
+        isTeacherLed: sessionMeta?.isTeacherLed,
+        currentQuestionIndex: sessionMeta?.currentQuestionIndex,
+        timer: sessionMeta?.timer,
+        timerActive: sessionMeta?.timerActive,
+      });
       io.to(teacherRoom(sessionId)).emit(SERVER_EVENTS.STUDENT_JOINED, { student, stats });
 
     } catch (err) {
@@ -171,43 +185,152 @@ module.exports = function registerHandlers(io, socket) {
 
       if (action === "pause")  await redis.setSessionPaused(sessionId, true);
       if (action === "resume") await redis.setSessionPaused(sessionId, false);
+      if (action === "lock")   await redis.setSessionLocked(sessionId, true);
+      if (action === "unlock") await redis.setSessionLocked(sessionId, false);
+      
+      if (action === "teacher_led") {
+        await redis.setSessionTeacherLed(sessionId, !!payload.isTeacherLed);
+      }
+      
+      if (action === "set_question_index") {
+        await redis.setSessionQuestionIndex(sessionId, Number(payload.index || 0));
+      }
+      
+      if (action === "set_timer") {
+        await redis.setSessionTimer(sessionId, Number(payload.timer || 0), !!payload.timerActive);
+      }
+
+      if (action === "reset_student") {
+        const { studentId } = payload;
+        if (studentId) {
+          await redis.resetStudentAnswers(sessionId, studentId);
+          // Emit updated state to teacher room so stats/students list is immediately refreshed
+          const [students, stats] = await Promise.all([
+            redis.getStudents(sessionId),
+            redis.calcStats(sessionId),
+          ]);
+          io.to(teacherRoom(sessionId)).emit(SERVER_EVENTS.SESSION_STATE, {
+            sessionId,
+            students,
+            stats,
+          });
+        }
+      }
+
+      if (action === "regenerate_code") {
+        const snapshot = await redis.getFullSessionState(sessionId);
+        const quizId = snapshot?.quizId || sessionId.replace("quiz-session-", "");
+        if (quizId) {
+          const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+          let newCode, exists;
+          do {
+            newCode = "";
+            for (let i = 0; i < 6; i++) {
+              newCode += chars[Math.floor(Math.random() * chars.length)];
+            }
+            exists = await Quiz.findOne({ accessCode: newCode });
+          } while (exists);
+
+          await Quiz.findByIdAndUpdate(quizId, { accessCode: newCode });
+          payload.accessCode = newCode;
+        }
+      }
       
       if (action === "end") {
         const snapshot = await redis.getFullSessionState(sessionId);
         const actualQuizId = snapshot?.quizId || sessionId.replace("quiz-session-", "");
-        
+        const sessionLabel = payload.sessionLabel || "";
+
         if (snapshot && actualQuizId) {
           const QuizSessionResult = require("../models/QuizSessionResult.model");
-          
+
+          let quizQuestions = [];
+          try {
+            const quizDoc = await Quiz.findById(actualQuizId).lean();
+            quizQuestions = quizDoc?.questions || [];
+          } catch (_) { /* ignore */ }
+          const totalQuestions = quizQuestions.length;
+
           const studentScores = snapshot.students.map(st => {
             const studentAnswers = snapshot.answers.filter(a => a.studentId === st.studentId);
-            const score = studentAnswers.filter(a => a.isCorrect).length;
+            const correctCount   = studentAnswers.filter(a => a.isCorrect).length;
             return {
-              studentId: st.studentId,
-              name: st.name,
-              score,
-              joinedAt: st.joinedAt
+              studentId:    st.studentId,
+              name:         st.name,
+              score:        correctCount,
+              scorePercent: totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0,
+              progress:     totalQuestions > 0 ? Math.round((studentAnswers.length / totalQuestions) * 100) : 0,
+              joinedAt:     st.joinedAt,
             };
           });
 
+          const totalStudents  = studentScores.length;
+          const totalAnswers   = snapshot.answers.length;
+          const correctAnswers = snapshot.answers.filter(a => a.isCorrect).length;
+          const avgScore = totalStudents > 0
+            ? Math.round(studentScores.reduce((s, st) => s + st.scorePercent, 0) / totalStudents) : 0;
+          const completed    = studentScores.filter(st => st.progress === 100).length;
+          const completionPct = totalStudents > 0 ? Math.round((completed / totalStudents) * 100) : 0;
+
+          const questionStats = quizQuestions.map((q, idx) => {
+            const qId      = q._id.toString();
+            const qAnswers = snapshot.answers.filter(a => a.questionId === qId);
+            const correctCount = qAnswers.filter(a => a.isCorrect).length;
+            const totalTime    = qAnswers.reduce((s, a) => s + (a.responseTime || 0), 0);
+            const confusionCount = qAnswers.filter(a => a.confusionLevel && a.confusionLevel !== "none").length;
+            const choiceMap = {};
+            qAnswers.forEach(a => {
+              if (a.finalAnswer) {
+                if (!choiceMap[a.finalAnswer]) choiceMap[a.finalAnswer] = { choiceId: a.finalAnswer, choiceText: a.finalAnswerText || "", count: 0 };
+                choiceMap[a.finalAnswer].count++;
+              }
+            });
+            return {
+              questionId:      qId,
+              questionText:    q.text || `Question ${idx + 1}`,
+              order:           q.order ?? idx,
+              answerCount:     qAnswers.length,
+              correctCount,
+              correctPercent:  qAnswers.length > 0 ? Math.round((correctCount / qAnswers.length) * 100) : 0,
+              avgResponseTime: qAnswers.length > 0 ? Math.round(totalTime / qAnswers.length) : 0,
+              confusionCount,
+              choices:         Object.values(choiceMap),
+            };
+          });
+
+          const enrichedAnswers = snapshot.answers.map(a => ({
+            studentId:     a.studentId,
+            questionId:    a.questionId,
+            choiceId:      a.finalAnswer || a.choiceId,
+            choiceText:    a.finalAnswerText || a.choiceText || "",
+            isCorrect:     a.isCorrect,
+            responseTime:  a.responseTime || 0,
+            confusionLevel: a.confusionLevel || "none",
+            changeCount:   Math.max(0, (a.history || []).length - 1),
+            submittedAt:   new Date(a.updatedAt || Date.now()),
+          }));
+
           await QuizSessionResult.create({
             sessionId,
-            quizId: actualQuizId,
-            startedAt: new Date(snapshot.startedAt || Date.now()),
-            endedAt: new Date(),
-            stats: {
-              totalStudents: snapshot.stats?.totalStudents || 0,
-              averageScore: snapshot.stats?.averageScore || 0,
-              completionPercentage: snapshot.stats?.completionPercentage || 0,
-            },
-            students: studentScores,
-            answers: snapshot.answers,
-          }).catch(err => console.error("[control_session] Archive error:", err));
+            quizId:       actualQuizId,
+            sessionLabel,
+            startedAt:    new Date(snapshot.startedAt || Date.now()),
+            endedAt:      new Date(),
+            stats: { totalStudents, averageScore: avgScore, completionPercentage: completionPct, correctAnswers, totalAnswers },
+            students:      studentScores,
+            answers:       enrichedAnswers,
+            questionStats,
+          })
+            .then(async () => {
+              console.log(`[control_session] Session ${sessionId} archived successfully. Cleaning active state.`);
+              await redis.deleteSession(sessionId);
+            })
+            .catch(err => console.error("[control_session] Archive error:", err));
         }
       }
 
-      // Broadcast control state to all in session
-      io.to(sessionRoom(sessionId)).emit(SERVER_EVENTS.SESSION_CONTROL, { action });
+      // Broadcast control state and payload to all in session
+      io.to(sessionRoom(sessionId)).emit(SERVER_EVENTS.SESSION_CONTROL, payload);
 
     } catch (err) {
       console.error("[control_session] error:", err);

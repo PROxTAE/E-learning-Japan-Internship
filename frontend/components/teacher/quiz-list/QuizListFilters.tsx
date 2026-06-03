@@ -1,6 +1,6 @@
 "use client";
 
-import { Input } from "@heroui/react";
+import { Input, Select, ListBox, ListBoxItem, Button } from "@heroui/react";
 import { Search, LayoutGrid, List, SlidersHorizontal } from "lucide-react";
 
 interface QuizListFiltersProps {
@@ -63,31 +63,55 @@ export function QuizListFilters({
         </div>
 
         {/* Sort */}
-        <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5">
-          <SlidersHorizontal className="w-4 h-4 text-gray-500 dark:text-default-400 shrink-0" />
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-            className="bg-transparent text-sm text-gray-700 dark:text-default-300 outline-none cursor-pointer"
+        <div className="relative flex items-center">
+          <SlidersHorizontal className="absolute left-3 w-4 h-4 text-gray-500 dark:text-default-400 pointer-events-none z-10" />
+          <Select
+            selectedKey={sortBy}
+            onSelectionChange={(key) => setSortBy(String(key) as any)}
+            className="min-w-[180px]"
           >
-            {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-          </select>
+            <Select.Trigger className="w-full pl-9 pr-8 py-2 rounded-xl text-sm bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-default-300 cursor-pointer text-left focus:outline-none flex items-center justify-between">
+              <Select.Value className="text-sm font-medium">
+                {({ defaultChildren, isPlaceholder }) =>
+                  isPlaceholder ? (
+                    <span className="text-gray-400">Sort By</span>
+                  ) : (
+                    defaultChildren
+                  )
+                }
+              </Select.Value>
+              <Select.Indicator className="w-4 h-4 text-gray-400 ml-2" />
+            </Select.Trigger>
+            <Select.Popover className="z-50 min-w-[180px] mt-1 p-1 bg-white dark:bg-[#0f0f1a] border border-gray-200 dark:border-white/10 rounded-xl shadow-lg">
+              <ListBox className="focus:outline-none">
+                {SORT_OPTIONS.map((o) => (
+                  <ListBoxItem
+                    key={o.value}
+                    id={o.value}
+                    className="px-3 py-2 text-xs rounded-lg cursor-pointer hover:bg-default-100 dark:hover:bg-white/5 text-foreground select-none data-[selected=true]:bg-violet-50 dark:data-[selected=true]:bg-violet-900/30 data-[selected=true]:text-violet-700 dark:data-[selected=true]:text-violet-300"
+                  >
+                    {o.label}
+                  </ListBoxItem>
+                ))}
+              </ListBox>
+            </Select.Popover>
+          </Select>
         </div>
 
         {/* View toggle */}
         <div className="flex rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 overflow-hidden shrink-0">
           {(["grid", "table"] as const).map((mode) => (
-            <button
-              suppressHydrationWarning
+            <Button
               key={mode}
-              onClick={() => setViewMode(mode)}
-              className={`px-3 py-2 transition-all ${viewMode === mode
-                ? "bg-violet-600 text-white"
-                : "text-gray-500 dark:text-default-400 hover:bg-gray-50 dark:hover:bg-white/5"
+              onPress={() => setViewMode(mode)}
+              className={`min-w-0 px-3 py-2 h-auto rounded-none transition-all ${
+                viewMode === mode
+                  ? "bg-violet-600 text-white font-semibold"
+                  : "bg-transparent text-gray-500 dark:text-default-400 hover:bg-gray-50 dark:hover:bg-white/5"
               }`}
             >
               {mode === "grid" ? <LayoutGrid className="w-4 h-4" /> : <List className="w-4 h-4" />}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
@@ -97,34 +121,34 @@ export function QuizListFilters({
         {/* Status filter */}
         <div className="flex rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 overflow-hidden text-xs">
           {STATUS_OPTIONS.map(o => (
-            <button
-              suppressHydrationWarning
+            <Button
               key={o.value}
-              onClick={() => setStatusFilter(o.value as typeof statusFilter)}
-              className={`px-3 py-1.5 font-medium transition-all ${statusFilter === o.value
-                ? "bg-violet-600 text-white"
-                : "text-gray-600 dark:text-default-400 hover:bg-gray-50 dark:hover:bg-white/5"
+              onPress={() => setStatusFilter(o.value as typeof statusFilter)}
+              className={`min-w-0 h-auto px-3 py-1.5 rounded-none font-medium text-xs transition-all ${
+                statusFilter === o.value
+                  ? "bg-violet-600 text-white"
+                  : "bg-transparent text-gray-600 dark:text-default-400 hover:bg-gray-50 dark:hover:bg-white/5"
               }`}
             >
               {o.label}
-            </button>
+            </Button>
           ))}
         </div>
 
         {/* Difficulty filter */}
         <div className="flex rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 overflow-hidden text-xs">
           {DIFF_OPTIONS.map(o => (
-            <button
-              suppressHydrationWarning
+            <Button
               key={o.value}
-              onClick={() => setDiffFilter(o.value as typeof diffFilter)}
-              className={`px-3 py-1.5 font-medium transition-all ${diffFilter === o.value
-                ? "bg-violet-600 text-white"
-                : "text-gray-600 dark:text-default-400 hover:bg-gray-50 dark:hover:bg-white/5"
+              onPress={() => setDiffFilter(o.value as typeof diffFilter)}
+              className={`min-w-0 h-auto px-3 py-1.5 rounded-none font-medium text-xs transition-all ${
+                diffFilter === o.value
+                  ? "bg-violet-600 text-white"
+                  : "bg-transparent text-gray-600 dark:text-default-400 hover:bg-gray-50 dark:hover:bg-white/5"
               }`}
             >
               {o.label}
-            </button>
+            </Button>
           ))}
         </div>
 

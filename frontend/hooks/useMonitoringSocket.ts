@@ -32,7 +32,7 @@ export interface UseTeacherSocketOptions {
   onStudentJoined?:   (student: Student, stats: LiveStats) => void;
   onStudentLeft?:     (student: Student, stats: LiveStats) => void;
   onAnswerUpdate?:    (answer: AnswerCellData, stats: LiveStats) => void;
-  onSessionControl?:  (action: string) => void;
+  onSessionControl?:  (payload: any) => void;
   onError?:           (message: string) => void;
 }
 
@@ -134,8 +134,8 @@ export function useTeacherSocket(
       onAnswerUpdate?.(answer, stats);
     });
 
-    socket.on(SERVER_EVENTS.SESSION_CONTROL, ({ action }: { action: string }) => {
-      onSessionControl?.(action);
+    socket.on(SERVER_EVENTS.SESSION_CONTROL, (payload: any) => {
+      onSessionControl?.(payload);
     });
 
     socket.on(SERVER_EVENTS.ERROR, ({ message }: { message: string }) => {
@@ -180,7 +180,7 @@ export interface UseStudentSocketOptions {
   studentId: string;   // empty string = not ready yet
   name:      string;
   avatar?:   string;
-  onSessionControl?: (action: string) => void;
+  onSessionControl?: (payload: any) => void;
   onError?:          (message: string) => void;
 }
 
@@ -229,10 +229,19 @@ export function useStudentSocket(options: UseStudentSocketOptions): UseStudentSo
 
     socket.on(SERVER_EVENTS.SESSION_JOINED, (data: any) => {
       console.log("[studentSocket] session_joined ack:", data);
+      if (data && data.role === "student") {
+        onSessionControl?.({
+          action: "init",
+          isTeacherLed: data.isTeacherLed,
+          currentQuestionIndex: data.currentQuestionIndex,
+          timer: data.timer,
+          timerActive: data.timerActive,
+        });
+      }
     });
 
-    socket.on(SERVER_EVENTS.SESSION_CONTROL, ({ action }: { action: string }) => {
-      onSessionControl?.(action);
+    socket.on(SERVER_EVENTS.SESSION_CONTROL, (payload: any) => {
+      onSessionControl?.(payload);
     });
 
     socket.on(SERVER_EVENTS.ERROR, ({ message }: { message: string }) => {

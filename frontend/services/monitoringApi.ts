@@ -59,8 +59,9 @@ function setupRealtimeListeners(
     onAnswerUpdate:  (answer: AnswerCellData) => void;
     onStudentJoined: (student: Student) => void;
     onStatsUpdate:   (stats: LiveStats) => void;
+    onSessionControl?: (payload: any) => void;
   },
-  onSnapshot?: (data: { students: Student[]; answers: AnswerCellData[]; stats: LiveStats }) => void
+  onSnapshot?: (data: { students: Student[]; answers: AnswerCellData[]; stats: LiveStats; isPaused?: boolean; startedAt?: number }) => void
 ) {
   const socket = getSocket();
 
@@ -79,6 +80,7 @@ function setupRealtimeListeners(
   socket.off("answer_update");
   socket.off("student_joined");
   socket.off("student_left");
+  socket.off("session_control");
 
   socket.on("connect", doJoin);
 
@@ -95,6 +97,8 @@ function setupRealtimeListeners(
         stats:    data.stats    || {
           totalStudents: 0, activeStudents: 0, averageScore: 0, completionPercentage: 0
         },
+        isPaused:  data.isPaused,
+        startedAt: data.startedAt,
       });
     }
   });
@@ -110,6 +114,8 @@ function setupRealtimeListeners(
         stats:    data.stats    || {
           totalStudents: 0, activeStudents: 0, averageScore: 0, completionPercentage: 0
         },
+        isPaused:  data.isPaused,
+        startedAt: data.startedAt,
       });
     }
   });
@@ -133,6 +139,11 @@ function setupRealtimeListeners(
     if (stats) callbacks.onStatsUpdate(stats);
   });
 
+  socket.on("session_control", (payload: any) => {
+    console.log("[monitoringApi] session_control broadcast received:", payload);
+    if (callbacks.onSessionControl) callbacks.onSessionControl(payload);
+  });
+
   socket.on("error", (err: { message: string }) => {
     console.warn("[monitoringApi] error:", err.message);
   });
@@ -145,6 +156,7 @@ function setupRealtimeListeners(
     socket.off("answer_update");
     socket.off("student_joined");
     socket.off("student_left");
+    socket.off("session_control");
     socket.off("error");
     console.log("[monitoringApi] cleanup listeners for", sessionId);
   };
@@ -152,8 +164,8 @@ function setupRealtimeListeners(
 
 // ── Teacher session control ────────────────────────────────────
 
-function controlSession(sessionId: string, action: "pause" | "resume" | "stop" | "end") {
-  getSocket().emit("control_session", { sessionId, action });
+function controlSession(sessionId: string, action: string, payload?: any) {
+  getSocket().emit("control_session", { sessionId, action, ...payload });
 }
 
 // ── Export and History reports ─────────────────────────────────

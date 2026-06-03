@@ -1,10 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { Student } from "@/types/teacher/monitoring.types";
-import { Avatar, ProgressBar } from "@heroui/react";
+import { Avatar, ProgressBar, Button, Tooltip } from "@heroui/react";
 import { motion } from "framer-motion";
-import { Wifi, WifiOff } from "lucide-react";
+import { Wifi, WifiOff, RotateCcw } from "lucide-react";
 import { useMonitoringStore } from "@/store/monitoringStore";
+import { useLang } from "@/lib/i18n/LanguageContext";
+import { ConfirmModal } from "./ConfirmModal";
+import { useParams } from "next/navigation";
+import { monitoringApi } from "@/services/monitoringApi";
 
 interface StudentRowProps {
   student: Student;
@@ -12,7 +17,13 @@ interface StudentRowProps {
 
 export function StudentRow({ student }: StudentRowProps) {
   const isOnline = student.isOnline;
+  const { t } = useLang();
+  const params = useParams();
+  const quizId = params.quizId as string;
+  const sessionId = `quiz-session-${quizId}`;
+  
   const { answers, questions } = useMonitoringStore();
+  const [showConfirm, setShowConfirm] = useState(false);
 
   // Find and format student's answers for AI context
   const studentAnswers = answers.filter((a) => a.studentId === student.id);
@@ -120,6 +131,37 @@ export function StudentRow({ student }: StudentRowProps) {
           </div>
         )}
       </div>
+
+      {/* Hover-activated Reset Progress button */}
+      {isOnline && (
+        // @ts-expect-error HeroUI Tooltip types issue
+        <Tooltip content={t.monitoring.controls.resetStudent}>
+          <Button
+            isIconOnly
+            size="sm"
+            variant="ghost"
+            className="opacity-0 group-hover:opacity-100 hover:bg-default-100 dark:hover:bg-white/5 transition-opacity rounded-full min-w-0 w-8 h-8 flex items-center justify-center shrink-0 ml-1"
+            onPress={() => setShowConfirm(true)}
+          >
+            <RotateCcw className="w-3.5 h-3.5 text-danger animate-spin-slow hover:rotate-180 transition-transform duration-500" />
+          </Button>
+        </Tooltip>
+      )}
+
+      {/* HeroUI Confirm Modal */}
+      <ConfirmModal
+        isOpen={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={() => {
+          monitoringApi.controlSession(sessionId, "reset_student", { studentId: student.id });
+          setShowConfirm(false);
+        }}
+        title={t.monitoring.controls.resetStudent}
+        message={t.monitoring.controls.resetConfirm}
+        confirmText="Reset"
+        cancelText={t.modal.cancel}
+        isDanger={true}
+      />
     </div>
   );
 }

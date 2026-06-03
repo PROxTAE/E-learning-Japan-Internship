@@ -51,6 +51,11 @@ export default function PlayQuizPage() {
   const [startTime, setStartTime] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
+  // ── Session Controls States ────────────────────────────────────────────────
+  const [isTeacherLed, setIsTeacherLed] = useState(false);
+  const [roomLocked, setRoomLocked] = useState(false);
+  const [liveTimer, setLiveTimer] = useState<number | null>(null);
+
   // ── Timing per question ────────────────────────────────────────────────────
   const questionStartTime = useRef<number>(Date.now());
 
@@ -122,14 +127,54 @@ export default function PlayQuizPage() {
     studentId,
     name: studentName,
     avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${studentId}`,
-    onSessionControl: (action) => {
-      if (action === "pause")  setIsPaused(true);
-      if (action === "resume") setIsPaused(false);
-      if (action === "end") {
+    onSessionControl: (payload) => {
+      const { action } = payload || {};
+      if (action === "init") {
+        setIsTeacherLed(!!payload.isTeacherLed);
+        if (payload.isTeacherLed && payload.currentQuestionIndex !== undefined) {
+          setCurrentIndex(payload.currentQuestionIndex);
+        }
+        if (payload.timer !== undefined && payload.timerActive) {
+          setLiveTimer(payload.timer);
+        }
+      } else if (action === "pause") {
+        setIsPaused(true);
+      } else if (action === "resume") {
+        setIsPaused(false);
+      } else if (action === "end") {
         clearSession();
         setIsFinished(true);
+      } else if (action === "teacher_led") {
+        setIsTeacherLed(!!payload.isTeacherLed);
+      } else if (action === "set_question_index") {
+        setCurrentIndex(Number(payload.index || 0));
+        setCurrentSelection(null);
+      } else if (action === "set_timer") {
+        setLiveTimer(payload.timer);
+        if (payload.timer === 0 && payload.timerActive === false) {
+          clearSession();
+          setIsFinished(true);
+        }
+      } else if (action === "reset_student") {
+        if (payload.studentId === studentId) {
+          alert("Your progress has been reset by the teacher.");
+          clearSession();
+          setCurrentIndex(0);
+          setSelectedAnswers({});
+          setCurrentSelection(null);
+          setStarted(false);
+          setIsFinished(false);
+          setStartTime(null);
+          setLiveTimer(null);
+          setRecoveredSession(false);
+        }
       }
     },
+    onError: (message) => {
+      if (message === "ROOM_LOCKED") {
+        setRoomLocked(true);
+      }
+    }
   });
 
   // Reset question timer and log view when question changes
@@ -286,6 +331,29 @@ export default function PlayQuizPage() {
   // ═══════════════════════════════════════════════════════════════════════════
   //  Loading & Error Screens
   // ═══════════════════════════════════════════════════════════════════════════
+  if (roomLocked) {
+    return (
+      <div className="quiz-bg fixed inset-0 flex flex-col items-center justify-center p-4">
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+          <QuizLangSwitcher />
+          <ThemeSwitcher />
+        </div>
+        <Card className="w-full max-w-md bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl">
+          <CardContent className="text-center py-12 px-8 flex flex-col items-center gap-6">
+            <div className="text-6xl mb-2">🔒</div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-black text-white">{t.monitoring.accessCode.roomLocked}</h2>
+              <p className="text-white/60">{t.play.roomLocked}</p>
+            </div>
+            <Button className="w-full h-14 rounded-2xl font-bold bg-white text-violet-600 shadow-xl" onPress={() => router.push("/")}>
+              {t.play.backHome}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="quiz-bg fixed inset-0 flex flex-col items-center justify-center gap-4">
@@ -513,14 +581,24 @@ export default function PlayQuizPage() {
           </div>
           
           {/* Global Timer Display */}
-          {timeLeft !== null && quiz.hasTimeLimit !== false && quiz.durationMinutes > 0 && (
+          {liveTimer !== null ? (
             <div className={`flex items-center justify-center py-2 px-4 rounded-xl border font-mono font-bold text-lg mb-2 shadow-sm transition-colors ${
-              timeLeft < 60000 
+              liveTimer <= 60 
                 ? "bg-red-500/90 text-white border-red-400 animate-pulse" 
                 : "bg-white/20 dark:bg-black/20 text-white border-white/25"
             }`}>
-              ⏱ {Math.floor(timeLeft / 60000)}:{String(Math.floor((timeLeft % 60000) / 1000)).padStart(2, '0')}
+              ⏱ {Math.floor(liveTimer / 60)}:{String(liveTimer % 60).padStart(2, '0')}
             </div>
+          ) : (
+            timeLeft !== null && quiz.hasTimeLimit !== false && quiz.durationMinutes > 0 && (
+              <div className={`flex items-center justify-center py-2 px-4 rounded-xl border font-mono font-bold text-lg mb-2 shadow-sm transition-colors ${
+                timeLeft < 60000 
+                  ? "bg-red-500/90 text-white border-red-400 animate-pulse" 
+                  : "bg-white/20 dark:bg-black/20 text-white border-white/25"
+              }`}>
+                ⏱ {Math.floor(timeLeft / 60000)}:{String(Math.floor((timeLeft % 60000) / 1000)).padStart(2, '0')}
+              </div>
+            )
           )}
 
           {/* Progress bar */}
@@ -605,21 +683,30 @@ export default function PlayQuizPage() {
               </Card>
 
               {/* Next button */}
-              <motion.button
-                whileHover={currentSelection ? { scale: 1.02, y: -2 } : {}}
-                whileTap={currentSelection ? { scale: 0.98 } : {}}
-                onClick={handleNext}
-                disabled={!currentSelection || isPaused}
-                className={`
-                  w-full py-5 rounded-2xl font-black text-lg shadow-xl transition-all
-                  ${currentSelection && !isPaused
-                    ? "bg-gradient-to-r from-emerald-400 to-green-500 text-white hover:shadow-green-500/25"
-                    : "bg-white/20 dark:bg-white/10 text-white/40 cursor-not-allowed"
+              {isTeacherLed ? (
+                <div className="w-full py-5 rounded-2xl font-black text-lg text-center bg-white/10 text-white/80 border border-white/20 shadow-xl">
+                  {currentSelection 
+                    ? t.play.waitingNext
+                    : t.play.selectAnswer
                   }
-                `}
-              >
-                {currentIndex === quiz.questions.length - 1 ? t.play.finishQuiz : t.play.nextQuestion}
-              </motion.button>
+                </div>
+              ) : (
+                <motion.button
+                  whileHover={currentSelection ? { scale: 1.02, y: -2 } : {}}
+                  whileTap={currentSelection ? { scale: 0.98 } : {}}
+                  onClick={handleNext}
+                  disabled={!currentSelection || isPaused}
+                  className={`
+                    w-full py-5 rounded-2xl font-black text-lg shadow-xl transition-all
+                    ${currentSelection && !isPaused
+                      ? "bg-gradient-to-r from-emerald-400 to-green-500 text-white hover:shadow-green-500/25"
+                      : "bg-white/20 dark:bg-white/10 text-white/40 cursor-not-allowed"
+                    }
+                  `}
+                >
+                  {currentIndex === quiz.questions.length - 1 ? t.play.finishQuiz : t.play.nextQuestion}
+                </motion.button>
+              )}
             </motion.div>
           </AnimatePresence>
         </motion.div>

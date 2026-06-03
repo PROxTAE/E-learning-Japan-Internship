@@ -1,9 +1,28 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Chip } from "@heroui/react";
-import { Clock, HelpCircle, Users, Pencil, Trash2, Share2, Activity } from "lucide-react";
+import { Chip, Button } from "@heroui/react";
+import { 
+  Clock, 
+  HelpCircle, 
+  Users, 
+  Pencil, 
+  Trash2, 
+  Share2, 
+  Activity, 
+  History,
+  BookOpen,
+  Brain,
+  Lightbulb,
+  Target,
+  Microscope,
+  Globe,
+  BarChart3,
+  Trophy,
+  Zap 
+} from "lucide-react";
 import type { Quiz } from "@/types/teacher/quiz.types";
+import { useRouter } from "next/navigation";
 
 interface QuizListGridProps {
   quizzes: Quiz[];
@@ -27,18 +46,32 @@ const GRADIENTS = [
   "from-cyan-500 to-sky-600",
 ];
 
-const EMOJIS = ["📚", "🧠", "💡", "🎯", "🔬", "🌐", "📊", "✏️", "🏆", "⚡"];
+const ICONS = [BookOpen, Brain, Lightbulb, Target, Microscope, Globe, BarChart3, Pencil, Trophy, Zap];
+
+const EMOJI_TO_ICON: Record<string, React.ComponentType<any>> = {
+  "📚": BookOpen,
+  "🧠": Brain,
+  "💡": Lightbulb,
+  "🎯": Target,
+  "🔬": Microscope,
+  "🌐": Globe,
+  "📊": BarChart3,
+  "✏️": Pencil,
+  "🏆": Trophy,
+  "⚡": Zap,
+};
 
 function getGradient(id: string) {
   const n = id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
   return GRADIENTS[n % GRADIENTS.length];
 }
-function getEmoji(id: string) {
+function getIconComponent(id: string) {
   const n = id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-  return EMOJIS[n % EMOJIS.length];
+  return ICONS[n % ICONS.length];
 }
 
 export function QuizListGrid({ quizzes, onEdit, onDelete, onShare, onMonitor, onStatusChange }: QuizListGridProps) {
+  const router = useRouter();
   return (
     <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       <AnimatePresence mode="popLayout">
@@ -57,6 +90,7 @@ export function QuizListGrid({ quizzes, onEdit, onDelete, onShare, onMonitor, on
               onDelete={onDelete}
               onShare={onShare}
               onMonitor={onMonitor}
+              onHistory={() => router.push(`/teacher/quizzes/${quiz.id}/history`)}
               onStatusChange={onStatusChange}
             />
           </motion.div>
@@ -66,16 +100,18 @@ export function QuizListGrid({ quizzes, onEdit, onDelete, onShare, onMonitor, on
   );
 }
 
-function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onStatusChange }: {
+function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onHistory, onStatusChange }: {
   quiz: Quiz;
   onEdit: (q: Quiz) => void;
   onDelete: (q: Quiz) => void;
   onShare: (q: Quiz) => void;
   onMonitor: (q: Quiz) => void;
+  onHistory: () => void;
   onStatusChange: (q: Quiz, s: Quiz["status"]) => void;
 }) {
   const gradient = (quiz as any).gradient || `bg-gradient-to-br ${getGradient(quiz.id)}`;
-  const emoji    = (quiz as any).emoji     || getEmoji(quiz.id);
+  const customEmoji = (quiz as any).emoji;
+  const MappedIcon = customEmoji ? EMOJI_TO_ICON[customEmoji] : null;
 
   return (
     <div
@@ -87,15 +123,25 @@ function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onStatusChange }
       
       {/* Banner */}
       <div className={`h-28 bg-gradient-to-br ${getGradient(quiz.id)} relative flex items-center justify-center`}>
-        <span className="text-5xl drop-shadow-lg">{emoji}</span>
+        {MappedIcon ? (
+          <MappedIcon className="w-14 h-14 text-white/90 drop-shadow-lg" />
+        ) : customEmoji ? (
+          <span className="text-5xl drop-shadow-lg">{customEmoji}</span>
+        ) : (
+          (() => {
+            const FallbackIcon = getIconComponent(quiz.id);
+            return <FallbackIcon className="w-14 h-14 text-white/90 drop-shadow-lg" />;
+          })()
+        )}
 
         {/* Hover actions overlay */}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
           {quiz.status === "published" && (
             <ActionButton onClick={() => onMonitor(quiz)} title="Monitor Live" icon={Activity} color="bg-violet-600 hover:bg-violet-700" />
           )}
+          <ActionButton onClick={onHistory} title="View History" icon={History} color="bg-blue-600 hover:bg-blue-700" />
           <ActionButton onClick={() => onShare(quiz)} title="Share" icon={Share2} color="bg-emerald-600 hover:bg-emerald-700" />
-          <ActionButton onClick={() => onEdit(quiz)} title="Edit" icon={Pencil} color="bg-blue-600 hover:bg-blue-700" />
+          <ActionButton onClick={() => onEdit(quiz)} title="Edit" icon={Pencil} color="bg-gray-600 hover:bg-gray-700" />
           <ActionButton onClick={() => onDelete(quiz)} title="Delete" icon={Trash2} color="bg-red-600 hover:bg-red-700" />
         </div>
 
@@ -125,6 +171,16 @@ function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onStatusChange }
               {(quiz as any).category}
             </Chip>
           )}
+          {quiz.subject && (
+            <Chip {...{ size: "sm", variant: "flat" } as any} className="text-[10px] h-5 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400">
+              {quiz.subject}
+            </Chip>
+          )}
+          {quiz.chapter && (
+            <Chip {...{ size: "sm", variant: "flat" } as any} className="text-[10px] h-5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
+              {quiz.chapter}
+            </Chip>
+          )}
         </div>
 
         {/* Meta */}
@@ -147,18 +203,17 @@ function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onStatusChange }
       {/* Quick status toggle bar */}
       <div className="flex border-t border-gray-100 dark:border-white/5">
         {(["draft", "published", "archived"] as Quiz["status"][]).map((s) => (
-          <button
-            suppressHydrationWarning
+          <Button
             key={s}
             onClick={() => onStatusChange(quiz, s)}
-            className={`flex-1 py-1.5 text-[10px] font-semibold uppercase tracking-wide transition-colors ${
+            className={`flex-1 py-1.5 h-auto text-[10px] font-semibold uppercase tracking-wide transition-colors rounded-none bg-transparent ${
               quiz.status === s
                 ? "bg-violet-600 text-white"
                 : "text-gray-400 dark:text-default-500 hover:bg-gray-50 dark:hover:bg-white/5"
             }`}
           >
             {s}
-          </button>
+          </Button>
         ))}
       </div>
     </div>
@@ -172,13 +227,13 @@ function ActionButton({ onClick, title, icon: Icon, color }: {
   color: string;
 }) {
   return (
-    <button
-      suppressHydrationWarning
+    <Button
+      isIconOnly
       onClick={(e) => { e.stopPropagation(); onClick(); }}
-      title={title}
-      className={`w-8 h-8 rounded-lg ${color} text-white flex items-center justify-center shadow-md transition-transform hover:scale-110`}
+      {...{ title } as any}
+      className={`w-8 h-8 min-w-0 rounded-lg ${color} text-white flex items-center justify-center shadow-md transition-transform hover:scale-110`}
     >
       <Icon className="w-3.5 h-3.5" />
-    </button>
+    </Button>
   );
 }

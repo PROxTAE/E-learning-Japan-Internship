@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { MonitoringState, Student, Question, AnswerCellData, LiveStats } from "@/types/teacher/monitoring.types";
 
+
 interface MonitoringStore {
   students: Student[];
   questions: Question[];
@@ -9,6 +10,19 @@ interface MonitoringStore {
   uiState: MonitoringState;
   loading: boolean;
 
+  // Timer State
+  timer: number; // in seconds
+  timerActive: boolean;
+
+  // Access Code & Room Lock State
+  accessCode: string;
+  isLocked: boolean;
+
+
+  // Teacher-Led Presentation Mode
+  isTeacherLed: boolean;
+  currentQuestionIndex: number;
+
   setLoading: (loading: boolean) => void;
   setSessionData: (data: { students: Student[]; questions: Question[]; answers: AnswerCellData[]; stats: LiveStats }) => void;
   updateUIState: (updates: Partial<MonitoringState>) => void;
@@ -16,6 +30,18 @@ interface MonitoringStore {
   updateStudent: (student: Student) => void;
   updateStats: (stats: LiveStats) => void;
   setQuestions: (questions: Question[]) => void;
+
+  // New Actions
+  setTimer: (time: number) => void;
+  setTimerActive: (active: boolean) => void;
+  adjustTimer: (offsetSeconds: number) => void;
+  tickTimer: () => void;
+  setAccessCode: (code: string) => void;
+  setRoomLocked: (locked: boolean) => void;
+  setTeacherLed: (enabled: boolean) => void;
+  setCurrentQuestionIndex: (index: number) => void;
+
+  resetStudentProgress: (studentId: string) => void;
 }
 
 export const useMonitoringStore = create<MonitoringStore>((set) => ({
@@ -36,6 +62,15 @@ export const useMonitoringStore = create<MonitoringStore>((set) => ({
     searchQuery: ""
   },
   loading: true,
+
+  // New States defaults
+  timer: 0,
+  timerActive: false,
+  accessCode: "",
+  isLocked: false,
+
+  isTeacherLed: false,
+  currentQuestionIndex: 0,
 
   setLoading: (loading) => set({ loading }),
   
@@ -124,6 +159,39 @@ export const useMonitoringStore = create<MonitoringStore>((set) => ({
     stats,
     questions: mergeQuestionStats(state.questions, stats)
   })),
+
+  // New Actions implementation
+  setTimer: (time) => set({ timer: time }),
+  setTimerActive: (active) => set({ timerActive: active }),
+  adjustTimer: (offsetSeconds) => set((state) => ({ timer: Math.max(0, state.timer + offsetSeconds) })),
+  tickTimer: () => set((state) => {
+    if (state.timer <= 1) {
+      return { timer: 0, timerActive: false };
+    }
+    return { timer: state.timer - 1 };
+  }),
+  setAccessCode: (code) => set({ accessCode: code }),
+  setRoomLocked: (locked) => set({ isLocked: locked }),
+  setTeacherLed: (enabled) => set({ isTeacherLed: enabled }),
+  setCurrentQuestionIndex: (index) => set({ currentQuestionIndex: index }),
+
+  resetStudentProgress: (studentId) => set((state) => {
+    const nextAnswers = state.answers.filter((a) => a.studentId !== studentId);
+    const nextStudents = state.students.map((s) => {
+      if (s.id === studentId) {
+        return {
+          ...s,
+          score: 0,
+          progress: 0,
+        };
+      }
+      return s;
+    });
+    return {
+      answers: nextAnswers,
+      students: nextStudents
+    };
+  })
 }));
 
 /**

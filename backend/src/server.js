@@ -13,6 +13,7 @@ const quizRoutes           = require("./routes/quiz.routes");
 const monitoringRoutes     = require("./routes/monitoring.routes");
 const dashboardRoutes      = require("./routes/dashboard.routes");
 const quizLogRoutes        = require("./routes/quiz-log.routes");
+const sessionHistoryRoutes = require("./routes/session-history.routes");
 const { getQuizByCode }    = require("./controllers/quiz.controller");
 const { initSocket }       = require("./socket");
 
@@ -36,6 +37,7 @@ app.use("/api/quizzes", quizRoutes);
 app.use("/api/monitoring", monitoringRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/quiz-logs", quizLogRoutes);
+app.use("/api/session-history", sessionHistoryRoutes);
 app.get("/api/play/:code", getQuizByCode);
 
 app.get("/api/health", (_req, res) => {

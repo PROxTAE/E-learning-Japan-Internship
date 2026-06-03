@@ -40,6 +40,10 @@ export interface Quiz {
   questions: Question[];
   createdAt: string;
   updatedAt: string;
+  /** Course/subject this quiz belongs to — e.g. "Computer Programming" */
+  subject?: string;
+  /** Chapter within the subject — e.g. "บทที่ 1" */
+  chapter?: string;
 }
 
 /** Partial form state used during editing */

@@ -1,6 +1,6 @@
 "use client";
 
-import { Chip } from "@heroui/react";
+import { Chip, Button } from "@heroui/react";
 import { Pencil, Trash2, Share2, Activity, Clock, HelpCircle, Users, ChevronRight } from "lucide-react";
 import type { Quiz } from "@/types/teacher/quiz.types";
 
@@ -112,13 +112,13 @@ function ActionBtn({ onClick, title, children, className }: {
   className: string;
 }) {
   return (
-    <button
-      suppressHydrationWarning
+    <Button
+      isIconOnly
       onClick={onClick}
-      title={title}
-      className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${className}`}
+      {...{ title } as any}
+      className={`w-7 h-7 min-w-0 rounded-lg flex items-center justify-center transition-colors bg-transparent ${className}`}
     >
       {children}
-    </button>
+    </Button>
   );
 }

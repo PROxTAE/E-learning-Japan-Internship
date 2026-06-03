@@ -1,10 +1,40 @@
 "use client";
 
 import { Chip } from "@heroui/react";
-import { Clock, HelpCircle, Pencil, Trash2, Users, Share2, TrendingUp } from "lucide-react";
+import { 
+  Clock, 
+  HelpCircle, 
+  Pencil, 
+  Trash2, 
+  Users, 
+  Share2, 
+  TrendingUp,
+  BookOpen,
+  Brain,
+  Lightbulb,
+  Target,
+  Microscope,
+  Globe,
+  BarChart3,
+  Trophy,
+  Zap 
+} from "lucide-react";
 import { motion } from "framer-motion";
 import type { Quiz, QuizDifficulty, QuizStatus } from "@/types/teacher/quiz.types";
 import { useLang } from "@/lib/i18n/LanguageContext";
+
+const EMOJI_TO_ICON: Record<string, React.ComponentType<any>> = {
+  "📚": BookOpen,
+  "🧠": Brain,
+  "💡": Lightbulb,
+  "🎯": Target,
+  "🔬": Microscope,
+  "🌐": Globe,
+  "📊": BarChart3,
+  "✏️": Pencil,
+  "🏆": Trophy,
+  "⚡": Zap,
+};
 
 const DIFFICULTY_COLOR: Record<QuizDifficulty, "success" | "warning" | "danger"> = {
   easy: "success", medium: "warning", hard: "danger",
@@ -54,7 +84,14 @@ export function QuizCard({ quiz, isSelected, onSelect, onEdit, onDelete, onShare
             backgroundSize: "16px 16px",
           }}
         />
-        <span className="text-4xl relative z-10 drop-shadow-lg">{quiz.emoji}</span>
+        {(() => {
+          const MappedIcon = quiz.emoji ? EMOJI_TO_ICON[quiz.emoji] : null;
+          return MappedIcon ? (
+            <MappedIcon className="w-12 h-12 text-white/90 drop-shadow-lg relative z-10" />
+          ) : (
+            <span className="text-4xl relative z-10 drop-shadow-lg">{quiz.emoji}</span>
+          );
+        })()}
 
         {/* Action buttons overlay */}
         <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">

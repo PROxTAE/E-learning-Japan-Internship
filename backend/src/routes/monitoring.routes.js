@@ -75,10 +75,22 @@ router.get("/quiz/:quizId/sessions", async (req, res) => {
  */
 router.get("/sessions/:sessionId/export", async (req, res) => {
   try {
-    const sessionId = await resolveSessionId(req.params.sessionId);
-
-    let session = await QuizSessionResult.findOne({ sessionId }).lean();
+    const mongoose = require("mongoose");
+    let session = null;
     let isLive = false;
+    let sessionId = req.params.sessionId;
+
+    if (mongoose.Types.ObjectId.isValid(sessionId)) {
+      session = await QuizSessionResult.findById(sessionId).lean();
+      if (session) {
+        sessionId = session.sessionId;
+      }
+    }
+
+    if (!session) {
+      sessionId = await resolveSessionId(req.params.sessionId);
+      session = await QuizSessionResult.findOne({ sessionId }).sort({ endedAt: -1 }).lean();
+    }
 
     // If not in MongoDB, try reading live state from Redis
     if (!session) {

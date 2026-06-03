@@ -2,9 +2,43 @@
 
 import { useState, useEffect } from "react";
 import { Chip, Tabs, TabList, Tab, TabPanel } from "@heroui/react";
-import { X, Pencil, Clock, HelpCircle, Users, TrendingUp, CheckCircle, Tag, Share2, Download, Calendar } from "lucide-react";
+import { 
+  X, 
+  Pencil, 
+  Clock, 
+  HelpCircle, 
+  Users, 
+  TrendingUp, 
+  CheckCircle, 
+  Tag, 
+  Share2, 
+  Download, 
+  Calendar,
+  BookOpen,
+  Brain,
+  Lightbulb,
+  Target,
+  Microscope,
+  Globe,
+  BarChart3,
+  Trophy,
+  Zap 
+} from "lucide-react";
 import type { Quiz } from "@/types/teacher/quiz.types";
 import { useLang } from "@/lib/i18n/LanguageContext";
+
+const EMOJI_TO_ICON: Record<string, React.ComponentType<any>> = {
+  "📚": BookOpen,
+  "🧠": Brain,
+  "💡": Lightbulb,
+  "🎯": Target,
+  "🔬": Microscope,
+  "🌐": Globe,
+  "📊": BarChart3,
+  "✏️": Pencil,
+  "🏆": Trophy,
+  "⚡": Zap,
+};
 import { ShareQuizModal } from "./ShareQuizModal";
 import { monitoringApi } from "@/services/monitoringApi";
 
@@ -39,7 +73,14 @@ export function QuizDetailPanel({ quiz, onClose, onEdit }: QuizDetailPanelProps)
       data-ai-context-data={JSON.stringify(quiz)}
     >
       <div className={`h-32 bg-gradient-to-br ${quiz.gradient} flex items-center justify-center relative shrink-0`}>
-        <span className="text-5xl">{quiz.emoji}</span>
+        {(() => {
+          const MappedIcon = quiz.emoji ? EMOJI_TO_ICON[quiz.emoji] : null;
+          return MappedIcon ? (
+            <MappedIcon className="w-16 h-16 text-white/90 drop-shadow-lg" />
+          ) : (
+            <span className="text-5xl">{quiz.emoji}</span>
+          );
+        })()}
         <button onClick={onClose} className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm flex items-center justify-center" aria-label="Close">
           <X className="w-4 h-4" />
         </button>
