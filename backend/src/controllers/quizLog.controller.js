@@ -8,6 +8,7 @@
 // ─────────────────────────────────────────────────────────────────
 
 const QuizInteractionLog = require("../models/QuizInteractionLog.model");
+const Quiz = require("../models/Quiz.model");
 
 // ── POST /api/quiz-logs ────────────────────────────────────────────
 /**
@@ -32,20 +33,79 @@ async function submitLog(req, res) {
       });
     }
 
+    // Fetch quiz to check correct answers and populate correct_answers/is_correct
+    let quiz = null;
+    try {
+      quiz = await Quiz.findById(session_metadata.quiz_id).lean();
+    } catch (err) {
+      console.error("[quizLog] Error fetching quiz:", err);
+    }
+
+    if (!quiz) {
+      return res.status(404).json({
+        success: false,
+        message: `Quiz with ID ${session_metadata.quiz_id} not found`,
+      });
+    }
+
+    let totalScore = 0;
+    const validatedAnswerLogs = answer_logs.map((ansLog) => {
+      // Find the corresponding question in the quiz
+      const question = quiz.questions.find((q) => {
+        const qIdStr = q._id ? q._id.toString() : q.id;
+        return qIdStr === ansLog.question_id || q.id === ansLog.question_id;
+      });
+
+      if (!question) {
+        // If question not found in quiz, keep as is
+        return ansLog;
+      }
+
+      // Find correct choices
+      const correctChoices = question.choices.filter((c) => c.isCorrect);
+      const correctIds = correctChoices.map((c) => (c._id ? c._id.toString() : c.id));
+
+      // Verify student's final answer
+      const finalAnswers = ansLog.final_answer || [];
+
+      // Check correctness: every final answer must be correct, and every correct answer must be selected.
+      let isCorrect = false;
+      if (finalAnswers.length > 0 && correctIds.length > 0) {
+        isCorrect = finalAnswers.every(ans => correctIds.includes(ans)) && 
+                    correctIds.every(corr => finalAnswers.includes(corr));
+      }
+
+      if (isCorrect) {
+        totalScore++;
+      }
+
+      // Extract difficulty and tags from the root quiz
+      const qDifficulty = quiz.difficulty ? (quiz.difficulty.charAt(0).toUpperCase() + quiz.difficulty.slice(1)) : "Medium";
+      const qTags = quiz.tags || [];
+
+      return {
+        ...ansLog,
+        difficulty: qDifficulty,
+        tags: qTags,
+        correct_answers: correctIds,
+        is_correct: isCorrect
+      };
+    });
+
     // Compute confusion rate if not provided
-    const confusedCount = answer_logs.filter((q) => q.is_confused).length;
+    const confusedCount = validatedAnswerLogs.filter((q) => q.is_confused).length;
     const computedSummary = {
-      total_score:             summary?.total_score ?? 0,
-      full_score:              summary?.full_score  ?? answer_logs.length,
+      total_score:             totalScore,
+      full_score:              quiz.questions.length,
       completion_time_seconds: summary?.completion_time_seconds ?? 0,
       average_confusion_rate:
         summary?.average_confusion_rate ??
-        (answer_logs.length > 0 ? confusedCount / answer_logs.length : 0),
+        (validatedAnswerLogs.length > 0 ? confusedCount / validatedAnswerLogs.length : 0),
     };
 
     const log = await QuizInteractionLog.create({
       session_metadata,
-      answer_logs,
+      answer_logs: validatedAnswerLogs,
       summary: computedSummary,
     });
 

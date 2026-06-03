@@ -202,6 +202,7 @@ export default function MonitoringQuizPage() {
           quizCode={quizCode}
           state={uiState}
           onStateChange={handleStateChange}
+          sessionId={sessionId}
         />
 
         <MonitoringStats stats={stats} />

@@ -156,8 +156,29 @@ function controlSession(sessionId: string, action: "pause" | "resume" | "stop" |
   getSocket().emit("control_session", { sessionId, action });
 }
 
+// ── Export and History reports ─────────────────────────────────
+
+async function getQuizSessions(quizId: string): Promise<any[]> {
+  try {
+    const res = await fetch(`${BASE_URL}/api/monitoring/quiz/${quizId}/sessions`);
+    if (res.ok) {
+      const body = await res.json();
+      if (body.success) return body.data;
+    }
+  } catch (err) {
+    console.error("[monitoringApi] getQuizSessions error:", err);
+  }
+  return [];
+}
+
+function getExportUrl(sessionId: string): string {
+  return `${BASE_URL}/api/monitoring/sessions/${sessionId}/export`;
+}
+
 export const monitoringApi = {
   getSessionState,
   setupRealtimeListeners,
   controlSession,
+  getQuizSessions,
+  getExportUrl,
 };

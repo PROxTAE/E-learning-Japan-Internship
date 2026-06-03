@@ -10,9 +10,10 @@ interface QuizSessionHeaderProps {
   quizCode: string;
   state: MonitoringState;
   onStateChange: (newState: Partial<MonitoringState>) => void;
+  sessionId?: string;
 }
 
-export function QuizSessionHeader({ quizTitle, quizCode, state, onStateChange }: QuizSessionHeaderProps) {
+export function QuizSessionHeader({ quizTitle, quizCode, state, onStateChange, sessionId }: QuizSessionHeaderProps) {
   const { t } = useLang();
 
   return (
@@ -77,6 +78,20 @@ export function QuizSessionHeader({ quizTitle, quizCode, state, onStateChange }:
         >
           {state.isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
           {state.isPaused ? "Resume" : "Pause"}
+        </Button>
+
+        <Button
+          size="sm"
+          variant="secondary"
+          className="flex items-center gap-2 font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-50 dark:hover:bg-emerald-950/20"
+          onPress={() => {
+            const code = quizCode || sessionId || "";
+            const url = `${process.env.NEXT_PUBLIC_API_URL || "http://150.15.79.45:5000"}/api/monitoring/sessions/${code}/export`;
+            window.open(url, "_blank");
+          }}
+        >
+          <Download className="w-4 h-4" />
+          {t.detail.exportReport || "Export CSV"}
         </Button>
 
         <Button 
