@@ -626,7 +626,7 @@
       <p>แชทบอทลอยตัวที่อาจารย์สามารถกดปุ่ม 🎯 เลือกคอมโพเนนต์บนหน้าจอ (เช่น การ์ดนักเรียน, สถิติห้อง) เพื่อแนบ Context เข้าไปใน Prompt และคุยวิเคราะห์กับ AI ได้ทันที</p>
       <div class="feature-tags">
         <span class="tag violet">POST /api/chat</span>
-        <span class="tag cyan">Non-streaming</span>
+        <span class="tag cyan">SSE Streaming</span>
         <span class="tag amber">data-ai-context-*</span>
       </div>
     </div>
@@ -802,7 +802,7 @@
         <div class="lane-cell label-col">5. เรียก Ollama</div>
         <div class="lane-cell"></div>
         <div class="lane-cell"></div>
-        <div class="lane-cell"><div class="swim-node nextjs">POST localhost:11434/api/chat<br>model: qwen3:8b, stream:false</div></div>
+        <div class="lane-cell"><div class="swim-node nextjs">POST localhost:11434/api/chat<br>model: qwen3:8b, stream:true</div></div>
         <div class="lane-cell"></div>
 
         <!-- Row 6 -->
@@ -810,14 +810,14 @@
         <div class="lane-cell"></div>
         <div class="lane-cell"></div>
         <div class="lane-cell"></div>
-        <div class="lane-cell"><div class="swim-node ollama">อ่าน Context + คำถาม ตอบเป็นภาษาที่ระบุ</div></div>
+        <div class="lane-cell"><div class="swim-node ollama">ประมวลผลคำตอบ สตรีมผลลัพธ์ทีละคำ</div></div>
 
         <!-- Row 7 -->
         <div class="lane-cell label-col">7. แสดงผล</div>
-        <div class="lane-cell"><div class="swim-node user">อ่านคำตอบ AI ในหน้าต่างแชท</div></div>
-        <div class="lane-cell"><div class="swim-node frontend">แสดง Message Bubble {message, model}</div></div>
-        <div class="lane-cell"><div class="swim-node nextjs">ส่งคืน JSON {message, model}</div></div>
-        <div class="lane-cell"><div class="swim-node ollama">คืน {message:{content:"..."} }</div></div>
+        <div class="lane-cell"><div class="swim-node user">อ่านวิเคราะห์ที่ปรากฏทีละคำ</div></div>
+        <div class="lane-cell"><div class="swim-node frontend">รับ SSE data events ทีละ token → append ข้อความในแชทบล็อก</div></div>
+        <div class="lane-cell"><div class="swim-node nextjs">ส่งคืน SSE Stream (data: {token, model})</div></div>
+        <div class="lane-cell"><div class="swim-node ollama">คืนคำตอบทีละ token (stream)</div></div>
       </div>
     </div>
   </div>
@@ -983,18 +983,22 @@
         </div>
       </div>
       <div>
-        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.75rem">📥 Server ตอบกลับ Frontend</p>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.75rem">📥 Server สตรีมข้อมูลกลับ (SSE)</p>
         <div class="json-block">
-          <span class="badge-lang">JSON Response</span>
-{
-  <span class="j-key">"message"</span>: <span class="j-str">"นักเรียน Protae ดูเหมือนมีความสับสน...</span>
-<span class="j-str">  ในเรื่องการตั้งชื่อตัวแปร..."</span>,
-  <span class="j-key">"model"</span>: <span class="j-str">"qwen3:8b"</span>
-}
+          <span class="badge-lang">Server-Sent Events</span>
+<span class="j-cmt">// ส่งคืนทีละ Token</span>
+<span class="j-key">data:</span> { <span class="j-key">"token"</span>: <span class="j-str">"นัก"</span>, <span class="j-key">"model"</span>: <span class="j-str">"qwen3:8b"</span> }
+
+<span class="j-key">data:</span> { <span class="j-key">"token"</span>: <span class="j-str">"เรียน"</span>, <span class="j-key">"model"</span>: <span class="j-str">"qwen3:8b"</span> }
+
+<span class="j-key">data:</span> { <span class="j-key">"token"</span>: <span class="j-str">"..."</span> }
+
+<span class="j-cmt">// เมื่อสิ้นสุดการสตรีม</span>
+<span class="j-key">data:</span> { <span class="j-key">"done"</span>: <span class="j-bool">true</span> }
         </div>
         <div class="info-box" style="margin-top:0.75rem">
           <span>💡</span>
-          <div>Next.js Server จะประกอบ <strong>System Prompt</strong> บังคับภาษาไทย/EN/JP และแนบ Context JSON ก่อนส่งต่อให้ Ollama</div>
+          <div>Next.js Server จะประกอบ <strong>System Prompt</strong> บังคับภาษาไทย/EN/JP แนบ Context JSON และสตรีมผลลัพธ์จาก Ollama ให้ Frontend ทีละ chunk ทันที</div>
         </div>
       </div>
     </div>
@@ -1101,7 +1105,7 @@ Please provide:
   <div class="tab-panel" id="p4">
     <div class="two-col">
       <div>
-        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.75rem">🤖 Payload ที่ส่งให้ Ollama <code style="color:var(--cyan)">/api/chat</code> (Non-streaming)</p>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.75rem">🤖 Payload ที่ส่งให้ Ollama <code style="color:var(--cyan)">/api/chat</code> (SSE Streaming)</p>
         <div class="json-block">
           <span class="badge-lang">POST localhost:11434/api/chat</span>
 {
@@ -1122,7 +1126,7 @@ Please provide:
       <span class="j-key">"content"</span>: <span class="j-str">"นักเรียน Protae มีปัญหาตรงไหน?"</span>
     }
   ],
-  <span class="j-key">"stream"</span>: <span class="j-bool">false</span>,
+  <span class="j-key">"stream"</span>: <span class="j-bool">true</span>,
   <span class="j-key">"options"</span>: { <span class="j-key">"temperature"</span>: <span class="j-num">0.7</span> }
 }
         </div>
