@@ -142,7 +142,7 @@ export default function AIAssistant() {
     setSelectedContext(context);
     setIsSelectingContext(false);
   });
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to the bottom of the message list
@@ -187,50 +187,97 @@ export default function AIAssistant() {
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
 
-      try {
-        // Map existing messages to API format
-        const history = messages
-          .filter((m) => m.id !== "welcome" && m.id !== "welcome-cleared")
-          .map((m) => ({
-            role: m.role,
-            content: m.content || (m.id === "welcome" ? localT.welcome : localT.welcomeCleared),
-          }));
+    try {
+      // Map existing messages to API format
+      const history = messages
+        .filter((m) => m.id !== "welcome" && m.id !== "welcome-cleared")
+        .map((m) => ({
+          role: m.role,
+          content: m.content || (m.id === "welcome" ? localT.welcome : localT.welcomeCleared),
+        }));
 
-        const response = await fetch("/api/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            prompt: userMessageText,
-            messages: history,
-            lang,
-            context: selectedContext,
-          }),
-        });
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: userMessageText,
+          messages: history,
+          lang,
+          context: selectedContext,
+        }),
+      });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || (lang === "th" ? "เกิดข้อผิดพลาดในการเชื่อมต่อกับ Ollama" : lang === "ja" ? "Ollamaへの接続中にエラーが発生しました" : "An error occurred connecting to Ollama"));
-        }
-
-        if (data.model) {
-          setActiveModel(data.model);
-        }
-
-        const assistantMsg: Message = {
-          id: (Date.now() + 1).toString(),
-          role: "assistant",
-          content: data.message || "No response",
-        };
-
-        setMessages((prev) => [...prev, assistantMsg]);
-      } catch (err: any) {
-        console.error(err);
-        setErrorMsg(err.message || localT.errConnect);
-      } finally {
-        setIsLoading(false);
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (_) { /* ignore */ }
+        throw new Error(
+          errorData?.error ||
+          (lang === "th"
+            ? "เกิดข้อผิดพลาดในการเชื่อมต่อกับ Ollama"
+            : lang === "ja"
+              ? "Ollamaへの接続中にエラーが発生しました"
+              : "An error occurred connecting to Ollama")
+        );
       }
-    };
+
+      if (!response.body) {
+        throw new Error("No response body received from server");
+      }
+
+      // Add assistant message placeholder
+      const assistantMsgId = (Date.now() + 1).toString();
+      const assistantMsg: Message = {
+        id: assistantMsgId,
+        role: "assistant",
+        content: "",
+      };
+      setMessages((prev) => [...prev, assistantMsg]);
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const parsed = JSON.parse(line.slice(6));
+            if (parsed.model) {
+              setActiveModel(parsed.model);
+            }
+            if (parsed.token) {
+              setMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id === assistantMsgId
+                    ? { ...msg, content: msg.content + parsed.token }
+                    : msg
+                )
+              );
+            }
+            if (parsed.error) {
+              throw new Error(parsed.error);
+            }
+          } catch (e) {
+            // Ignore parsing errors for partial lines
+          }
+        }
+      }
+    } catch (err: any) {
+      console.error(err);
+      setErrorMsg(err.message || localT.errConnect);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const suggestions = [
     "อยากสร้าง Quiz เกี่ยวกับ พื้นฐาน Web Application",
@@ -248,10 +295,9 @@ export default function AIAssistant() {
           className={`
             relative p-4 rounded-full shadow-2xl flex items-center justify-center
             transition-all duration-300 transform hover:scale-105 active:scale-95
-            ${
-              isOpen
-                ? "bg-rose-500 hover:bg-rose-600 text-white"
-                : "bg-gradient-to-tr from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white"
+            ${isOpen
+              ? "bg-rose-500 hover:bg-rose-600 text-white"
+              : "bg-gradient-to-tr from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white"
             }
           `}
           aria-label="Toggle AI Assistant"
@@ -260,7 +306,7 @@ export default function AIAssistant() {
           {!isOpen && (
             <span className="absolute inset-0 rounded-full bg-violet-600/30 animate-ping pointer-events-none" />
           )}
-          
+
           {isOpen ? (
             <X className="w-6 h-6" />
           ) : (
@@ -279,7 +325,7 @@ export default function AIAssistant() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={() => setIsMaximized(false)}
-            className="fixed inset-0 bg-zinc-950/40 dark:bg-black/60 backdrop-blur-[2px] z-40 cursor-pointer"
+            className="fixed inset-0 bg-zinc-950/40 dark:bg-black/60  z-40 cursor-pointer"
           />
         )}
 
@@ -297,8 +343,8 @@ export default function AIAssistant() {
               {lang === "th"
                 ? "โหมดตรวจสอบ: คลิกเลือก Component บนหน้าเว็บ..."
                 : lang === "ja"
-                ? "検証モード：画面上のコンポーネントをクリックしてください..."
-                : "Inspection Mode: Click on a component on the page..."}
+                  ? "検証モード：画面上のコンポーネントをクリックしてください..."
+                  : "Inspection Mode: Click on a component on the page..."}
             </span>
             <button
               type="button"
@@ -323,10 +369,9 @@ export default function AIAssistant() {
               bg-white/80 dark:bg-zinc-950/80 backdrop-blur-2xl
               shadow-[0_25px_60px_rgba(109,40,217,0.06)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)]
               flex flex-col overflow-hidden
-              ${
-                isMaximized
-                  ? "inset-4 sm:inset-6 md:inset-8 w-auto h-auto max-w-none max-h-none"
-                  : "right-6 bottom-24 w-96 max-w-[calc(100vw-3rem)] h-[580px] max-h-[calc(100vh-8rem)]"
+              ${isMaximized
+                ? "inset-4 sm:inset-6 md:inset-8 w-auto h-auto max-w-none max-h-none"
+                : "right-6 bottom-24 w-96 max-w-[calc(100vw-3rem)] h-[580px] max-h-[calc(100vh-8rem)]"
               }
             `}
           >
@@ -396,10 +441,9 @@ export default function AIAssistant() {
                     <div
                       className={`
                         max-w-[85%] rounded-2xl p-3.5 text-sm leading-relaxed shadow-sm
-                        ${
-                          msg.role === "user"
-                            ? "bg-gradient-to-tr from-violet-600 to-indigo-600 text-white rounded-tr-none shadow-md shadow-violet-500/10"
-                            : "bg-white/60 dark:bg-zinc-900/35 text-zinc-800 dark:text-zinc-200 border border-zinc-200/50 dark:border-zinc-800/40 rounded-tl-none shadow-[0_2px_12px_rgba(0,0,0,0.01)]"
+                        ${msg.role === "user"
+                          ? "bg-gradient-to-tr from-violet-600 to-indigo-600 text-white rounded-tr-none shadow-md shadow-violet-500/10"
+                          : "bg-white/60 dark:bg-zinc-900/35 text-zinc-800 dark:text-zinc-200 border border-zinc-200/50 dark:border-zinc-800/40 rounded-tl-none shadow-[0_2px_12px_rgba(0,0,0,0.01)]"
                         }
                       `}
                     >
@@ -416,7 +460,7 @@ export default function AIAssistant() {
                               const { children, className, node, ...rest } = props;
                               const match = /language-(\w+)/.exec(className || "");
                               const isInline = !match;
-                              
+
                               if (isInline) {
                                 return (
                                   <code className="bg-violet-50 dark:bg-zinc-850 px-1.5 py-0.5 rounded text-violet-750 dark:text-violet-400 font-mono text-[12px] font-semibold border border-violet-100/50 dark:border-zinc-800/40" {...rest}>
@@ -446,7 +490,7 @@ export default function AIAssistant() {
                 ))}
 
                 {/* Loading State / Skeleton */}
-                {isLoading && (
+                {isLoading && (messages.length === 0 || messages[messages.length - 1]?.role !== "assistant" || !messages[messages.length - 1]?.content) && (
                   <div className="flex justify-start items-start gap-3">
                     <div className="w-8 h-8 rounded-xl bg-violet-600/10 flex items-center justify-center text-violet-600 dark:text-violet-400 shrink-0">
                       <Bot className="w-4 h-4 animate-bounce" />
@@ -475,7 +519,7 @@ export default function AIAssistant() {
                     </div>
                   </Card>
                 )}
-                
+
                 <div ref={messagesEndRef} />
               </ScrollShadow>
 

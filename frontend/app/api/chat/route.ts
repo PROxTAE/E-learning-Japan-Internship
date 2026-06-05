@@ -88,7 +88,7 @@ IMPORTANT: You MUST respond in ${userLanguage} language ONLY. This is critical a
       body: JSON.stringify({
         model: selectedModel,
         messages: apiMessages,
-        stream: false,
+        stream: true,
         options: {
           temperature: 0.7,
         },
@@ -103,12 +103,61 @@ IMPORTANT: You MUST respond in ${userLanguage} language ONLY. This is critical a
       );
     }
 
-    const data = await response.json();
-    const assistantMessage = data.message?.content || "";
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
 
-    return NextResponse.json({
-      message: assistantMessage,
-      model: selectedModel,
+    const stream = new ReadableStream({
+      async start(controller) {
+        if (!response.body) {
+          controller.close();
+          return;
+        }
+
+        const reader = response.body.getReader();
+        let buffer = "";
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() ?? "";
+
+            for (const line of lines) {
+              if (!line.trim()) continue;
+              try {
+                const parsed = JSON.parse(line);
+                const content = parsed.message?.content || "";
+                const model = parsed.model || selectedModel;
+                const thinking = parsed.message?.thinking || "";
+
+                controller.enqueue(
+                  encoder.encode(
+                    `data: ${JSON.stringify({ token: content, thinking, model })}\n\n`
+                  )
+                );
+              } catch (e) {
+                // Ignore parsing errors for partial lines
+              }
+            }
+          }
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
+        } catch (err: any) {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: err.message })}\n\n`));
+        } finally {
+          controller.close();
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache, no-transform",
+        "Connection": "keep-alive",
+      },
     });
   } catch (error: any) {
     console.error("Error in Next.js /api/chat route handler:", error);
