@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Integration – E-Learning System</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #070b14;
+    --surface: #0e1420;
+    --surface2: #141d2e;
+    --border: rgba(99,130,255,0.15);
+    --violet: #818cf8;
+    --violet-dark: #4f46e5;
+    --cyan: #22d3ee;
+    --green: #34d399;
+    --amber: #fbbf24;
+    --rose: #f87171;
+    --pink: #ec4899;
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --glow-v: rgba(129,140,248,0.35);
+    --glow-c: rgba(34,211,238,0.3);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ─── Scrollbar ─── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--violet-dark); border-radius: 3px; }
+
+  /* ─── Header ─── */
+  header {
+    background: linear-gradient(135deg, #0a0f1e 0%, #0d1525 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 3.5rem 2rem 3rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% -20%, rgba(99,102,241,0.2), transparent);
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='20' cy='20' r='0.4' fill='rgba(129,140,248,0.3)'/%3E%3Ccircle cx='60' cy='10' r='0.3' fill='rgba(34,211,238,0.3)'/%3E%3Ccircle cx='80' cy='60' r='0.5' fill='rgba(129,140,248,0.2)'/%3E%3Ccircle cx='40' cy='80' r='0.3' fill='rgba(34,211,238,0.2)'/%3E%3C/svg%3E") repeat;
+    opacity: 0.5;
+    animation: stars 60s linear infinite;
+  }
+  @keyframes stars { to { transform: translate(50%, 50%); } }
+
+  header .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(99,102,241,0.15);
+    border: 1px solid rgba(99,102,241,0.4);
+    border-radius: 100px;
+    padding: 0.35rem 1.1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--violet);
+    margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+  header .badge .dot {
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(0.8)} }
+
+  header h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, #c7d2fe 0%, var(--violet) 40%, var(--cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    position: relative; z-index: 1;
+    margin-bottom: 0.75rem;
+  }
+  header p {
+    color: var(--text-muted);
+    font-size: 1rem;
+    max-width: 600px;
+    margin: 0 auto;
+    position: relative; z-index: 1;
+  }
+
+  /* ─── Nav ─── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(7,11,20,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+  }
+  nav a {
+    padding: 0.9rem 1.25rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  nav a:hover { color: var(--violet); border-bottom-color: var(--violet); }
+
+  /* ─── Layout ─── */
+  .container { max-width: 1200px; margin: 0 auto; padding: 3rem 1.5rem; }
+
+  /* ─── Section Headers ─── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .section-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+  }
+  .section-header h2 {
+    font-size: 1.5rem; font-weight: 800;
+    color: #f1f5f9;
+  }
+  .section-header p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+  hr.divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 4rem 0;
+  }
+
+  /* ─── Cards ─── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .card:hover { border-color: rgba(129,140,248,0.4); box-shadow: 0 0 20px rgba(129,140,248,0.08); }
+
+  /* ─── Feature Overview Cards ─── */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.75rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    border-radius: 16px 16px 0 0;
+  }
+  .feature-card.violet::before { background: linear-gradient(90deg, var(--violet-dark), var(--violet)); }
+  .feature-card.cyan::before   { background: linear-gradient(90deg, #0e7490, var(--cyan)); }
+  .feature-card.green::before  { background: linear-gradient(90deg, #059669, var(--green)); }
+  .feature-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  }
+  .feature-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+  }
+  .feature-icon.violet { background: rgba(129,140,248,0.15); }
+  .feature-icon.cyan   { background: rgba(34,211,238,0.12); }
+  .feature-icon.green  { background: rgba(52,211,153,0.12); }
+  .feature-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .feature-card p  { font-size: 0.84rem; color: var(--text-muted); line-height: 1.65; }
+  .feature-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1rem; }
+  .tag {
+    font-size: 0.7rem; font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 100px;
+    border: 1px solid;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .tag.violet { color: var(--violet); border-color: rgba(129,140,248,0.4); background: rgba(129,140,248,0.08); }
+  .tag.cyan   { color: var(--cyan);   border-color: rgba(34,211,238,0.4);  background: rgba(34,211,238,0.08); }
+  .tag.green  { color: var(--green);  border-color: rgba(52,211,153,0.4);  background: rgba(52,211,153,0.08); }
+  .tag.amber  { color: var(--amber);  border-color: rgba(251,191,36,0.4);  background: rgba(251,191,36,0.08); }
+
+  /* ─── Architecture Diagram ─── */
+  .arch-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .arch-diagram h3 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  .arch-layers {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+    align-items: center;
+    gap: 0;
+  }
+  .arch-layer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    text-align: center;
+  }
+  .arch-box {
+    padding: 1rem 0.75rem;
+    border-radius: 12px;
+    width: 100%;
+    border: 1px solid;
+    font-size: 0.78rem;
+    font-weight: 600;
+    min-height: 72px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 0.3rem;
+    transition: transform 0.2s;
+  }
+  .arch-box:hover { transform: scale(1.02); }
+  .arch-box .box-icon { font-size: 1.4rem; }
+  .arch-box.frontend { background: rgba(129,140,248,0.1); border-color: rgba(129,140,248,0.4); color: var(--violet); }
+  .arch-box.api      { background: rgba(34,211,238,0.08); border-color: rgba(34,211,238,0.3); color: var(--cyan); }
+  .arch-box.backend  { background: rgba(251,191,36,0.08); border-color: rgba(251,191,36,0.3); color: var(--amber); }
+  .arch-box.ai       { background: rgba(52,211,153,0.1); border-color: rgba(52,211,153,0.35); color: var(--green); }
+  .arch-box .box-label { font-size: 0.68rem; color: var(--text-muted); font-weight: 400; margin-top: 0.15rem; }
+  .arch-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0 0.5rem;
+  }
+  .arch-arrow .line {
+    width: 40px; height: 2px;
+    background: linear-gradient(90deg, var(--border), rgba(129,140,248,0.5));
+    position: relative;
+    animation: flowAnim 2.5s infinite linear;
+    background-size: 200%;
+  }
+  @keyframes flowAnim {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  .arch-arrow .arrowhead {
+    font-size: 0.8rem;
+    color: var(--violet);
+  }
+  .arch-arrow .proto {
+    font-size: 0.6rem; font-family: 'JetBrains Mono', monospace;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .arch-layer-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    padding: 0.25rem 0.6rem;
+    border-radius: 100px;
+    background: rgba(255,255,255,0.04);
+  }
+
+  /* ─── Activity Diagram (Swimlane) ─── */
+  .swimlane-container {
+    overflow-x: auto;
+    padding-bottom: 1rem;
+  }
+  .swimlane {
+    min-width: 900px;
+    display: grid;
+    grid-template-columns: 130px repeat(4, 1fr);
+    gap: 0;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .lane-header {
+    padding: 0.85rem 0.75rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+  }
+  .lane-header:last-child { border-right: none; }
+  .lane-header.user     { background: rgba(129,140,248,0.1); color: var(--violet); }
+  .lane-header.frontend { background: rgba(34,211,238,0.08); color: var(--cyan); }
+  .lane-header.nextjs   { background: rgba(251,191,36,0.08); color: var(--amber); }
+  .lane-header.backend  { background: rgba(248,113,113,0.08); color: var(--rose); }
+  .lane-header.ollama   { background: rgba(52,211,153,0.08); color: var(--green); }
+  .lane-row {
+    display: contents;
+  }
+  .lane-cell {
+    padding: 0.5rem 0.4rem;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid rgba(99,130,255,0.07);
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .lane-cell:last-child { border-right: none; }
+  .lane-cell.label-col {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-align: center;
+    background: rgba(255,255,255,0.02);
+    padding: 0.5rem;
+  }
+  .swim-node {
+    padding: 0.45rem 0.6rem;
+    border-radius: 8px;
+    font-size: 0.71rem;
+    font-weight: 600;
+    text-align: center;
+    border: 1px solid;
+    line-height: 1.35;
+    width: 100%;
+    max-width: 150px;
+    cursor: default;
+    transition: transform 0.15s;
+  }
+  .swim-node:hover { transform: scale(1.03); }
+  .swim-node.user     { background: rgba(129,140,248,0.12); border-color: rgba(129,140,248,0.4); color: var(--violet); }
+  .swim-node.frontend { background: rgba(34,211,238,0.1);   border-color: rgba(34,211,238,0.35); color: var(--cyan); }
+  .swim-node.nextjs   { background: rgba(251,191,36,0.1);   border-color: rgba(251,191,36,0.35); color: var(--amber); }
+  .swim-node.backend  { background: rgba(248,113,113,0.1);  border-color: rgba(248,113,113,0.35); color: var(--rose); }
+  .swim-node.ollama   { background: rgba(52,211,153,0.12);  border-color: rgba(52,211,153,0.4);  color: var(--green); }
+  .swim-node.db       { background: rgba(251,191,36,0.1);   border-color: rgba(251,191,36,0.35); color: var(--amber); }
+  .swim-arrow {
+    font-size: 1rem;
+    color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+  .swim-arrow .arrow-label {
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    opacity: 0.7;
+  }
+  .multi-node {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    width: 100%;
+    align-items: center;
+  }
+
+  /* ─── JSON Block ─── */
+  .json-block {
+    background: #060a14;
+    border: 1px solid rgba(34,211,238,0.2);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.7;
+    overflow-x: auto;
+    position: relative;
+  }
+  .json-block .badge-lang {
+    position: absolute;
+    top: 0.6rem; right: 0.9rem;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+  }
+  .j-key   { color: #93c5fd; }
+  .j-str   { color: #86efac; }
+  .j-num   { color: #fbbf24; }
+  .j-bool  { color: #f87171; }
+  .j-null  { color: var(--text-muted); }
+  .j-cmt   { color: #475569; font-style: italic; }
+
+  /* ─── Two-column layout ─── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+  @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* ─── DB Schema ─── */
+  .schema-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .schema-header {
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+  .schema-header .model-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    padding: 0.15rem 0.55rem;
+    border-radius: 6px;
+  }
+  .schema-field {
+    display: grid;
+    grid-template-columns: 145px 90px 1fr;
+    gap: 0.5rem;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.77rem;
+    border-bottom: 1px solid rgba(99,130,255,0.05);
+    align-items: center;
+    transition: background 0.15s;
+  }
+  .schema-field:hover { background: rgba(255,255,255,0.02); }
+  .schema-field:last-child { border-bottom: none; }
+  .field-name { color: #93c5fd; font-family: 'JetBrains Mono', monospace; }
+  .field-type { color: var(--amber); font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; }
+  .field-desc { color: var(--text-muted); }
+  .field-ai   { color: var(--green); font-weight: 600; }
+
+  /* ─── Prompt Pipeline ─── */
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+  .pipeline-step {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .pipeline-step:hover { border-color: rgba(129,140,248,0.4); }
+  .pipeline-step::after {
+    content: '↓';
+    position: absolute;
+    bottom: -1.05rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    z-index: 1;
+  }
+  .pipeline-step:last-child::after { display: none; }
+  .step-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 800;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+  .step-num.violet { background: rgba(129,140,248,0.2); color: var(--violet); border: 1px solid rgba(129,140,248,0.4); }
+  .step-num.cyan   { background: rgba(34,211,238,0.15);  color: var(--cyan);   border: 1px solid rgba(34,211,238,0.4); }
+  .step-num.amber  { background: rgba(251,191,36,0.15);  color: var(--amber);  border: 1px solid rgba(251,191,36,0.4); }
+  .step-num.green  { background: rgba(52,211,153,0.15);  color: var(--green);  border: 1px solid rgba(52,211,153,0.4); }
+  .step-content { flex: 1; }
+  .step-content h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.2rem; }
+  .step-content p  { font-size: 0.78rem; color: var(--text-muted); }
+
+  /* ─── Mode Tabs ─── */
+  .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .tab-btn {
+    padding: 0.5rem 1.2rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 0.8rem; font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+  }
+  .tab-btn.active, .tab-btn:hover {
+    background: rgba(129,140,248,0.15);
+    border-color: rgba(129,140,248,0.5);
+    color: var(--violet);
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ─── Info Box ─── */
+  .info-box {
+    background: rgba(52,211,153,0.06);
+    border: 1px solid rgba(52,211,153,0.25);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    font-size: 0.82rem;
+    color: #a7f3d0;
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    margin-top: 1rem;
+  }
+  .info-box.amber {
+    background: rgba(251,191,36,0.06);
+    border-color: rgba(251,191,36,0.25);
+    color: #fde68a;
+  }
+
+  /* ─── Model Config ─── */
+  .config-row {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid rgba(99,130,255,0.07);
+    font-size: 0.82rem;
+  }
+  .config-row:last-child { border-bottom: none; }
+  .config-key { color: var(--text-muted); font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; }
+  .config-val { font-weight: 600; }
+  .config-val.green  { color: var(--green); }
+  .config-val.violet { color: var(--violet); }
+  .config-val.cyan   { color: var(--cyan); }
+  .config-val.amber  { color: var(--amber); }
+
+  /* ─── Footer ─── */
+  footer {
+    text-align: center;
+    padding: 2.5rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.78rem;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="badge"><span class="dot"></span> AI Integration Documentation</div>
+  <h1>🤖 ระบบ AI ของ E-Learning Platform</h1>
+  <p>รายละเอียดสถาปัตยกรรมและกระบวนการส่งข้อมูลระหว่าง Frontend · Next.js Server · Express Backend · Local Ollama LLM</p>
+</header>
+
+<!-- NAV -->
+<nav>
+  <a href="#overview">ภาพรวม</a>
+  <a href="#architecture">Architecture</a>
+  <a href="#flows">Activity Diagrams</a>
+  <a href="#payloads">Data Payloads</a>
+  <a href="#db">Database Schema</a>
+  <a href="#config">Configuration</a>
+</nav>
+
+<!-- ═══════════════════ SECTION 1: OVERVIEW ═══════════════════ -->
+<div class="container" id="overview">
+  <div class="section-header">
+    <div class="section-icon" style="background:rgba(129,140,248,0.12)">🧩</div>
+    <div>
+      <h2>ฟีเจอร์ AI ในระบบ</h2>
+      <p>AI ถูกนำมาใช้ใน 3 ส่วนหลักผ่านโมเดล Local Ollama (qwen3:8b)</p>
+    </div>
+  </div>
+
+  <div class="features-grid">
+    <!-- Feature 1 -->
+    <div class="feature-card violet">
+      <div class="feature-icon violet">💬</div>
+      <h3>AI Chatbot + UI Inspection Mode</h3>
+      <p>แชทบอทลอยตัวที่อาจารย์สามารถกดปุ่ม 🎯 เลือกคอมโพเนนต์บนหน้าจอ (เช่น การ์ดนักเรียน, สถิติห้อง) เพื่อแนบ Context เข้าไปใน Prompt และคุยวิเคราะห์กับ AI ได้ทันที</p>
+      <div class="feature-tags">
+        <span class="tag violet">POST /api/chat</span>
+        <span class="tag cyan">Non-streaming</span>
+        <span class="tag amber">data-ai-context-*</span>
+      </div>
+    </div>
+
+    <!-- Feature 2 -->
+    <div class="feature-card cyan">
+      <div class="feature-icon cyan">📊</div>
+      <h3>Personalized AI Quiz Recommendation</h3>
+      <p>หลังนักเรียนสอบเสร็จ ระบบจะดึง Interaction Log รายวินาทีมาสร้าง Prompt เพื่อให้ Ollama วิเคราะห์จุดอ่อน/จุดแข็งและสร้างคำแนะนำส่วนตัวของนักเรียนแต่ละคน</p>
+      <div class="feature-tags">
+        <span class="tag cyan">POST /api/analyze-quiz-log</span>
+        <span class="tag green">QuizInteractionLog</span>
+      </div>
+    </div>
+
+    <!-- Feature 3 -->
+    <div class="feature-card green">
+      <div class="feature-icon green">🏫</div>
+      <h3>Session History AI Analytics</h3>
+      <p>อาจารย์ดูประวัติผลการสอบย้อนหลัง แล้วสั่งให้ AI สตรีมวิเคราะห์ภาพรวมชั้นเรียน วิเคราะห์รายคน หรือเปรียบเทียบแนวโน้มข้ามหลายเซสชัน ผ่าน SSE (Server-Sent Events)</p>
+      <div class="feature-tags">
+        <span class="tag green">SSE Streaming</span>
+        <span class="tag violet">3 Endpoints</span>
+        <span class="tag amber">QuizSessionResult</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider" style="margin:0 1.5rem">
+
+<!-- ═══════════════════ SECTION 2: ARCHITECTURE ═══════════════════ -->
+<div class="container" id="architecture">
+  <div class="section-header">
+    <div class="section-icon" style="background:rgba(34,211,238,0.1)">🏗️</div>
+    <div>
+      <h2>สถาปัตยกรรมการเชื่อมต่อ (Architecture Overview)</h2>
+      <p>ข้อมูลไหลผ่านชั้นต่าง ๆ ก่อนถึง Local Ollama LLM</p>
+    </div>
+  </div>
+
+  <div class="arch-diagram">
+    <h3>🔄 AI Data Flow Architecture</h3>
+    <div class="arch-layers">
+      <!-- Frontend -->
+      <div class="arch-layer">
+        <div class="arch-box frontend">
+          <span class="box-icon">🖥️</span>
+          <div>Frontend</div>
+          <div class="box-label">Next.js 15 / React</div>
+        </div>
+        <span class="arch-layer-label">Port 3000</span>
+      </div>
+
+      <!-- Arrow 1 -->
+      <div class="arch-arrow">
+        <div class="line"></div>
+        <span class="arrowhead">→</span>
+        <span class="proto">POST JSON</span>
+      </div>
+
+      <!-- Next.js API -->
+      <div class="arch-layer">
+        <div class="arch-box api">
+          <span class="box-icon">⚡</span>
+          <div>Next.js API</div>
+          <div class="box-label">/api/chat<br>/api/analyze-quiz-log</div>
+        </div>
+        <span class="arch-layer-label">Server-side</span>
+      </div>
+
+      <!-- Arrow 2 -->
+      <div class="arch-arrow">
+        <div class="line"></div>
+        <span class="arrowhead">→</span>
+        <span class="proto">REST / SSE</span>
+      </div>
+
+      <!-- Express Backend -->
+      <div class="arch-layer">
+        <div class="arch-box backend">
+          <span class="box-icon">🖧</span>
+          <div>Express Backend</div>
+          <div class="box-label">MongoDB<br>/api/session-history</div>
+        </div>
+        <span class="arch-layer-label">Port 5000</span>
+      </div>
+
+      <!-- Arrow 3 -->
+      <div class="arch-arrow">
+        <div class="line"></div>
+        <span class="arrowhead">→</span>
+        <span class="proto">HTTP POST</span>
+      </div>
+
+      <!-- Ollama -->
+      <div class="arch-layer">
+        <div class="arch-box ai">
+          <span class="box-icon">🤖</span>
+          <div>Local Ollama</div>
+          <div class="box-label">qwen3:8b<br>localhost:11434</div>
+        </div>
+        <span class="arch-layer-label">LLM Engine</span>
+      </div>
+    </div>
+
+    <div class="info-box" style="margin-top:2rem">
+      <span>💡</span>
+      <div><strong>หมายเหตุสำคัญ:</strong> ฟีเจอร์ AI Chatbot และ Personalized Recommendation ใช้เส้นทาง <code>Frontend → Next.js API → Ollama</code> โดยตรง ส่วนฟีเจอร์ Session History Analytics ใช้เส้นทาง <code>Frontend → Express Backend → MongoDB → Ollama (SSE Stream)</code></div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider" style="margin:0 1.5rem">
+
+<!-- ═══════════════════ SECTION 3: ACTIVITY DIAGRAMS ═══════════════════ -->
+<div class="container" id="flows">
+  <div class="section-header">
+    <div class="section-icon" style="background:rgba(52,211,153,0.1)">📋</div>
+    <div>
+      <h2>Activity Diagrams (Swimlane)</h2>
+      <p>แผนภาพลำดับกิจกรรมแบบ Swimlane แสดงหน้าที่และการส่งข้อมูลในแต่ละฟีเจอร์</p>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('flow1')">💬 AI Chatbot Flow</button>
+    <button class="tab-btn" onclick="switchTab('flow2')">📊 Personalized Recommendation</button>
+    <button class="tab-btn" onclick="switchTab('flow3')">🏫 Session AI Analytics</button>
+  </div>
+
+  <!-- ── Flow 1: AI Chatbot ── -->
+  <div class="tab-panel active" id="flow1">
+    <div class="swimlane-container">
+      <div class="swimlane">
+        <!-- Headers -->
+        <div class="lane-header" style="background:rgba(30,30,50,0.5);color:var(--text-muted)">Step</div>
+        <div class="lane-header user">👨‍🏫 อาจารย์</div>
+        <div class="lane-header frontend">🖥️ Frontend (React)</div>
+        <div class="lane-header nextjs">⚡ Next.js /api/chat</div>
+        <div class="lane-header ollama">🤖 Ollama (qwen3:8b)</div>
+
+        <!-- Row 1 -->
+        <div class="lane-cell label-col">1. เปิดแชท</div>
+        <div class="lane-cell"><div class="swim-node user">กดปุ่ม Chat Widget มุมขวาล่าง</div></div>
+        <div class="lane-cell"><div class="swim-node frontend">แสดงหน้าต่าง Chat Panel</div></div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"></div>
+
+        <!-- Row 2 -->
+        <div class="lane-cell label-col">2. เลือก Context</div>
+        <div class="lane-cell"><div class="swim-node user">กดปุ่ม 🎯 Target, คลิกการ์ดนักเรียน</div></div>
+        <div class="lane-cell"><div class="swim-node frontend">อ่าน data-ai-context-data จาก DOM Element, แสดง Context Badge</div></div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"></div>
+
+        <!-- Row 3 -->
+        <div class="lane-cell label-col">3. ส่งคำถาม</div>
+        <div class="lane-cell"><div class="swim-node user">พิมพ์คำถาม กดส่ง</div></div>
+        <div class="lane-cell"><div class="swim-node frontend">POST /api/chat<br>{messages, prompt, context, lang}</div></div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"></div>
+
+        <!-- Row 4 -->
+        <div class="lane-cell label-col">4. ประกอบ Prompt</div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"><div class="swim-node nextjs">สร้าง System Prompt ตามภาษา + แนบ Context JSON เป็น role:system</div></div>
+        <div class="lane-cell"></div>
+
+        <!-- Row 5 -->
+        <div class="lane-cell label-col">5. เรียก Ollama</div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"><div class="swim-node nextjs">POST localhost:11434/api/chat<br>model: qwen3:8b, stream:false</div></div>
+        <div class="lane-cell"></div>
+
+        <!-- Row 6 -->
+        <div class="lane-cell label-col">6. LLM ประมวลผล</div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"><div class="swim-node ollama">อ่าน Context + คำถาม ตอบเป็นภาษาที่ระบุ</div></div>
+
+        <!-- Row 7 -->
+        <div class="lane-cell label-col">7. แสดงผล</div>
+        <div class="lane-cell"><div class="swim-node user">อ่านคำตอบ AI ในหน้าต่างแชท</div></div>
+        <div class="lane-cell"><div class="swim-node frontend">แสดง Message Bubble {message, model}</div></div>
+        <div class="lane-cell"><div class="swim-node nextjs">ส่งคืน JSON {message, model}</div></div>
+        <div class="lane-cell"><div class="swim-node ollama">คืน {message:{content:"..."} }</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Flow 2: Personalized Recommendation ── -->
+  <div class="tab-panel" id="flow2">
+    <div class="swimlane-container">
+      <div class="swimlane" style="grid-template-columns: 130px repeat(4, 1fr);">
+        <div class="lane-header" style="background:rgba(30,30,50,0.5);color:var(--text-muted)">Step</div>
+        <div class="lane-header user">🎓 นักเรียน</div>
+        <div class="lane-header frontend">🖥️ Frontend (ResultScreen)</div>
+        <div class="lane-header nextjs">⚡ Next.js /api/analyze-quiz-log</div>
+        <div class="lane-header ollama">🤖 Ollama (qwen3:8b)</div>
+
+        <div class="lane-cell label-col">1. จบข้อสอบ</div>
+        <div class="lane-cell"><div class="swim-node user">กดส่งคำตอบข้อสุดท้าย</div></div>
+        <div class="lane-cell"><div class="swim-node frontend">แสดงหน้าสรุปผลสอบ + บันทึก Interaction Log ผ่าน /api/quiz-logs</div></div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"></div>
+
+        <div class="lane-cell label-col">2. กดวิเคราะห์</div>
+        <div class="lane-cell"><div class="swim-node user">กดปุ่ม "วิเคราะห์ด้วย AI"</div></div>
+        <div class="lane-cell"><div class="swim-node frontend">POST /api/analyze-quiz-log<br>{logId: "...", lang: "th"}</div></div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"></div>
+
+        <div class="lane-cell label-col">3. ดึง Log</div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"><div class="swim-node nextjs">GET :5000/api/quiz-logs/:logId → ดึงเอกสาร Interaction Log จาก MongoDB</div></div>
+        <div class="lane-cell"></div>
+
+        <div class="lane-cell label-col">4. สร้าง Prompt</div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"><div class="swim-node nextjs">buildAnalysisPrompt(): แปลง answer_logs → ข้อความ Q1: ✅/❌ time: Xs confusion: high</div></div>
+        <div class="lane-cell"></div>
+
+        <div class="lane-cell label-col">5. เรียก Ollama</div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"><div class="swim-node nextjs">POST /api/chat (detectModel → qwen3:8b, temp:0.6)</div></div>
+        <div class="lane-cell"></div>
+
+        <div class="lane-cell label-col">6. วิเคราะห์</div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"><div class="swim-node ollama">สร้างรายงาน 5 หัวข้อ: Overall, Strengths, Weak Areas, Recommendations, Encouragement</div></div>
+
+        <div class="lane-cell label-col">7. แสดงผล</div>
+        <div class="lane-cell"><div class="swim-node user">อ่านรายงาน AI Markdown บนหน้า Result</div></div>
+        <div class="lane-cell"><div class="swim-node frontend">Render Markdown Panel {analysis, model}</div></div>
+        <div class="lane-cell"><div class="swim-node nextjs">ส่งคืน {success:true, data:{analysis, model}}</div></div>
+        <div class="lane-cell"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Flow 3: Session AI Analytics ── -->
+  <div class="tab-panel" id="flow3">
+    <div class="swimlane-container">
+      <div class="swimlane" style="grid-template-columns: 130px 120px repeat(3, 1fr) 120px;">
+        <div class="lane-header" style="background:rgba(30,30,50,0.5);color:var(--text-muted)">Step</div>
+        <div class="lane-header user">👨‍🏫 อาจารย์</div>
+        <div class="lane-header frontend">🖥️ Frontend</div>
+        <div class="lane-header backend" style="background:rgba(248,113,113,0.08);color:var(--rose)">🖧 Express Backend</div>
+        <div class="lane-header nextjs" style="background:rgba(251,191,36,0.08);color:var(--amber)">🗄️ MongoDB</div>
+        <div class="lane-header ollama">🤖 Ollama (SSE)</div>
+
+        <div class="lane-cell label-col">1. เลือก Session</div>
+        <div class="lane-cell"><div class="swim-node user">คลิก Session ย้อนหลัง กดแท็บ AI Insights</div></div>
+        <div class="lane-cell"><div class="swim-node frontend">POST :5000/api/session-history/:id/ai-summary {lang}</div></div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"></div>
+
+        <div class="lane-cell label-col">2. ดึงข้อมูล</div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"><div class="swim-node backend">รับ request ค้นหา QuizSessionResult โดย _id</div></div>
+        <div class="lane-cell"><div class="swim-node db">QuizSessionResult.findById() → students, answers, questionStats</div></div>
+        <div class="lane-cell"></div>
+
+        <div class="lane-cell label-col">3. สร้าง Prompt</div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"><div class="swim-node backend">ประกอบ Prompt จากสถิติรายข้อ + คะแนนเฉลี่ย + รายชื่อเด็ก</div></div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"></div>
+
+        <div class="lane-cell label-col">4. เปิด SSE</div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"><div class="swim-node backend">setHeader SSE, POST Ollama /api/generate<br>(model:qwen3:8b, stream:true)</div></div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"></div>
+
+        <div class="lane-cell label-col">5. สตรีม Token</div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"><div class="swim-node frontend">รับ SSE data events ทีละ token → append ข้อความใน UI</div></div>
+        <div class="lane-cell"><div class="swim-node backend">รับทีละ chunk → ส่ง data:{token:"..."}\n\n</div></div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"><div class="swim-node ollama">ประมวลผลและส่ง response ทีละ token (stream)</div></div>
+
+        <div class="lane-cell label-col">6. จบการสตรีม</div>
+        <div class="lane-cell"><div class="swim-node user">อ่านผลวิเคราะห์ที่ปรากฏทีละคำ</div></div>
+        <div class="lane-cell"><div class="swim-node frontend">รับ data:{done:true} หยุด append</div></div>
+        <div class="lane-cell"><div class="swim-node backend">ส่ง data:{done:true}, res.end()</div></div>
+        <div class="lane-cell"></div>
+        <div class="lane-cell"><div class="swim-node ollama">ส่ง {done:true} เมื่อประมวลผลครบ</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider" style="margin:0 1.5rem">
+
+<!-- ═══════════════════ SECTION 4: DATA PAYLOADS ═══════════════════ -->
+<div class="container" id="payloads">
+  <div class="section-header">
+    <div class="section-icon" style="background:rgba(251,191,36,0.1)">📦</div>
+    <div>
+      <h2>โครงสร้างข้อมูลที่ส่ง (Request & Prompt Payloads)</h2>
+      <p>ตัวอย่างข้อมูล JSON ที่ Frontend ส่ง และ Prompt ที่ Server สร้างส่งต่อให้ Ollama</p>
+    </div>
+  </div>
+
+  <!-- Tabs for Payload -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('p1')">💬 Chat API</button>
+    <button class="tab-btn" onclick="switchTab('p2')">📊 Analyze Log API</button>
+    <button class="tab-btn" onclick="switchTab('p3')">🏫 Session History SSE</button>
+    <button class="tab-btn" onclick="switchTab('p4')">🤖 Ollama Final Payload</button>
+  </div>
+
+  <!-- p1: Chat -->
+  <div class="tab-panel active" id="p1">
+    <div class="two-col">
+      <div>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.75rem">📤 Frontend ส่งไปที่ <code style="color:var(--cyan)">/api/chat</code></p>
+        <div class="json-block">
+          <span class="badge-lang">JSON Request Body</span>
+<span class="j-cmt">// POST /api/chat — AI Chatbot</span>
+{
+  <span class="j-key">"messages"</span>: [
+    { <span class="j-key">"role"</span>: <span class="j-str">"user"</span>, <span class="j-key">"content"</span>: <span class="j-str">"คำถามก่อนหน้า..."</span> },
+    { <span class="j-key">"role"</span>: <span class="j-str">"assistant"</span>, <span class="j-key">"content"</span>: <span class="j-str">"คำตอบก่อนหน้า..."</span> }
+  ],
+  <span class="j-key">"prompt"</span>: <span class="j-str">"นักเรียน Protae มีปัญหาตรงไหน?"</span>,
+  <span class="j-key">"context"</span>: {
+    <span class="j-cmt">// ดึงมาจาก data-ai-context-data attribute</span>
+    <span class="j-key">"studentId"</span>: <span class="j-str">"std_101"</span>,
+    <span class="j-key">"name"</span>: <span class="j-str">"Protae"</span>,
+    <span class="j-key">"scorePercent"</span>: <span class="j-num">40</span>,
+    <span class="j-key">"detailedAnswers"</span>: [
+      { <span class="j-key">"index"</span>: <span class="j-num">1</span>, <span class="j-key">"isCorrect"</span>: <span class="j-bool">false</span>,
+        <span class="j-key">"confusion"</span>: <span class="j-str">"high"</span>, <span class="j-key">"time"</span>: <span class="j-num">45</span> }
+    ]
+  },
+  <span class="j-key">"lang"</span>: <span class="j-str">"th"</span>
+}
+        </div>
+      </div>
+      <div>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.75rem">📥 Server ตอบกลับ Frontend</p>
+        <div class="json-block">
+          <span class="badge-lang">JSON Response</span>
+{
+  <span class="j-key">"message"</span>: <span class="j-str">"นักเรียน Protae ดูเหมือนมีความสับสน...</span>
+<span class="j-str">  ในเรื่องการตั้งชื่อตัวแปร..."</span>,
+  <span class="j-key">"model"</span>: <span class="j-str">"qwen3:8b"</span>
+}
+        </div>
+        <div class="info-box" style="margin-top:0.75rem">
+          <span>💡</span>
+          <div>Next.js Server จะประกอบ <strong>System Prompt</strong> บังคับภาษาไทย/EN/JP และแนบ Context JSON ก่อนส่งต่อให้ Ollama</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- p2: Analyze Log -->
+  <div class="tab-panel" id="p2">
+    <div class="two-col">
+      <div>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.75rem">📤 Frontend ส่งไปที่ <code style="color:var(--cyan)">/api/analyze-quiz-log</code></p>
+        <div class="json-block">
+          <span class="badge-lang">JSON Request Body</span>
+<span class="j-cmt">// ส่ง logId เพื่อให้ Server ดึงข้อมูลเอง</span>
+{
+  <span class="j-key">"logId"</span>: <span class="j-str">"665e8aef1f63004e0e227abc"</span>,
+  <span class="j-key">"lang"</span>: <span class="j-str">"th"</span>
+}
+
+<span class="j-cmt">// หรือส่ง log โดยตรง (ไม่ผ่าน DB)</span>
+{
+  <span class="j-key">"log"</span>: {
+    <span class="j-key">"session_metadata"</span>: { <span class="j-key">"student_name"</span>: <span class="j-str">"Protae"</span>, ... },
+    <span class="j-key">"answer_logs"</span>: [ ... ],
+    <span class="j-key">"summary"</span>: { <span class="j-key">"total_score"</span>: <span class="j-num">1</span>, <span class="j-key">"full_score"</span>: <span class="j-num">3</span> }
+  },
+  <span class="j-key">"lang"</span>: <span class="j-str">"th"</span>
+}
+        </div>
+      </div>
+      <div>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.75rem">🧠 Server แปลงข้อมูลเป็น Text Prompt ส่ง Ollama</p>
+        <div class="json-block" style="font-size:0.72rem">
+          <span class="badge-lang">Prompt (text)</span>
+<span class="j-cmt">// ผลลัพธ์จาก buildAnalysisPrompt()</span>
+You are an expert learning coach...
+Respond ONLY in Thai.
+
+Student: Protae
+Quiz: Python Variables
+Score: 1 / 3
+Confusion rate: <span class="j-num">67</span>% (hesitated/changed answer)
+
+Per-question breakdown:
+<span class="j-str">Q1: "Variable Declaration" → ❌ Wrong (hesitation). Time: 45s</span>
+<span class="j-str">Q2: "Naming Rules" → ✅ Correct. Time: 12s</span>
+<span class="j-str">Q3: "Scope" → ❌ Wrong. Time: 70s</span>
+
+Please provide:
+<span class="j-num">1</span>. Overall Assessment
+<span class="j-num">2</span>. Strengths
+<span class="j-num">3</span>. Weak Areas / Topics to Review
+<span class="j-num">4</span>. Concrete Study Recommendations
+<span class="j-num">5</span>. Encouragement
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- p3: Session History SSE -->
+  <div class="tab-panel" id="p3">
+    <div class="two-col">
+      <div>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.75rem">📤 Frontend ส่งไปที่ Express Backend (SSE)</p>
+        <div class="json-block">
+          <span class="badge-lang">3 Endpoints</span>
+<span class="j-cmt">// 1. Class-wide summary</span>
+<span class="j-str">POST /api/session-history/:id/ai-summary</span>
+{ <span class="j-key">"lang"</span>: <span class="j-str">"th"</span> }
+
+<span class="j-cmt">// 2. Per-student analysis</span>
+<span class="j-str">POST /api/session-history/:id/ai-student/:studentId</span>
+{ <span class="j-key">"lang"</span>: <span class="j-str">"th"</span> }
+
+<span class="j-cmt">// 3. Cross-session comparison</span>
+<span class="j-str">POST /api/session-history/quiz/:quizId/ai-cross-session</span>
+{ <span class="j-key">"lang"</span>: <span class="j-str">"th"</span> }
+        </div>
+      </div>
+      <div>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.75rem">📥 รับกลับเป็น SSE Stream Event</p>
+        <div class="json-block">
+          <span class="badge-lang">Server-Sent Events</span>
+<span class="j-cmt">// แต่ละ token ที่ Ollama ส่งกลับ</span>
+<span class="j-key">data:</span> { <span class="j-key">"token"</span>: <span class="j-str">"ผล"</span> }
+
+<span class="j-key">data:</span> { <span class="j-key">"token"</span>: <span class="j-str">"การ"</span> }
+
+<span class="j-key">data:</span> { <span class="j-key">"token"</span>: <span class="j-str">"สอบ"</span> }
+
+<span class="j-key">data:</span> { <span class="j-key">"token"</span>: <span class="j-str">"..."</span> }
+
+<span class="j-cmt">// เมื่อประมวลผลเสร็จ</span>
+<span class="j-key">data:</span> { <span class="j-key">"done"</span>: <span class="j-bool">true</span> }
+        </div>
+        <div class="info-box" style="margin-top:0.75rem">
+          <span>⚡</span>
+          <div>Frontend ใช้ <strong>streamAiSummary()</strong> จาก sessionHistoryApi.ts ทำการ fetch และอ่านข้อมูลจาก ReadableStream ทีละ chunk แล้ว append ข้อความใน UI แบบ Real-time</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- p4: Ollama Payload -->
+  <div class="tab-panel" id="p4">
+    <div class="two-col">
+      <div>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.75rem">🤖 Payload ที่ส่งให้ Ollama <code style="color:var(--cyan)">/api/chat</code> (Non-streaming)</p>
+        <div class="json-block">
+          <span class="badge-lang">POST localhost:11434/api/chat</span>
+{
+  <span class="j-key">"model"</span>: <span class="j-str">"qwen3:8b"</span>,
+  <span class="j-key">"messages"</span>: [
+    {
+      <span class="j-key">"role"</span>: <span class="j-str">"system"</span>,
+      <span class="j-key">"content"</span>: <span class="j-str">"You are a helpful teaching assistant...</span>
+<span class="j-str">        Respond ONLY in Thai..."</span>
+    },
+    {
+      <span class="j-key">"role"</span>: <span class="j-str">"system"</span>,
+      <span class="j-cmt">// Context จาก UI Inspection</span>
+      <span class="j-key">"content"</span>: <span class="j-str">"Current element context: {...}"</span>
+    },
+    {
+      <span class="j-key">"role"</span>: <span class="j-str">"user"</span>,
+      <span class="j-key">"content"</span>: <span class="j-str">"นักเรียน Protae มีปัญหาตรงไหน?"</span>
+    }
+  ],
+  <span class="j-key">"stream"</span>: <span class="j-bool">false</span>,
+  <span class="j-key">"options"</span>: { <span class="j-key">"temperature"</span>: <span class="j-num">0.7</span> }
+}
+        </div>
+      </div>
+      <div>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.75rem">🤖 Payload ที่ส่งให้ Ollama <code style="color:var(--cyan)">/api/generate</code> (SSE Streaming)</p>
+        <div class="json-block">
+          <span class="badge-lang">POST localhost:11434/api/generate</span>
+{
+  <span class="j-key">"model"</span>: <span class="j-str">"qwen3:8b"</span>,
+  <span class="j-key">"prompt"</span>: <span class="j-str">"[System Role + สถิติห้องเรียน + Prompt]"</span>,
+  <span class="j-key">"stream"</span>: <span class="j-bool">true</span>
+}
+
+<span class="j-cmt">// Ollama ตอบกลับทีละ chunk</span>
+{ <span class="j-key">"response"</span>: <span class="j-str">"ภาพ"</span>, <span class="j-key">"done"</span>: <span class="j-bool">false</span> }
+{ <span class="j-key">"response"</span>: <span class="j-str">"รวม"</span>, <span class="j-key">"done"</span>: <span class="j-bool">false</span> }
+{ <span class="j-key">"response"</span>: <span class="j-str">"ห้อง"</span>, <span class="j-key">"done"</span>: <span class="j-bool">false</span> }
+{ <span class="j-key">"response"</span>: <span class="j-str">""</span>,   <span class="j-key">"done"</span>: <span class="j-bool">true</span> }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider" style="margin:0 1.5rem">
+
+<!-- ═══════════════════ SECTION 5: DATABASE SCHEMA ═══════════════════ -->
+<div class="container" id="db">
+  <div class="section-header">
+    <div class="section-icon" style="background:rgba(248,113,113,0.1)">🗄️</div>
+    <div>
+      <h2>โครงสร้างข้อมูลที่เก็บและใช้กับ AI (MongoDB Schema)</h2>
+      <p>ฟิลด์ที่ถูก highlight สีเขียวคือฟิลด์ที่ถูกนำไปใช้ใน AI Prompt โดยตรง</p>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <!-- QuizInteractionLog -->
+    <div class="schema-card">
+      <div class="schema-header">
+        <span style="font-size:1.2rem">📝</span>
+        <div>
+          <div>QuizInteractionLog</div>
+          <div class="model-tag" style="background:rgba(34,211,238,0.1);color:var(--cyan);border:1px solid rgba(34,211,238,0.3);display:inline-block;margin-top:0.2rem">mongoose Model</div>
+        </div>
+        <span style="margin-left:auto;font-size:0.72rem;color:var(--text-muted)">ใช้กับ: Personalized AI</span>
+      </div>
+      <div class="schema-field">
+        <div class="field-name">session_metadata</div>
+        <div class="field-type">Object</div>
+        <div class="field-desc">ข้อมูลเซสชันนักเรียน</div>
+      </div>
+      <div class="schema-field">
+        <div class="field-name">├─ student_name</div>
+        <div class="field-type">String</div>
+        <div class="field-ai">→ ใส่ใน Prompt</div>
+      </div>
+      <div class="schema-field">
+        <div class="field-name">├─ quiz_title</div>
+        <div class="field-type">String</div>
+        <div class="field-ai">→ ใส่ใน Prompt</div>
+      </div>
+      <div class="schema-field">
+        <div class="field-name">└─ lang</div>
+        <div class="field-type">String</div>
+        <div class="field-desc">กำหนดภาษาตอบ AI</div>
+      </div>
+      <div class="schema-field">
+        <div class="field-name">answer_logs</div>
+        <div class="field-type">Array</div>
+        <div class="field-desc">บันทึกคำตอบรายข้อ</div>
+      </div>
+      <div class="schema-field">
+        <div class="field-name">├─ question_text</div>
+        <div class="field-type">String</div>
+        <div class="field-ai">→ ใส่ใน Prompt</div>
+      </div>
+      <div class="schema-field">
+        <div class="field-name">├─ is_correct</div>
+        <div class="field-type">Boolean</div>
+        <div class="field-ai">→ ✅/❌ ใน Prompt</div>
+      </div>
+      <div class="schema-field">
+        <div class="field-name">├─ is_confused</div>
+        <div class="field-type">Boolean</div>
+        <div class="field-ai">→ hesitation flag</div>
+      </div>
+      <div class="schema-field">
+        <div class="field-name">└─ time_spent_seconds</div>
+        <div class="field-type">Number</div>
+        <div class="field-ai">→ time: Xs ใน Prompt</div>
+      </div>
+      <div class="schema-field">
+        <div class="field-name">summary</div>
+        <div class="field-type">Object</div>
+        <div class="field-desc">สรุปรวม</div>
+      </div>
+      <div class="schema-field">
+        <div class="field-name">├─ total_score</div>
+        <div class="field-type">Number</div>
+        <div class="field-ai">→ Score: X/Y</div>
+      </div>
+      <div class="schema-field">
+        <div class="field-name">└─ average_confusion_rate</div>
+        <div class="field-type">Number</div>
+        <div class="field-ai">→ Confusion rate: X%</div>
+      </div>
+    </div>
+
+    <!-- QuizSessionResult -->
+    <div class="schema-card">
+      <div class="schema-header">
+        <span style="font-size:1.2rem">🏫</span>
+        <div>
+          <div>QuizSessionResult</div>
+          <div class="model-tag" style="background:rgba(52,211,153,0.1);color:var(--green);border:1px solid rgba(52,211,153,0.3);display:inline-block;margin-top:0.2rem">mongoose Model</div>
+        </div>
+        <span style="margin-left:auto;font-size:0.72rem;color:var(--text-muted)">ใช้กับ: Session Analytics</span>
+      </div>
+      <div class="schema-field">
+        <div class="field-name">sessionLabel</div>
+        <div class="field-type">String</div>
+        <div class="field-ai">→ Session name ใน Prompt</div>
+      </div>
+      <div class="schema-field">
+        <div class="field-name">stats</div>
+        <div class="field-type">Object</div>
+        <div class="field-desc">สถิติรวมห้องเรียน</div>
+      </div>
+      <div class="schema-field">
+        <div class="field-name">├─ totalStudents</div>
+        <div class="field-type">Number</div>
+        <div class="field-ai">→ X students ใน Prompt</div>
+      </div>
+      <div class="schema-field">
+        <div class="field-name">├─ averageScore</div>
+        <div class="field-type">Number</div>
+        <div class="field-ai">→ avg score X%</div>
+      </div>
+      <div class="schema-field">
+        <div class="field-name">└─ completionPercentage</div>
+        <div class="field-type">Number</div>
+        <div class="field-ai">→ completion X%</div>
+      </div>
+      <div class="schema-field">
+        <div class="field-name">questionStats</div>
+        <div class="field-type">Array</div>
+        <div class="field-desc">สถิติแต่ละข้อสอบ</div>
+      </div>
+      <div class="schema-field">
+        <div class="field-name">├─ questionText</div>
+        <div class="field-type">String</div>
+        <div class="field-ai">→ Q1: "text" ใน Prompt</div>
+      </div>
+      <div class="schema-field">
+        <div class="field-name">├─ correctPercent</div>
+        <div class="field-type">Number</div>
+        <div class="field-ai">→ X% correct ใน Prompt</div>
+      </div>
+      <div class="schema-field">
+        <div class="field-name">├─ avgResponseTime</div>
+        <div class="field-type">Number</div>
+        <div class="field-ai">→ avg time Xs</div>
+      </div>
+      <div class="schema-field">
+        <div class="field-name">└─ confusionCount</div>
+        <div class="field-type">Number</div>
+        <div class="field-ai">→ confusion count</div>
+      </div>
+      <div class="schema-field">
+        <div class="field-name">students</div>
+        <div class="field-type">Array</div>
+        <div class="field-desc">รายชื่อนักเรียน</div>
+      </div>
+      <div class="schema-field">
+        <div class="field-name">└─ scorePercent</div>
+        <div class="field-type">Number</div>
+        <div class="field-ai">→ แสดงรายชื่อ + คะแนน</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider" style="margin:0 1.5rem">
+
+<!-- ═══════════════════ SECTION 6: MODEL CONFIG ═══════════════════ -->
+<div class="container" id="config">
+  <div class="section-header">
+    <div class="section-icon" style="background:rgba(52,211,153,0.1)">⚙️</div>
+    <div>
+      <h2>การตั้งค่าโมเดล AI (LLM Configuration)</h2>
+      <p>ระบบกำหนดโมเดลผ่าน Environment Variables และมี Auto-detection fallback</p>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <!-- Env Config -->
+    <div class="card">
+      <h3 style="font-size:0.85rem;font-weight:700;margin-bottom:1rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em">📁 Environment Variables</h3>
+      <div style="background:var(--surface2);border-radius:12px;overflow:hidden;border:1px solid var(--border)">
+        <div class="config-row">
+          <span class="config-key">OLLAMA_MODEL</span>
+          <span class="config-val green">qwen3:8b</span>
+        </div>
+        <div class="config-row">
+          <span class="config-key">OLLAMA_HOST / OLLAMA_URL</span>
+          <span class="config-val cyan">http://localhost:11434</span>
+        </div>
+        <div class="config-row">
+          <span class="config-key">NEXT_PUBLIC_API_URL</span>
+          <span class="config-val amber">http://150.15.79.45:5000</span>
+        </div>
+      </div>
+      <div class="info-box amber" style="margin-top:1rem">
+        <span>📍</span>
+        <div>ค่า <code>OLLAMA_MODEL</code> ตั้งค่าใน <strong>frontend/.env.local</strong> และ <strong>backend/.env</strong> แยกกัน Fallback default คือ <code>qwen3:8b</code></div>
+      </div>
+    </div>
+
+    <!-- Model Selection Logic -->
+    <div class="card">
+      <h3 style="font-size:0.85rem;font-weight:700;margin-bottom:1rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em">🔍 Model Detection Priority</h3>
+      <div class="pipeline">
+        <div class="pipeline-step">
+          <div class="step-num violet">1</div>
+          <div class="step-content">
+            <h4 style="color:var(--violet)">ใช้ค่า OLLAMA_MODEL จาก .env</h4>
+            <p>ถ้ามีค่า Environment Variable ระบบจะใช้โมเดลนั้นทันที (ไม่ Auto-detect)</p>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num cyan">2</div>
+          <div class="step-content">
+            <h4 style="color:var(--cyan)">Auto-detect จาก Ollama API</h4>
+            <p>เรียก <code>GET localhost:11434/api/tags</code> ดึงรายการโมเดลที่ติดตั้ง เลือกโมเดลแรกที่พบ</p>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num amber">3</div>
+          <div class="step-content">
+            <h4 style="color:var(--amber)">Hardcoded Fallback</h4>
+            <p>ถ้า Auto-detect ล้มเหลว (Ollama ไม่รัน) ใช้ค่า fallback คือ <code>gemma2:9b</code> (Frontend) หรือ <code>qwen3:8b</code> (Backend)</p>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num green">✓</div>
+          <div class="step-content">
+            <h4 style="color:var(--green)">ส่ง Request ไปยัง Ollama</h4>
+            <p>ใช้โมเดลที่คัดเลือกแล้วส่งไปประมวลผล พร้อมคืนชื่อโมเดลกลับไปแสดงบน UI</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>🤖 AI Integration Visual Documentation · E-Learning Quiz Platform</p>
+  <p style="margin-top:0.4rem;font-family:'JetBrains Mono',monospace;font-size:0.7rem">LLM: qwen3:8b via Local Ollama · Stack: Next.js 15 · Express · MongoDB · Redis · Socket.io</p>
+  <p style="margin-top:0.4rem">ปรับปรุงล่าสุด: 4 มิถุนายน 2026</p>
+</footer>
+
+<script>
+  function switchTab(id) {
+    // Find parent tab container
+    const target = document.getElementById(id);
+    const parent = target.closest('.container') || target.parentElement.parentElement;
+
+    // Deactivate all tab panels in this section
+    parent.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+    // Activate target
+    target.classList.add('active');
+
+    // Find which button was clicked
+    const buttons = parent.querySelectorAll('.tab-btn');
+    buttons.forEach(btn => {
+      if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(id)) {
+        btn.classList.add('active');
+      }
+    });
+  }
+
+  // Smooth highlight on nav click
+  document.querySelectorAll('nav a').forEach(a => {
+    a.addEventListener('click', () => {
+      document.querySelectorAll('nav a').forEach(l => l.style.color = '');
+    });
+  });
+
+  // Animate arch lines continuously
+  const lines = document.querySelectorAll('.arch-arrow .line');
+  lines.forEach((line, i) => {
+    line.style.animationDelay = `${i * 0.4}s`;
+  });
+</script>
+</body>
+</html>

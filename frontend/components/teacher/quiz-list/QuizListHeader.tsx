@@ -3,30 +3,35 @@
 import { motion } from "framer-motion";
 import { Plus, BookOpen, Globe, FileText, Archive } from "lucide-react";
 import { Button } from "@heroui/react";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 interface QuizListHeaderProps {
   stats: { total: number; published: number; draft: number; archived: number };
   onCreateQuiz: () => void;
 }
 
-const STAT_ITEMS = [
-  { key: "total",     label: "Total Quizzes", icon: BookOpen,  color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-50 dark:bg-violet-500/10" },
-  { key: "published", label: "Published",     icon: Globe,     color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-500/10" },
-  { key: "draft",     label: "Drafts",        icon: FileText,  color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-500/10" },
-  { key: "archived",  label: "Archived",      icon: Archive,   color: "text-gray-500 dark:text-gray-400", bg: "bg-gray-50 dark:bg-white/5" },
-] as const;
 
 export function QuizListHeader({ stats, onCreateQuiz }: QuizListHeaderProps) {
+  const { t } = useLang();
+  const ql = t.quizList;
+
+  const STAT_ITEMS = [
+    { key: "total",     label: ql.statTotal,     icon: BookOpen,  color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-50 dark:bg-violet-500/10" },
+    { key: "published", label: ql.statPublished,  icon: Globe,     color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-500/10" },
+    { key: "draft",     label: ql.statDrafts,     icon: FileText,  color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-500/10" },
+    { key: "archived",  label: ql.statArchived,   icon: Archive,   color: "text-gray-500 dark:text-gray-400", bg: "bg-gray-50 dark:bg-white/5" },
+  ] as const;
+
   return (
     <div className="space-y-4">
       {/* Title row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
-            My Quiz Library
+            {ql.pageTitle}
           </h1>
           <p className="text-sm text-gray-500 dark:text-default-400 mt-0.5">
-            Manage, share and monitor all your quizzes
+            {ql.pageSubtitle}
           </p>
         </div>
         <Button
@@ -35,7 +40,7 @@ export function QuizListHeader({ stats, onCreateQuiz }: QuizListHeaderProps) {
           size="md"
         >
           <Plus className="w-4 h-4" />
-          Create Quiz
+          {ql.createQuiz}
         </Button>
       </div>
 

@@ -2,6 +2,7 @@
 
 import { Input, Select, ListBox, ListBoxItem, Button } from "@heroui/react";
 import { Search, LayoutGrid, List, SlidersHorizontal } from "lucide-react";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 interface QuizListFiltersProps {
   search: string;
@@ -17,26 +18,6 @@ interface QuizListFiltersProps {
   resultCount: number;
 }
 
-const STATUS_OPTIONS = [
-  { value: "all",       label: "All" },
-  { value: "published", label: "Published" },
-  { value: "draft",     label: "Draft" },
-  { value: "archived",  label: "Archived" },
-] as const;
-
-const DIFF_OPTIONS = [
-  { value: "all",    label: "All Levels" },
-  { value: "easy",   label: "Easy" },
-  { value: "medium", label: "Medium" },
-  { value: "hard",   label: "Hard" },
-] as const;
-
-const SORT_OPTIONS = [
-  { value: "updatedAt", label: "Last Updated" },
-  { value: "title",     label: "A → Z" },
-  { value: "attempts",  label: "Most Attempts" },
-] as const;
-
 export function QuizListFilters({
   search, setSearch,
   statusFilter, setStatusFilter,
@@ -45,6 +26,29 @@ export function QuizListFilters({
   viewMode, setViewMode,
   resultCount,
 }: QuizListFiltersProps) {
+  const { t } = useLang();
+  const ql = t.quizList;
+
+  const STATUS_OPTIONS = [
+    { value: "all",       label: ql.statusAll },
+    { value: "published", label: ql.statusPublished },
+    { value: "draft",     label: ql.statusDraft },
+    { value: "archived",  label: ql.statusArchived },
+  ] as const;
+
+  const DIFF_OPTIONS = [
+    { value: "all",    label: ql.diffAll },
+    { value: "easy",   label: ql.diffEasy },
+    { value: "medium", label: ql.diffMedium },
+    { value: "hard",   label: ql.diffHard },
+  ] as const;
+
+  const SORT_OPTIONS = [
+    { value: "updatedAt", label: ql.sortUpdatedAt },
+    { value: "title",     label: ql.sortTitle },
+    { value: "attempts",  label: ql.sortAttempts },
+  ] as const;
+
   return (
     <div className="flex flex-col gap-3">
       {/* Top row: search + view toggle */}
@@ -55,7 +59,7 @@ export function QuizListFilters({
             <Search className="w-4 h-4" />
           </div>
           <Input
-            placeholder="Search quizzes by title or description…"
+            placeholder={ql.searchPlaceholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-9"
@@ -74,7 +78,7 @@ export function QuizListFilters({
               <Select.Value className="text-sm font-medium">
                 {({ defaultChildren, isPlaceholder }) =>
                   isPlaceholder ? (
-                    <span className="text-gray-400">Sort By</span>
+                    <span className="text-gray-400">{ql.sortBy}</span>
                   ) : (
                     defaultChildren
                   )
@@ -153,7 +157,7 @@ export function QuizListFilters({
         </div>
 
         <span className="ml-auto text-xs text-gray-500 dark:text-default-400">
-          {resultCount} quiz{resultCount !== 1 ? "zes" : ""}
+          {ql.resultCount(resultCount)}
         </span>
       </div>
     </div>

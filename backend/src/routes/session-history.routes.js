@@ -22,7 +22,7 @@ const QuizSessionResult = require("../models/QuizSessionResult.model");
 const Quiz              = require("../models/Quiz.model");
 
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://localhost:11434";
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "llama3";
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "qwen3:8b";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

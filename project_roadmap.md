@@ -41,7 +41,7 @@
 - [x] **Timed Quizzes:** ระบบจำกัดเวลาในแต่ละข้อ หรือเวลาจำกัดรวมของทั้งควิซ
 
 ### 🟢 ความสำคัญต่ำ (Low Priority - ฟีเจอร์เสริมในอนาคต)
-- [ ] **Export Reports:** ปุ่มดาวน์โหลดสรุปผลเป็นไฟล์ Excel หรือ CSV
+- [x] **Export Reports:** ปุ่มดาวน์โหลดสรุปผลเป็นไฟล์ Excel หรือ CSV
 - [ ] **Sound & Animations:** เพิ่มเอฟเฟกต์เสียงและ Animation เมื่อตอบถูก/ผิด
 - [ ] **Advanced Question Types:** รองรับคำถามแบบ จับคู่ (Matching) หรือ เติมคำ (Fill in the blanks)
 
@@ -54,4 +54,4 @@
 - **Deployment:** Docker (Containerized)
 
 ---
-*อัปเดตล่าสุด: 13 พฤษภาคม 2026*
+*อัปเดตล่าสุด: 4 มิถุนายน 2026*

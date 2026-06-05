@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@heroui/react";
 import { Trash2, AlertTriangle } from "lucide-react";
 import type { Quiz } from "@/types/teacher/quiz.types";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 interface QuizDeleteModalProps {
   quiz:       Quiz | null;
@@ -14,6 +15,9 @@ interface QuizDeleteModalProps {
 }
 
 export function QuizDeleteModal({ quiz, isOpen, onClose, onConfirm, isDeleting }: QuizDeleteModalProps) {
+  const { t } = useLang();
+  const ql = t.quizList;
+
   return (
     <AnimatePresence>
       {isOpen && quiz && (
@@ -49,8 +53,8 @@ export function QuizDeleteModal({ quiz, isOpen, onClose, onConfirm, isDeleting }
                     <AlertTriangle className="w-5 h-5 text-red-500" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-gray-900 dark:text-white">Delete Quiz</h3>
-                    <p className="text-xs text-gray-500 dark:text-default-400">This action cannot be undone</p>
+                    <h3 className="text-base font-bold text-gray-900 dark:text-white">{ql.deleteTitle}</h3>
+                    <p className="text-xs text-gray-500 dark:text-default-400">{ql.deleteUndone}</p>
                   </div>
                 </div>
 
@@ -63,7 +67,7 @@ export function QuizDeleteModal({ quiz, isOpen, onClose, onConfirm, isDeleting }
                 </div>
 
                 <p className="text-sm text-gray-600 dark:text-default-400">
-                  Are you sure you want to permanently delete this quiz? All associated student data will also be removed.
+                  {ql.deleteConfirmText}
                 </p>
 
                 {/* Actions */}
@@ -74,7 +78,7 @@ export function QuizDeleteModal({ quiz, isOpen, onClose, onConfirm, isDeleting }
                     onPress={onClose}
                     isDisabled={isDeleting}
                   >
-                    Cancel
+                    {ql.cancel}
                   </Button>
                   <Button
                     {...{ isLoading: isDeleting } as any}
@@ -82,7 +86,7 @@ export function QuizDeleteModal({ quiz, isOpen, onClose, onConfirm, isDeleting }
                     onPress={onConfirm}
                   >
                     <Trash2 className="w-4 h-4" />
-                    Delete
+                    {ql.deleteBtn}
                   </Button>
                 </div>
               </div>

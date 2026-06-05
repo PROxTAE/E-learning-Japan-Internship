@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import type { Quiz } from "@/types/teacher/quiz.types";
 import { useRouter } from "next/navigation";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 interface QuizListGridProps {
   quizzes: Quiz[];
@@ -35,7 +36,6 @@ interface QuizListGridProps {
 
 const STATUS_COLOR = { published: "success", draft: "default", archived: "warning" } as const;
 const DIFF_COLOR   = { easy: "success", medium: "warning", hard: "danger" } as const;
-const DIFF_LABEL   = { easy: "Easy", medium: "Medium", hard: "Hard" } as const;
 
 const GRADIENTS = [
   "from-violet-500 to-purple-600",
@@ -72,6 +72,7 @@ function getIconComponent(id: string) {
 
 export function QuizListGrid({ quizzes, onEdit, onDelete, onShare, onMonitor, onStatusChange }: QuizListGridProps) {
   const router = useRouter();
+  const { t } = useLang();
   return (
     <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       <AnimatePresence mode="popLayout">
@@ -92,6 +93,7 @@ export function QuizListGrid({ quizzes, onEdit, onDelete, onShare, onMonitor, on
               onMonitor={onMonitor}
               onHistory={() => router.push(`/teacher/quizzes/${quiz.id}/history`)}
               onStatusChange={onStatusChange}
+              t={t}
             />
           </motion.div>
         ))}
@@ -100,7 +102,7 @@ export function QuizListGrid({ quizzes, onEdit, onDelete, onShare, onMonitor, on
   );
 }
 
-function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onHistory, onStatusChange }: {
+function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onHistory, onStatusChange, t }: {
   quiz: Quiz;
   onEdit: (q: Quiz) => void;
   onDelete: (q: Quiz) => void;
@@ -108,7 +110,9 @@ function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onHistory, onSta
   onMonitor: (q: Quiz) => void;
   onHistory: () => void;
   onStatusChange: (q: Quiz, s: Quiz["status"]) => void;
+  t: any;
 }) {
+  const ql = t.quizList;
   const gradient = (quiz as any).gradient || `bg-gradient-to-br ${getGradient(quiz.id)}`;
   const customEmoji = (quiz as any).emoji;
   const MappedIcon = customEmoji ? EMOJI_TO_ICON[customEmoji] : null;
@@ -137,12 +141,12 @@ function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onHistory, onSta
         {/* Hover actions overlay */}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
           {quiz.status === "published" && (
-            <ActionButton onClick={() => onMonitor(quiz)} title="Monitor Live" icon={Activity} color="bg-violet-600 hover:bg-violet-700" />
+            <ActionButton onClick={() => onMonitor(quiz)} title={ql.monitorLive} icon={Activity} color="bg-violet-600 hover:bg-violet-700" />
           )}
-          <ActionButton onClick={onHistory} title="View History" icon={History} color="bg-blue-600 hover:bg-blue-700" />
-          <ActionButton onClick={() => onShare(quiz)} title="Share" icon={Share2} color="bg-emerald-600 hover:bg-emerald-700" />
-          <ActionButton onClick={() => onEdit(quiz)} title="Edit" icon={Pencil} color="bg-gray-600 hover:bg-gray-700" />
-          <ActionButton onClick={() => onDelete(quiz)} title="Delete" icon={Trash2} color="bg-red-600 hover:bg-red-700" />
+          <ActionButton onClick={onHistory} title={ql.viewHistory} icon={History} color="bg-blue-600 hover:bg-blue-700" />
+          <ActionButton onClick={() => onShare(quiz)} title={ql.share} icon={Share2} color="bg-emerald-600 hover:bg-emerald-700" />
+          <ActionButton onClick={() => onEdit(quiz)} title={ql.edit} icon={Pencil} color="bg-gray-600 hover:bg-gray-700" />
+          <ActionButton onClick={() => onDelete(quiz)} title={ql.delete} icon={Trash2} color="bg-red-600 hover:bg-red-700" />
         </div>
 
         {/* Status badge top-left */}
@@ -164,7 +168,7 @@ function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onHistory, onSta
  
         <div className="flex items-center gap-1.5 flex-wrap">
           <Chip {...{ size: "sm", color: DIFF_COLOR[quiz.difficulty], variant: "flat" } as any} className="text-[10px] h-5">
-            {DIFF_LABEL[quiz.difficulty]}
+            {ql.diffLabel[quiz.difficulty] ?? quiz.difficulty}
           </Chip>
           {(quiz as any).category && (
             <Chip {...{ size: "sm", variant: "flat" } as any} className="text-[10px] h-5 bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-default-400">
@@ -191,7 +195,7 @@ function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onHistory, onSta
           </span>
           <span className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5" />
-            {quiz.hasTimeLimit === false ? "No limit" : `${(quiz as any).duration ?? (quiz as any).durationMinutes ?? 0}m`}
+            {quiz.hasTimeLimit === false ? ql.noLimit : `${(quiz as any).duration ?? (quiz as any).durationMinutes ?? 0}m`}
           </span>
           <span className="flex items-center gap-1 ml-auto">
             <Users className="w-3 h-3" />

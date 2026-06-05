@@ -1,8 +1,9 @@
 "use client";
 
 import { Chip, Button } from "@heroui/react";
-import { Pencil, Trash2, Share2, Activity, Clock, HelpCircle, Users, ChevronRight } from "lucide-react";
+import { Pencil, Trash2, Share2, Activity, Clock, HelpCircle, Users } from "lucide-react";
 import type { Quiz } from "@/types/teacher/quiz.types";
+import { useLang } from "@/lib/i18n/LanguageContext";
 
 interface QuizListTableProps {
   quizzes: Quiz[];
@@ -17,15 +18,18 @@ const STATUS_COLOR = { published: "success", draft: "default", archived: "warnin
 const DIFF_COLOR   = { easy: "success", medium: "warning", hard: "danger" } as const;
 
 export function QuizListTable({ quizzes, onEdit, onDelete, onShare, onMonitor, onStatusChange }: QuizListTableProps) {
+  const { t } = useLang();
+  const ql = t.quizList;
+
   return (
     <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 overflow-hidden">
       {/* Table header */}
       <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-3 border-b border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/[0.03]">
-        <span className="text-xs font-bold text-gray-500 dark:text-default-400 uppercase tracking-wider">Quiz</span>
-        <span className="text-xs font-bold text-gray-500 dark:text-default-400 uppercase tracking-wider text-center">Questions</span>
-        <span className="text-xs font-bold text-gray-500 dark:text-default-400 uppercase tracking-wider text-center">Duration</span>
-        <span className="text-xs font-bold text-gray-500 dark:text-default-400 uppercase tracking-wider text-center">Attempts</span>
-        <span className="text-xs font-bold text-gray-500 dark:text-default-400 uppercase tracking-wider text-right">Actions</span>
+        <span className="text-xs font-bold text-gray-500 dark:text-default-400 uppercase tracking-wider">{ql.colQuiz}</span>
+        <span className="text-xs font-bold text-gray-500 dark:text-default-400 uppercase tracking-wider text-center">{ql.colQuestions}</span>
+        <span className="text-xs font-bold text-gray-500 dark:text-default-400 uppercase tracking-wider text-center">{ql.colDuration}</span>
+        <span className="text-xs font-bold text-gray-500 dark:text-default-400 uppercase tracking-wider text-center">{ql.colAttempts}</span>
+        <span className="text-xs font-bold text-gray-500 dark:text-default-400 uppercase tracking-wider text-right">{ql.colActions}</span>
       </div>
 
       {/* Rows */}
@@ -69,7 +73,7 @@ export function QuizListTable({ quizzes, onEdit, onDelete, onShare, onMonitor, o
             <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-default-400 justify-center">
               <Clock className="w-3.5 h-3.5" />
               <span className="font-semibold text-gray-700 dark:text-default-300">
-                {quiz.hasTimeLimit === false ? "No limit" : `${(quiz as any).duration ?? (quiz as any).durationMinutes ?? 0}m`}
+                {quiz.hasTimeLimit === false ? ql.noLimit : `${(quiz as any).duration ?? (quiz as any).durationMinutes ?? 0}m`}
               </span>
             </div>
 
@@ -84,17 +88,17 @@ export function QuizListTable({ quizzes, onEdit, onDelete, onShare, onMonitor, o
             {/* Actions */}
             <div className="flex items-center gap-1.5 justify-end">
               {quiz.status === "published" && (
-                <ActionBtn onClick={() => onMonitor(quiz)} title="Monitor" className="text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-500/10">
+                <ActionBtn onClick={() => onMonitor(quiz)} title={ql.monitor} className="text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-500/10">
                   <Activity className="w-3.5 h-3.5" />
                 </ActionBtn>
               )}
-              <ActionBtn onClick={() => onShare(quiz)} title="Share" className="text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10">
+              <ActionBtn onClick={() => onShare(quiz)} title={ql.share} className="text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10">
                 <Share2 className="w-3.5 h-3.5" />
               </ActionBtn>
-              <ActionBtn onClick={() => onEdit(quiz)} title="Edit" className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10">
+              <ActionBtn onClick={() => onEdit(quiz)} title={ql.edit} className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10">
                 <Pencil className="w-3.5 h-3.5" />
               </ActionBtn>
-              <ActionBtn onClick={() => onDelete(quiz)} title="Delete" className="text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10">
+              <ActionBtn onClick={() => onDelete(quiz)} title={ql.delete} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10">
                 <Trash2 className="w-3.5 h-3.5" />
               </ActionBtn>
             </div>
