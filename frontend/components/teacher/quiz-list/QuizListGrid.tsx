@@ -2,14 +2,14 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Chip, Button } from "@heroui/react";
-import { 
-  Clock, 
-  HelpCircle, 
-  Users, 
-  Pencil, 
-  Trash2, 
-  Share2, 
-  Activity, 
+import {
+  Clock,
+  HelpCircle,
+  Users,
+  Pencil,
+  Trash2,
+  Share2,
+  Activity,
   History,
   BookOpen,
   Brain,
@@ -19,7 +19,7 @@ import {
   Globe,
   BarChart3,
   Trophy,
-  Zap 
+  Zap
 } from "lucide-react";
 import type { Quiz } from "@/types/teacher/quiz.types";
 import { useRouter } from "next/navigation";
@@ -34,16 +34,14 @@ interface QuizListGridProps {
   onStatusChange: (quiz: Quiz, status: Quiz["status"]) => void;
 }
 
-const STATUS_COLOR = { published: "success", draft: "default", archived: "warning" } as const;
-const DIFF_COLOR   = { easy: "success", medium: "warning", hard: "danger" } as const;
-
-const GRADIENTS = [
-  "from-violet-500 to-purple-600",
-  "from-blue-500 to-indigo-600",
-  "from-emerald-500 to-teal-600",
-  "from-orange-500 to-amber-600",
-  "from-pink-500 to-rose-600",
-  "from-cyan-500 to-sky-600",
+// Cyber banner gradients — using theme brand colors
+const CYBER_BANNERS = [
+  "from-[#00BCD4] to-[#0097A7]",        // cyan
+  "from-[#BAFF29] to-[#9EE010]",        // lime
+  "from-[#FF6EB4] to-[#E05AA0]",        // pink
+  "from-[#8C5CF6] to-[#6D3FD5]",        // purple
+  "from-[#00BCD4] to-[#BAFF29]",        // cyan → lime
+  "from-[#FF6EB4] to-[#8C5CF6]",        // pink → purple
 ];
 
 const ICONS = [BookOpen, Brain, Lightbulb, Target, Microscope, Globe, BarChart3, Pencil, Trophy, Zap];
@@ -61,14 +59,27 @@ const EMOJI_TO_ICON: Record<string, React.ComponentType<any>> = {
   "⚡": Zap,
 };
 
-function getGradient(id: string) {
+function getBanner(id: string) {
   const n = id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-  return GRADIENTS[n % GRADIENTS.length];
+  return CYBER_BANNERS[n % CYBER_BANNERS.length];
 }
 function getIconComponent(id: string) {
   const n = id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
   return ICONS[n % ICONS.length];
 }
+
+// Status badge mapping to cyber colors
+const STATUS_BADGE: Record<string, { bg: string; text: string; label: string }> = {
+  published: { bg: "bg-[var(--theme-secondary)]", text: "text-black", label: "LIVE" },
+  draft:     { bg: "bg-[var(--theme-accent)]/20 border border-[var(--theme-accent)]", text: "text-[var(--theme-accent)]", label: "DRAFT" },
+  archived:  { bg: "bg-black/30", text: "text-white", label: "ARCHIVED" },
+};
+
+const DIFF_BADGE: Record<string, string> = {
+  easy:   "bg-[var(--theme-secondary)] text-black",
+  medium: "bg-[#FF6EB4] text-black",
+  hard:   "bg-red-500 text-white",
+};
 
 export function QuizListGrid({ quizzes, onEdit, onDelete, onShare, onMonitor, onStatusChange }: QuizListGridProps) {
   const router = useRouter();
@@ -113,82 +124,89 @@ function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onHistory, onSta
   t: any;
 }) {
   const ql = t.quizList;
-  const gradient = (quiz as any).gradient || `bg-gradient-to-br ${getGradient(quiz.id)}`;
   const customEmoji = (quiz as any).emoji;
   const MappedIcon = customEmoji ? EMOJI_TO_ICON[customEmoji] : null;
+  const statusBadge = STATUS_BADGE[quiz.status] ?? STATUS_BADGE.draft;
 
   return (
     <div
-      className="group relative flex flex-col rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 hover:border-violet-300 dark:hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-500/10 transition-all duration-300 overflow-hidden"
+      className="group relative flex flex-col rounded-2xl overflow-hidden cursor-pointer
+        border-2 border-[var(--theme-text-main)] dark:border-[var(--theme-border)]
+        bg-[var(--theme-card-bg)]
+        shadow-[4px_4px_0px_var(--theme-text-main)] dark:shadow-[4px_4px_0px_var(--theme-border)]
+        hover:translate-x-[-2px] hover:translate-y-[-2px]
+        hover:shadow-[6px_6px_0px_var(--theme-text-main)] dark:hover:shadow-[6px_6px_0px_var(--theme-border)]
+        transition-all duration-150"
       data-ai-context-type="quiz"
       data-ai-context-name={quiz.title}
       data-ai-context-data={JSON.stringify(quiz)}
     >
-      
       {/* Banner */}
-      <div className={`h-28 bg-gradient-to-br ${getGradient(quiz.id)} relative flex items-center justify-center`}>
+      <div className={`h-28 bg-gradient-to-br ${getBanner(quiz.id)} relative flex items-center justify-center`}>
+        {/* Grid overlay */}
+        <div className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: "linear-gradient(rgba(0,0,0,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.3) 1px, transparent 1px)",
+            backgroundSize: "16px 16px",
+          }}
+        />
         {MappedIcon ? (
-          <MappedIcon className="w-14 h-14 text-white/90 drop-shadow-lg" />
+          <MappedIcon className="w-14 h-14 text-white drop-shadow-lg relative z-10" />
         ) : customEmoji ? (
-          <span className="text-5xl drop-shadow-lg">{customEmoji}</span>
+          <span className="text-5xl drop-shadow-lg relative z-10">{customEmoji}</span>
         ) : (
           (() => {
             const FallbackIcon = getIconComponent(quiz.id);
-            return <FallbackIcon className="w-14 h-14 text-white/90 drop-shadow-lg" />;
+            return <FallbackIcon className="w-14 h-14 text-white drop-shadow-lg relative z-10" />;
           })()
         )}
 
         {/* Hover actions overlay */}
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 z-20">
           {quiz.status === "published" && (
-            <ActionButton onClick={() => onMonitor(quiz)} title={ql.monitorLive} icon={Activity} color="bg-violet-600 hover:bg-violet-700" />
+            <CyberActionBtn onClick={() => onMonitor(quiz)} title={ql.monitorLive} icon={Activity} color="bg-[var(--theme-primary)]" textColor="text-black" />
           )}
-          <ActionButton onClick={onHistory} title={ql.viewHistory} icon={History} color="bg-blue-600 hover:bg-blue-700" />
-          <ActionButton onClick={() => onShare(quiz)} title={ql.share} icon={Share2} color="bg-emerald-600 hover:bg-emerald-700" />
-          <ActionButton onClick={() => onEdit(quiz)} title={ql.edit} icon={Pencil} color="bg-gray-600 hover:bg-gray-700" />
-          <ActionButton onClick={() => onDelete(quiz)} title={ql.delete} icon={Trash2} color="bg-red-600 hover:bg-red-700" />
+          <CyberActionBtn onClick={onHistory} title={ql.viewHistory} icon={History} color="bg-[var(--theme-accent)]" textColor="text-white" />
+          <CyberActionBtn onClick={() => onShare(quiz)} title={ql.share} icon={Share2} color="bg-[var(--theme-secondary)]" textColor="text-black" />
+          <CyberActionBtn onClick={() => onEdit(quiz)} title={ql.edit} icon={Pencil} color="bg-white" textColor="text-black" />
+          <CyberActionBtn onClick={() => onDelete(quiz)} title={ql.delete} icon={Trash2} color="bg-red-500" textColor="text-white" />
         </div>
 
         {/* Status badge top-left */}
-        <div className="absolute top-2 left-2">
-          <Chip {...{ size: "sm", color: STATUS_COLOR[quiz.status] } as any} className="text-[10px] h-5 capitalize font-semibold">
-            {quiz.status}
-          </Chip>
+        <div className="absolute top-2 left-2 z-10">
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest border border-black/20 ${statusBadge.bg} ${statusBadge.text}`}>
+            {statusBadge.label}
+          </span>
         </div>
       </div>
- 
+
       {/* Body */}
       <div className="flex-1 p-4 flex flex-col gap-3">
         <div>
-          <h3 className="font-bold text-gray-900 dark:text-white text-sm line-clamp-2 leading-snug">{quiz.title}</h3>
+          <h3 className="font-black text-[var(--theme-text-main)] text-sm line-clamp-2 leading-snug uppercase tracking-tight">{quiz.title}</h3>
           {quiz.description && (
-            <p className="text-xs text-gray-500 dark:text-default-400 mt-1 line-clamp-2">{quiz.description}</p>
+            <p className="text-xs text-[var(--theme-text-muted)] mt-1 line-clamp-2 font-medium">{quiz.description}</p>
           )}
         </div>
- 
+
         <div className="flex items-center gap-1.5 flex-wrap">
-          <Chip {...{ size: "sm", color: DIFF_COLOR[quiz.difficulty], variant: "flat" } as any} className="text-[10px] h-5">
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border border-black/20 ${DIFF_BADGE[quiz.difficulty] ?? "bg-gray-200 text-black"}`}>
             {ql.diffLabel[quiz.difficulty] ?? quiz.difficulty}
-          </Chip>
+          </span>
           {(quiz as any).category && (
-            <Chip {...{ size: "sm", variant: "flat" } as any} className="text-[10px] h-5 bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-default-400">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-[var(--theme-bg-secondary)] text-[var(--theme-text-muted)] border border-[var(--theme-border)]">
               {(quiz as any).category}
-            </Chip>
+            </span>
           )}
           {quiz.subject && (
-            <Chip {...{ size: "sm", variant: "flat" } as any} className="text-[10px] h-5 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-[var(--theme-primary)]/20 text-[var(--theme-primary)] border border-[var(--theme-primary)]/40">
               {quiz.subject}
-            </Chip>
-          )}
-          {quiz.chapter && (
-            <Chip {...{ size: "sm", variant: "flat" } as any} className="text-[10px] h-5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
-              {quiz.chapter}
-            </Chip>
+            </span>
           )}
         </div>
 
         {/* Meta */}
-        <div className="flex items-center gap-3 text-[11px] text-gray-500 dark:text-default-400 pt-2 border-t border-gray-100 dark:border-white/5">
+        <div className="flex items-center gap-3 text-[11px] text-[var(--theme-text-muted)] pt-2 border-t-2 border-[var(--theme-text-main)]/10 dark:border-[var(--theme-border)] font-bold">
           <span className="flex items-center gap-1">
             <HelpCircle className="w-3 h-3" />
             {(quiz as any).questionCount ?? (quiz as any).questions?.length ?? 0} Qs
@@ -205,39 +223,43 @@ function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onHistory, onSta
       </div>
 
       {/* Quick status toggle bar */}
-      <div className="flex border-t border-gray-100 dark:border-white/5">
+      <div className="flex border-t-2 border-[var(--theme-text-main)]/10 dark:border-[var(--theme-border)]">
         {(["draft", "published", "archived"] as Quiz["status"][]).map((s) => (
-          <Button
+          <button
             key={s}
             onClick={() => onStatusChange(quiz, s)}
-            className={`flex-1 py-1.5 h-auto text-[10px] font-semibold uppercase tracking-wide transition-colors rounded-none bg-transparent ${
-              quiz.status === s
-                ? "bg-violet-600 text-white"
-                : "text-gray-400 dark:text-default-500 hover:bg-gray-50 dark:hover:bg-white/5"
-            }`}
+            className={`flex-1 py-1.5 text-[10px] font-black uppercase tracking-widest transition-colors cursor-pointer border-none
+              ${quiz.status === s
+                ? "bg-[var(--theme-primary)] text-black"
+                : "bg-transparent text-[var(--theme-text-muted)] hover:bg-[var(--theme-bg-secondary)]"
+              }`}
           >
             {s}
-          </Button>
+          </button>
         ))}
       </div>
     </div>
   );
 }
 
-function ActionButton({ onClick, title, icon: Icon, color }: {
+function CyberActionBtn({ onClick, title, icon: Icon, color, textColor }: {
   onClick: () => void;
   title: string;
   icon: React.ComponentType<{ className?: string }>;
   color: string;
+  textColor: string;
 }) {
   return (
-    <Button
-      isIconOnly
+    <button
       onClick={(e) => { e.stopPropagation(); onClick(); }}
-      {...{ title } as any}
-      className={`w-8 h-8 min-w-0 rounded-lg ${color} text-white flex items-center justify-center shadow-md transition-transform hover:scale-110`}
+      title={title}
+      className={`w-8 h-8 min-w-0 rounded-lg ${color} ${textColor}
+        flex items-center justify-center
+        border border-black/30
+        shadow-[1px_1px_0px_rgba(0,0,0,0.5)]
+        hover:scale-110 transition-transform cursor-pointer`}
     >
       <Icon className="w-3.5 h-3.5" />
-    </Button>
+    </button>
   );
 }

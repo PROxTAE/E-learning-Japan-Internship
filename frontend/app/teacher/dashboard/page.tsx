@@ -4,12 +4,12 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 
 // ── Dashboard feature components ───────────────────────────────────
-import { WelcomeBanner }     from "@/components/teacher/dashboard/WelcomeBanner";
+import { WelcomeBanner } from "@/components/teacher/dashboard/WelcomeBanner";
 import { QuizStatsOverview } from "@/components/teacher/dashboard/QuizStatsOverview";
-import { PerformanceChart }  from "@/components/teacher/dashboard/PerformanceChart";
-import { UpcomingSchedule }  from "@/components/teacher/dashboard/UpcomingSchedule";
-import { ActivityFeed }      from "@/components/teacher/dashboard/ActivityFeed";
-import { TopQuizzes }        from "@/components/teacher/dashboard/TopQuizzes";
+import { PerformanceChart } from "@/components/teacher/dashboard/PerformanceChart";
+import { UpcomingSchedule } from "@/components/teacher/dashboard/UpcomingSchedule";
+import { ActivityFeed } from "@/components/teacher/dashboard/ActivityFeed";
+import { TopQuizzes } from "@/components/teacher/dashboard/TopQuizzes";
 
 // ── API clients ────────────────────────────────────────────────────
 import { dashboardApi } from "@/services/dashboardApi";
@@ -20,7 +20,7 @@ import type { QuizStats } from "@/types/teacher/quiz.types";
 
 export default function TeacherDashboardPage() {
   // ── Dashboard stats state ──────────────────────────────────────
-  const [dashStats, setDashStats]       = useState<DashboardStats | null>(null);
+  const [dashStats, setDashStats] = useState<DashboardStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
 
   // ── Fetch dashboard stats from API ─────────────────────────────
@@ -44,12 +44,12 @@ export default function TeacherDashboardPage() {
   const stats = useMemo((): QuizStats => {
     if (dashStats) return dashStats.quizStats;
     return {
-      totalQuizzes:     0,
+      totalQuizzes: 0,
       publishedQuizzes: 0,
-      draftQuizzes:     0,
-      archivedQuizzes:  0,
-      totalAttempts:    0,
-      averageScore:     0,
+      draftQuizzes: 0,
+      archivedQuizzes: 0,
+      totalAttempts: 0,
+      averageScore: 0,
     };
   }, [dashStats]);
 

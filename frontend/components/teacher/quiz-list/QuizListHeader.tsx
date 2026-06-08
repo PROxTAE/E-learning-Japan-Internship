@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { Plus, BookOpen, Globe, FileText, Archive } from "lucide-react";
-import { Button } from "@heroui/react";
 import { useLang } from "@/lib/i18n/LanguageContext";
 
 interface QuizListHeaderProps {
@@ -10,16 +9,15 @@ interface QuizListHeaderProps {
   onCreateQuiz: () => void;
 }
 
-
 export function QuizListHeader({ stats, onCreateQuiz }: QuizListHeaderProps) {
   const { t } = useLang();
   const ql = t.quizList;
 
   const STAT_ITEMS = [
-    { key: "total",     label: ql.statTotal,     icon: BookOpen,  color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-50 dark:bg-violet-500/10" },
-    { key: "published", label: ql.statPublished,  icon: Globe,     color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-500/10" },
-    { key: "draft",     label: ql.statDrafts,     icon: FileText,  color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-500/10" },
-    { key: "archived",  label: ql.statArchived,   icon: Archive,   color: "text-gray-500 dark:text-gray-400", bg: "bg-gray-50 dark:bg-white/5" },
+    { key: "total",     label: ql.statTotal,     icon: BookOpen, accentBg: "bg-[var(--theme-primary)]",   accentText: "text-black" },
+    { key: "published", label: ql.statPublished,  icon: Globe,    accentBg: "bg-[var(--theme-secondary)]", accentText: "text-black" },
+    { key: "draft",     label: ql.statDrafts,     icon: FileText, accentBg: "bg-[#FF6EB4]",               accentText: "text-black" },
+    { key: "archived",  label: ql.statArchived,   icon: Archive,  accentBg: "bg-[var(--theme-accent)]",   accentText: "text-white" },
   ] as const;
 
   return (
@@ -27,21 +25,26 @@ export function QuizListHeader({ stats, onCreateQuiz }: QuizListHeaderProps) {
       {/* Title row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
+          <h1 className="text-2xl font-black text-[var(--theme-text-main)] tracking-tight uppercase">
             {ql.pageTitle}
           </h1>
-          <p className="text-sm text-gray-500 dark:text-default-400 mt-0.5">
+          <p className="text-sm text-[var(--theme-text-muted)] mt-0.5 font-medium">
             {ql.pageSubtitle}
           </p>
         </div>
-        <Button
-          onPress={onCreateQuiz}
-          className="bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 transition-all"
-          size="md"
+        <button
+          onClick={onCreateQuiz}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-full
+            bg-[var(--theme-primary)] text-black font-black text-sm uppercase tracking-wider
+            border-2 border-[var(--theme-text-main)]
+            shadow-[3px_3px_0px_var(--theme-text-main)]
+            hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_var(--theme-text-main)]
+            active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_var(--theme-text-main)]
+            transition-all duration-100 cursor-pointer"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4 stroke-[3]" />
           {ql.createQuiz}
-        </Button>
+        </button>
       </div>
 
       {/* Stats row */}
@@ -52,16 +55,19 @@ export function QuizListHeader({ stats, onCreateQuiz }: QuizListHeaderProps) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.06 }}
-            className="flex items-center gap-3 p-3 rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 backdrop-blur"
+            className="flex items-center gap-3 p-3 rounded-2xl
+              border-2 border-[var(--theme-text-main)] dark:border-[var(--theme-border)]
+              bg-[var(--theme-card-bg)]
+              shadow-[3px_3px_0px_var(--theme-text-main)] dark:shadow-[3px_3px_0px_var(--theme-border)]"
           >
-            <div className={`p-2 rounded-xl ${item.bg}`}>
-              <item.icon className={`w-4 h-4 ${item.color}`} />
+            <div className={`p-2 rounded-xl border border-black/20 shrink-0 ${item.accentBg}`}>
+              <item.icon className={`w-4 h-4 ${item.accentText}`} />
             </div>
             <div>
-              <p className="text-xl font-black text-gray-900 dark:text-white leading-none">
+              <p className="text-xl font-black text-[var(--theme-text-main)] leading-none">
                 {stats[item.key]}
               </p>
-              <p className="text-xs text-gray-500 dark:text-default-400 mt-0.5">{item.label}</p>
+              <p className="text-xs text-[var(--theme-text-muted)] mt-0.5 font-semibold">{item.label}</p>
             </div>
           </motion.div>
         ))}

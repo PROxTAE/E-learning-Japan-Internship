@@ -8,14 +8,14 @@ import {
   BarChart2, Settings, LogOut, GraduationCap,
 } from "lucide-react";
 import { useLang } from "@/lib/i18n/LanguageContext";
-import { GradFlowerCharacter } from "@/components/shared/ThemeCharacters";
+import { GradFlowerCharacter, AnimeRobotCharacter } from "@/components/shared/ThemeCharacters";
 
 const NAV_KEYS = [
   { key: "dashboard" as const, icon: LayoutDashboard, href: "/teacher/dashboard" },
-  { key: "quizzes"   as const, icon: BookOpen,        href: "/teacher/quizzes" },
-  { key: "students"  as const, icon: Users,           href: "/teacher/students" },
-  { key: "calendar"  as const, icon: CalendarDays,    href: "/teacher/calendar" },
-  { key: "reports"   as const, icon: BarChart2,       href: "/teacher/reports" },
+  { key: "quizzes" as const, icon: BookOpen, href: "/teacher/quizzes" },
+  { key: "students" as const, icon: Users, href: "/teacher/students" },
+  { key: "calendar" as const, icon: CalendarDays, href: "/teacher/calendar" },
+  { key: "reports" as const, icon: BarChart2, href: "/teacher/reports" },
 ];
 
 const BOTTOM_KEYS = [
@@ -44,7 +44,7 @@ function NavItem({ label, icon: Icon, href, isActive, danger, collapsed }: NavIt
       className={cn(
         "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200",
         isActive
-          ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/20 font-bold"
+          ? "bg-[var(--theme-primary)] text-[var(--theme-primary-fg)] shadow-[3px_3px_0px_var(--theme-text-main)] dark:shadow-[3px_3px_0px_var(--theme-primary)] font-bold border-2 border-[var(--theme-text-main)] dark:border-[var(--theme-primary)]"
           : danger
             ? "text-red-400 hover:bg-red-500/10"
             : "text-default-500 hover:bg-default-100 hover:text-default-900 dark:hover:bg-default-50/10 dark:hover:text-default-100"
@@ -70,7 +70,10 @@ export function TeacherSidebar({ collapsed, onToggle }: TeacherSidebarProps) {
     <motion.aside
       animate={{ width: collapsed ? 72 : 240 }}
       transition={{ duration: 0.25, ease: "easeInOut" }}
-      className="fixed left-0 top-0 h-full z-40 flex flex-col bg-white/80 dark:bg-white/5 backdrop-blur-xl border-r border-default-200/50 dark:border-default-700/30 overflow-hidden"
+      className="fixed left-0 top-0 h-full z-40 flex flex-col
+        bg-white dark:bg-[#080C14]
+        border-r-2 border-[var(--theme-border)] dark:border-[var(--theme-primary)]/20
+        backdrop-blur-xl overflow-hidden"
     >
       {/* Brand */}
       <button
@@ -78,7 +81,7 @@ export function TeacherSidebar({ collapsed, onToggle }: TeacherSidebarProps) {
         className="flex items-center gap-3 px-4 h-16 border-b border-default-200/50 dark:border-default-700/30 w-full hover:bg-default-50 dark:hover:bg-white/5 transition-colors"
       >
         <div className="shrink-0 flex items-center justify-center">
-          <GradFlowerCharacter size={38} />
+          <AnimeRobotCharacter size={38} />
         </div>
         {!collapsed && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-left overflow-hidden">
@@ -104,7 +107,13 @@ export function TeacherSidebar({ collapsed, onToggle }: TeacherSidebarProps) {
         ))}
       </nav>
 
-      <div className="mx-3 border-t border-default-200/30 dark:border-default-700/20" />
+      <div className="mx-3 border-t border-default-200/30 dark:border-[var(--theme-primary)]/20" />
+
+      {!collapsed && (
+        <div className="px-4 py-2 flex justify-center opacity-90 hover:opacity-100 transition-opacity pointer-events-none select-none">
+          <AnimeRobotCharacter size={76} />
+        </div>
+      )}
 
       {/* Bottom Nav */}
       <nav className="px-2 py-4 flex flex-col gap-1">

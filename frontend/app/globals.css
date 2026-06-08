@@ -15,6 +15,8 @@
   --color-brand-secondary-hover: var(--theme-secondary-hover);
   --color-brand-secondary-fg: var(--theme-secondary-fg);
 
+  --color-brand-accent: var(--theme-accent);
+
   --color-text-main: var(--theme-text-main);
   --color-text-muted: var(--theme-text-muted);
 
@@ -39,40 +41,47 @@
   --color-indigo-600: var(--theme-primary);
 }
 
+/* ── Light Mode: Y2K Cyber-Anime / Ocean Zine ── */
 :root {
-  --theme-bg: #FAF6F0;
-  --theme-bg-secondary: #F0E7DC;
+  --theme-bg: #F0F4EC;
+  --theme-bg-secondary: #E2EBD6;
   --theme-card-bg: #FFFFFF;
-  --theme-card-dark-bg: #1F2229;
-  --theme-primary: #D05A3F;
-  --theme-primary-hover: #B74C32;
-  --theme-primary-fg: #FFFFFF;
-  --theme-secondary: #2E6F40;
-  --theme-secondary-hover: #225330;
-  --theme-secondary-fg: #FFFFFF;
-  --theme-text-main: #1C1C24;
-  --theme-text-muted: #626673;
-  --theme-border: #E6DDD1;
-  --theme-radius-card: 24px;
+  --theme-card-dark-bg: #1A2035;
+  --theme-primary: #00BCD4;
+  --theme-primary-hover: #0097A7;
+  --theme-primary-fg: #0A0A0F;
+  --theme-secondary: #BAFF29;
+  --theme-secondary-hover: #9EE010;
+  --theme-secondary-fg: #0A0A0F;
+  --theme-accent: #8C5CF6;
+  --theme-text-main: #0A0A0F;
+  --theme-text-muted: #4A5568;
+  --theme-border: #0A0A0F;
+  --theme-radius-card: 16px;
   --theme-radius-btn: 9999px;
+  /* Grid pattern color */
+  --theme-grid: rgba(0,188,212,0.12);
 }
 
+/* ── Dark Mode: Deep Cyber Ocean ── */
 .dark {
-  --theme-bg: #12141D;
-  --theme-bg-secondary: #191C27;
-  --theme-card-bg: #212534;
-  --theme-card-dark-bg: #0F111A;
-  --theme-primary: #FF7A59;
-  --theme-primary-hover: #FF9175;
-  --theme-primary-fg: #12141D;
-  --theme-secondary: #419F67;
-  --theme-secondary-hover: #53B87D;
-  --theme-secondary-fg: #12141D;
-  --theme-text-main: #FAF8F5;
-  --theme-text-muted: #9099AF;
-  --theme-border: #2A2F45;
-  --theme-radius-card: 24px;
+  --theme-bg: #08090F;
+  --theme-bg-secondary: #0E1118;
+  --theme-card-bg: #111827;
+  --theme-card-dark-bg: #050709;
+  --theme-primary: #00E5FF;
+  --theme-primary-hover: #00B8D9;
+  --theme-primary-fg: #08090F;
+  --theme-secondary: #C6FF00;
+  --theme-secondary-hover: #AEEA00;
+  --theme-secondary-fg: #08090F;
+  --theme-accent: #A78BFA;
+  --theme-text-main: #F0F4EC;
+  --theme-text-muted: #8896A7;
+  --theme-border: #1E2A3A;
+  --theme-radius-card: 16px;
   --theme-radius-btn: 9999px;
+  --theme-grid: rgba(0,229,255,0.07);
 }
 
 body {
@@ -89,38 +98,22 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-html[lang="th"] body {
-  line-height: 1.8;
-}
-
-html[lang="ja"] body {
-  line-height: 1.75;
-  word-break: break-all;
-}
-
-html[lang="ko"] body {
-  line-height: 1.75;
-  word-break: break-all;
-}
+html[lang="th"] body { line-height: 1.8; }
+html[lang="ja"] body { line-height: 1.75; word-break: break-all; }
+html[lang="ko"] body { line-height: 1.75; word-break: break-all; }
 
 html {
   scroll-behavior: smooth;
   background-color: var(--theme-bg);
 }
 
-*::-webkit-scrollbar {
-  width: 4px;
-  height: 3px;
-}
-
+*::-webkit-scrollbar { width: 4px; height: 3px; }
 *::-webkit-scrollbar-thumb {
-  background-color: #8181817a;
+  background-color: var(--theme-primary);
   border-radius: 20px;
+  opacity: 0.6;
 }
-
-*::-webkit-scrollbar-thumb:hover {
-  cursor: pointer;
-}
+*::-webkit-scrollbar-thumb:hover { cursor: pointer; }
 
 .quiz-bg {
   background: var(--theme-bg);
@@ -136,16 +129,20 @@ html {
 .ai-inspect-highlight {
   outline: 2.5px dashed var(--theme-primary) !important;
   outline-offset: 4px;
-  background-color: rgba(148, 148, 236, 0.05) !important;
+  background-color: rgba(0,229,255, 0.05) !important;
   cursor: crosshair !important;
   transition: outline 0.15s ease, background-color 0.15s ease;
 }
 
-/* Playful Retro neo-brutalism styles */
+/* ── Y2K Neo-brutalism base card ── */
 .retro-card {
   border: 3px solid var(--theme-text-main);
-  box-shadow: 6px 6px 0px 0px var(--theme-text-main);
+  box-shadow: 5px 5px 0px 0px var(--theme-text-main);
   transition: all 0.2s ease;
+}
+.dark .retro-card {
+  border-color: var(--theme-primary);
+  box-shadow: 5px 5px 0px 0px var(--theme-primary);
 }
 
 .retro-btn {
@@ -153,18 +150,58 @@ html {
   box-shadow: 4px 4px 0px 0px var(--theme-text-main);
   transition: all 0.1s ease;
 }
-
+.dark .retro-btn {
+  border-color: var(--theme-primary);
+  box-shadow: 4px 4px 0px 0px var(--theme-primary);
+}
 .retro-btn:hover:not(:disabled) {
   transform: translate(-1px, -1px);
   box-shadow: 5px 5px 0px 0px var(--theme-text-main);
 }
-
+.dark .retro-btn:hover:not(:disabled) {
+  box-shadow: 5px 5px 0px 0px var(--theme-primary);
+}
 .retro-btn:active:not(:disabled) {
   transform: translate(1px, 1px);
   box-shadow: 3px 3px 0px 0px var(--theme-text-main);
 }
 
-/* Disable and flatten backgrounds that use Tailwind's gradient utilities */
+/* ── Y2K Grid pattern overlay ── */
+.grid-bg {
+  background-image:
+    linear-gradient(var(--theme-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--theme-grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ── Cyber card: primary color border + glow ── */
+.cyber-card {
+  border: 2.5px solid var(--theme-primary);
+  box-shadow: 0 0 0 1px var(--theme-primary), 4px 4px 0px 0px var(--theme-primary);
+  transition: all 0.2s ease;
+}
+.cyber-card:hover {
+  box-shadow: 0 0 0 1px var(--theme-primary), 6px 6px 0px 0px var(--theme-primary);
+  transform: translate(-2px, -2px);
+}
+
+/* ── Cyber pill badge ── */
+.cyber-badge {
+  border: 2px solid currentColor;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── Anime glow text ── */
+.glow-text {
+  text-shadow: 0 0 20px var(--theme-primary), 0 0 40px var(--theme-primary);
+}
+.dark .glow-text {
+  text-shadow: 0 0 20px var(--theme-primary), 0 0 40px var(--theme-primary);
+}
+
+/* ── Gradient flattening: map legacy violet/purple classes to theme primary ── */
 .bg-gradient-to-r,
 .bg-gradient-to-br,
 .bg-gradient-to-t,
@@ -174,7 +211,6 @@ html {
   background-image: none !important;
 }
 
-/* Set flat fallbacks for common gradient groups to align with theme primary/secondary */
 .from-violet-600,
 .from-violet-500,
 .from-purple-500,
@@ -193,6 +229,45 @@ html {
 .from-amber-500,
 .from-orange-500,
 .from-yellow-500 {
-  background-color: #BCA135 !important;
-  /* Mustard flat color */
+  background-color: #BAFF29 !important;
+}
+
+/* ── Scanline overlay for screens ── */
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+.scanlines::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 3px,
+    rgba(0,229,255,0.02) 3px,
+    rgba(0,229,255,0.02) 4px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Deco cross sparkle ── */
+@keyframes sparkle-spin {
+  from { transform: rotate(0deg) scale(1); opacity: 1; }
+  50%  { transform: rotate(180deg) scale(1.2); opacity: 0.7; }
+  to   { transform: rotate(360deg) scale(1); opacity: 1; }
+}
+.sparkle-spin {
+  animation: sparkle-spin 4s linear infinite;
+}
+
+/* ── Anime float bounce ── */
+@keyframes anime-float {
+  0%, 100% { transform: translateY(0px) rotate(-2deg); }
+  50% { transform: translateY(-12px) rotate(2deg); }
+}
+.anime-float {
+  animation: anime-float 3s ease-in-out infinite;
 }
