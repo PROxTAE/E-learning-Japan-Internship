@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { messages, prompt, context, lang } = await req.json();
+    const { messages, prompt, context, contexts, lang } = await req.json();
 
     // 1. Determine which Ollama model to use
     // We try to auto-detect installed models from the local Ollama server.
@@ -56,8 +56,13 @@ IMPORTANT: You MUST respond in ${userLanguage} language ONLY. This is critical a
 
     apiMessages.push({ role: "system", content: systemPrompt });
 
-    // If context is provided, inject it as a system message to guide the LLM
-    if (context) {
+    // If contexts or context are provided, inject them as system messages to guide the LLM
+    if (contexts && Array.isArray(contexts) && contexts.length > 0) {
+      apiMessages.push({
+        role: "system",
+        content: `Current page / elements context details: ${JSON.stringify(contexts)}`
+      });
+    } else if (context) {
       apiMessages.push({
         role: "system",
         content: `Current page / element context: ${JSON.stringify(context)}`

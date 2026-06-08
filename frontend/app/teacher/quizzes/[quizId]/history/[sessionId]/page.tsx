@@ -125,7 +125,45 @@ export default function SessionDetailPage() {
   ];
 
   return (
-    <div className="min-h-screen text-foreground">
+    <div
+      className="min-h-screen text-foreground"
+      data-ai-context-type="session-detail"
+      data-ai-context-name={`รายละเอียดเซสชัน ${session.sessionLabel || t.sessionHistory.unlabeled}`}
+      data-ai-context-data={JSON.stringify({
+        sessionId: session.sessionId,
+        sessionLabel: session.sessionLabel,
+        quizId: session.quizId,
+        quizTitle: session.quiz?.title,
+        quizSubject: session.quiz?.subject,
+        quizChapter: session.quiz?.chapter,
+        startedAt: session.startedAt,
+        endedAt: session.endedAt,
+        duration: session.endedAt ? formatDuration(session.startedAt, session.endedAt) : "—",
+        stats: {
+          totalStudents: stats?.totalStudents ?? 0,
+          averageScore: stats?.averageScore ?? 0,
+          completionPercentage: stats?.completionPercentage ?? 0,
+        },
+        students: students.map(st => ({
+          studentId: st.studentId,
+          name: st.name,
+          score: st.score,
+          scorePercent: st.scorePercent ?? st.score,
+          progress: st.progress
+        })),
+        questionStats: questionStats.map(qs => ({
+          questionId: qs.questionId,
+          questionText: qs.questionText,
+          order: qs.order,
+          answerCount: qs.answerCount,
+          correctCount: qs.correctCount,
+          correctPercent: qs.correctPercent,
+          avgResponseTime: qs.avgResponseTime,
+          confusionCount: qs.confusionCount,
+          choices: qs.choices
+        }))
+      })}
+    >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
         {/* Back */}
@@ -264,8 +302,35 @@ export default function SessionDetailPage() {
             {/* ── Overview ── */}
             {activeTab === "overview" && (
               <motion.div key="overview" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-8">
-                <ScoreDistributionChart students={students} />
-                <div className="space-y-3">
+                <div
+                  data-ai-context-type="score-distribution"
+                  data-ai-context-name="แผนภูมิการกระจายคะแนน (Score Distribution)"
+                  data-ai-context-data={JSON.stringify({
+                    scores: students.map(st => ({ name: st.name, scorePercent: st.scorePercent ?? st.score }))
+                  })}
+                >
+                  <ScoreDistributionChart students={students} />
+                </div>
+                <div
+                  className="space-y-3"
+                  data-ai-context-type="confusion-heatmap"
+                  data-ai-context-name="ฮีทแมปความสับสนและการตอบคำถาม (Answer & Confusion Heatmap)"
+                  data-ai-context-data={JSON.stringify({
+                    questionAccuracyAndConfusion: questionStats.map(qs => ({
+                      order: qs.order,
+                      text: qs.questionText,
+                      correctPercent: qs.correctPercent,
+                      confusionCount: qs.confusionCount
+                    })),
+                    studentAnswers: answers.map(ans => ({
+                      studentId: ans.studentId,
+                      questionId: ans.questionId,
+                      isCorrect: ans.isCorrect,
+                      responseTime: ans.responseTime,
+                      confusionLevel: ans.confusionLevel
+                    }))
+                  })}
+                >
                   <h4 className="text-sm font-bold text-foreground/80">Answer Heatmap</h4>
                   <ConfusionHeatmap students={students} answers={answers} questionStats={questionStats} />
                 </div>
@@ -291,6 +356,26 @@ export default function SessionDetailPage() {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.05 }}
                       className="rounded-2xl border border-default-200/50 dark:border-white/10 bg-background/60 dark:bg-white/[0.03] overflow-hidden"
+                      data-ai-context-type="student-report"
+                      data-ai-context-name={`ผลการเรียนของ ${student.name}`}
+                      data-ai-context-data={JSON.stringify({
+                        studentId: student.studentId,
+                        name: student.name,
+                        rank: i + 1,
+                        scorePercent: score,
+                        answers: studentAnswers.map(ans => {
+                          const q = questionStats.find(qs => qs.questionId === ans.questionId);
+                          return {
+                            questionOrder: q?.order,
+                            questionText: q?.questionText,
+                            isCorrect: ans.isCorrect,
+                            responseTime: ans.responseTime,
+                            confusionLevel: ans.confusionLevel,
+                            selectedChoiceText: ans.choiceText,
+                            changeCount: ans.changeCount
+                          };
+                        })
+                      })}
                     >
                       <button
                         onClick={() => setExpandedStudentId(isExpanded ? null : student.studentId)}
@@ -356,7 +441,24 @@ export default function SessionDetailPage() {
 
             {/* ── Question Breakdown ── */}
             {activeTab === "questions" && (
-              <motion.div key="questions" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <motion.div
+                key="questions"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                data-ai-context-type="questions-breakdown"
+                data-ai-context-name="ข้อมูลวิเคราะห์รายข้อคำถาม (Question Breakdown)"
+                data-ai-context-data={JSON.stringify({
+                  questions: questionStats.map(qs => ({
+                    order: qs.order,
+                    text: qs.questionText,
+                    correctPercent: qs.correctPercent,
+                    avgResponseTime: qs.avgResponseTime,
+                    confusionCount: qs.confusionCount,
+                    choices: qs.choices.map(c => ({ text: c.choiceText, count: c.count }))
+                  }))
+                })}
+              >
                 <QuestionBreakdownChart questionStats={questionStats} />
               </motion.div>
             )}

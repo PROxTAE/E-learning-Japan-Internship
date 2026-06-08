@@ -61,7 +61,34 @@ export default function CompareSessionsPage() {
   ];
 
   return (
-    <div className="min-h-screen text-foreground">
+    <div 
+      className="min-h-screen text-foreground"
+      data-ai-context-type="quiz-compare"
+      data-ai-context-name="รายงานเปรียบเทียบผลการเรียนย้อนหลัง (Cross-Session Compare)"
+      data-ai-context-data={JSON.stringify({
+        quizId,
+        sessionsCount: aggregate?.sessions.length || 0,
+        sessions: aggregate?.sessions.map(s => ({
+          id: s.id,
+          label: s.sessionLabel,
+          endedAt: s.endedAt,
+          studentCount: s.studentCount,
+          averageScore: s.stats?.averageScore,
+          completionPercentage: s.stats?.completionPercentage
+        })),
+        questionsPerformance: aggregate?.questionAggregate?.map(q => ({
+          id: q.questionId,
+          text: q.questionText,
+          order: q.order,
+          sessionsAccuracy: q.sessions.map(s => ({
+            sessionLabel: s.sessionLabel,
+            correctPercent: s.correctPercent,
+            avgResponseTime: s.avgResponseTime,
+            confusionCount: s.confusionCount
+          }))
+        }))
+      })}
+    >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
         {/* Header */}
@@ -122,7 +149,19 @@ export default function CompareSessionsPage() {
 
             {/* Charts */}
             {activeSection === "charts" && (
-              <div className="rounded-2xl border border-default-200/50 dark:border-white/10 bg-background/60 dark:bg-white/[0.03] p-6">
+              <div
+                className="rounded-2xl border border-default-200/50 dark:border-white/10 bg-background/60 dark:bg-white/[0.03] p-6"
+                data-ai-context-type="compare-charts"
+                data-ai-context-name="แผนภูมิเปรียบเทียบระหว่างเซสชัน (Cross-Session Compare Charts)"
+                data-ai-context-data={JSON.stringify({
+                  sessions: aggregate.sessions.map(s => ({
+                    label: s.sessionLabel || t.sessionHistory.unlabeled,
+                    studentCount: s.studentCount,
+                    avgScore: s.stats?.averageScore,
+                    completionPercent: s.stats?.completionPercentage
+                  }))
+                })}
+              >
                 <CrossSessionChart aggregate={aggregate} />
               </div>
             )}
@@ -141,7 +180,20 @@ export default function CompareSessionsPage() {
                     </thead>
                     <tbody>
                       {aggregate.sessions.map((s, i) => (
-                        <tr key={s.id} className="border-b border-default-100 dark:border-white/5 hover:bg-default-50 dark:hover:bg-white/[0.02]">
+                        <tr
+                          key={s.id}
+                          className="border-b border-default-100 dark:border-white/5 hover:bg-default-50 dark:hover:bg-white/[0.02]"
+                          data-ai-context-type="compare-session-item"
+                          data-ai-context-name={`ข้อมูลเซสชัน ${s.sessionLabel || t.sessionHistory.unlabeled}`}
+                          data-ai-context-data={JSON.stringify({
+                            id: s.id,
+                            label: s.sessionLabel,
+                            endedAt: s.endedAt || s.startedAt,
+                            studentCount: s.studentCount,
+                            averageScore: s.stats?.averageScore,
+                            completionPercentage: s.stats?.completionPercentage
+                          })}
+                        >
                           <td className="px-4 py-3">
                             <span className="text-xs font-bold text-default-400">#{i + 1}</span>
                           </td>

@@ -93,6 +93,13 @@ async function listSessions(quizId: string): Promise<SessionSummary[]> {
   return body.data ?? [];
 }
 
+async function listAllSessions(): Promise<(SessionSummary & { quizId: string; quizTitle?: string; quizEmoji?: string; quizGradient?: string })[]> {
+  const res = await fetch(`${BASE_URL}/api/session-history/all`);
+  if (!res.ok) throw new Error("Failed to load all sessions");
+  const body = await res.json();
+  return body.data ?? [];
+}
+
 // ── Session Detail ────────────────────────────────────────────────────────────
 
 async function getSession(sessionResultId: string): Promise<SessionDetail> {
@@ -266,12 +273,22 @@ function streamAiCrossSession(
   return () => ctrl.abort();
 }
 
+async function deleteSession(sessionResultId: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/api/session-history/${sessionResultId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Failed to delete session");
+}
+
 export const sessionHistoryApi = {
   listSessions,
+  listAllSessions,
   getSession,
   updateLabel,
+  deleteSession,
   getAggregate,
   streamAiSummary,
   streamAiStudent,
   streamAiCrossSession,
 };
+

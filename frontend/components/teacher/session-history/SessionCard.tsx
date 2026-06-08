@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Calendar, Users, CheckCircle2 } from "lucide-react";
+import { Calendar, Users, CheckCircle2, Trash2 } from "lucide-react";
 import type { SessionSummary } from "@/services/sessionHistoryApi";
 import { useLang } from "@/lib/i18n/LanguageContext";
 
@@ -9,6 +9,7 @@ interface SessionCardProps {
   session: SessionSummary;
   index: number;
   onView: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 function formatDate(dateStr: string, lang: string): string {
@@ -29,7 +30,7 @@ const GRADIENTS = [
   "from-indigo-500 to-blue-600",
 ];
 
-export function SessionCard({ session, index, onView }: SessionCardProps) {
+export function SessionCard({ session, index, onView, onDelete }: SessionCardProps) {
   const { t, lang } = useLang();
   const gradient = GRADIENTS[index % GRADIENTS.length];
   const label      = session.sessionLabel || t.sessionHistory.unlabeled;
@@ -46,6 +47,16 @@ export function SessionCard({ session, index, onView }: SessionCardProps) {
       <button
         onClick={() => onView(session.id)}
         className="w-full text-left group relative overflow-hidden rounded-2xl border border-default-200/60 dark:border-white/10 hover:border-violet-400/50 dark:hover:border-violet-500/40 transition-all duration-300 shadow-sm hover:shadow-xl hover:shadow-violet-500/10 bg-background dark:bg-white/[0.03] backdrop-blur-sm cursor-pointer"
+        data-ai-context-type="session-summary"
+        data-ai-context-name={`สรุปผลเซสชัน ${label}`}
+        data-ai-context-data={JSON.stringify({
+          id: session.id,
+          label,
+          endedAt: session.endedAt || session.startedAt,
+          studentCount: session.studentCount,
+          averageScore: score,
+          completionPercentage: completion
+        })}
       >
         {/* Top gradient strip */}
         <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${gradient}`} />
@@ -61,9 +72,24 @@ export function SessionCard({ session, index, onView }: SessionCardProps) {
                 {label}
               </h3>
             </div>
-            <span className={`shrink-0 text-xs font-bold bg-gradient-to-r ${gradient} text-white px-2.5 py-1 rounded-lg shadow-sm`}>
-              {score}%
-            </span>
+            <div className="flex items-center gap-2 shrink-0">
+              <span className={`text-xs font-bold bg-gradient-to-r ${gradient} text-white px-2.5 py-1 rounded-lg shadow-sm`}>
+                {score}%
+              </span>
+              {onDelete && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(session.id);
+                  }}
+                  className="p-1.5 rounded-lg text-default-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                  aria-label="Delete Session"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Stats grid */}

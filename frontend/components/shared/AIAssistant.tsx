@@ -135,11 +135,15 @@ export default function AIAssistant() {
   const [activeModel, setActiveModel] = useState<string>("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isMaximized, setIsMaximized] = useState(false);
-  const [selectedContext, setSelectedContext] = useState<AIContext | null>(null);
+  const [selectedContexts, setSelectedContexts] = useState<AIContext[]>([]);
   const [isSelectingContext, setIsSelectingContext] = useState(false);
 
   useContextSelector(isSelectingContext, (context) => {
-    setSelectedContext(context);
+    setSelectedContexts((prev) => {
+      const exists = prev.some(c => c.name === context.name && c.type === context.type);
+      if (exists) return prev;
+      return [...prev, context];
+    });
     setIsSelectingContext(false);
   });
 
@@ -164,7 +168,7 @@ export default function AIAssistant() {
         content: "",
       },
     ]);
-    setSelectedContext(null);
+    setSelectedContexts([]);
     setErrorMsg(null);
   };
 
@@ -203,7 +207,7 @@ export default function AIAssistant() {
           prompt: userMessageText,
           messages: history,
           lang,
-          context: selectedContext,
+          contexts: selectedContexts,
         }),
       });
 
@@ -551,24 +555,26 @@ export default function AIAssistant() {
               )}
             </div>
 
-            {/* Active Context Reference Badge */}
-            {selectedContext && (
-              <div className="px-4 py-2 border-t border-zinc-150 dark:border-zinc-900/60 bg-violet-50/25 dark:bg-violet-950/10 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs text-violet-750 dark:text-violet-400 font-medium">
-                  <div className="px-1.5 py-0.5 rounded-md bg-violet-100/50 dark:bg-violet-950/40 text-[9px] font-bold uppercase border border-violet-200/30 dark:border-violet-900/30">
-                    {selectedContext.type === "student" ? (lang === "th" ? "นักเรียน" : lang === "ja" ? "学生" : "Student") : selectedContext.type === "quiz" ? (lang === "th" ? "แบบทดสอบ" : lang === "ja" ? "クイズ" : "Quiz") : selectedContext.type}
+            {/* Active Context Reference Badges */}
+            {selectedContexts.length > 0 && (
+              <div className="px-4 py-2 border-t border-zinc-150 dark:border-zinc-900/60 bg-violet-50/25 dark:bg-violet-950/10 flex flex-wrap gap-2 items-center">
+                {selectedContexts.map((context, index) => (
+                  <div key={index} className="flex items-center gap-1.5 text-xs text-violet-750 dark:text-violet-400 font-medium bg-white dark:bg-zinc-900/50 px-2.5 py-1 rounded-xl border border-violet-200/30 dark:border-violet-900/30 max-w-full shrink-0">
+                    <div className="px-1.5 py-0.5 rounded-md bg-violet-100/50 dark:bg-violet-950/40 text-[9px] font-bold uppercase border border-violet-200/30 dark:border-violet-900/30 shrink-0">
+                      {context.type === "student" ? (lang === "th" ? "นักเรียน" : lang === "ja" ? "学生" : "Student") : context.type === "quiz" ? (lang === "th" ? "แบบทดสอบ" : lang === "ja" ? "クイズ" : "Quiz") : context.type}
+                    </div>
+                    <span className="truncate max-w-[120px] font-semibold text-zinc-700 dark:text-zinc-300">
+                      {context.name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedContexts(prev => prev.filter((_, i) => i !== index))}
+                      className="text-zinc-400 hover:text-rose-500 dark:hover:text-rose-400 transition-colors cursor-pointer border-none bg-transparent"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
                   </div>
-                  <span className="truncate max-w-[200px] font-semibold text-zinc-700 dark:text-zinc-300">
-                    {selectedContext.name}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setSelectedContext(null)}
-                  className="text-zinc-400 hover:text-rose-500 dark:hover:text-rose-400 transition-colors cursor-pointer border-none bg-transparent"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
+                ))}
               </div>
             )}
 

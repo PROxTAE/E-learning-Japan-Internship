@@ -310,6 +310,39 @@ const en = {
     correctStatus: "Correct",
     incorrectStatus: "Incorrect",
     skippedStatus: "Skipped",
+  },
+  dashboardNew: {
+    liveSession: "Live Quiz Session",
+    activeNow: "Active Now",
+    goToMonitor: "Go to Live Monitor",
+    noLiveSession: "No Live Session Running",
+    publishedQuizzes: "Published Quizzes",
+    draftQuizzes: "Draft Quizzes",
+    setupGuide: "Setup Progress",
+    setupChecklist: "Setup Checklist",
+    checklistItems: {
+      create: "Create a Quiz",
+      questions: "Add questions & answers",
+      publish: "Publish the Quiz",
+      share: "Share access code with class",
+      host: "Host a Live Session",
+      insights: "View class insights & AI summary"
+    },
+    recentSessionHistory: "Recent Session History",
+    classAnalytics: "Class Analytics Insights",
+    searchQuizzes: "Search Quizzes...",
+    startSession: "Start Session",
+    edit: "Edit",
+    averageScoreTrend: "Average Score Trend",
+    totalStudents: "Total Students",
+    attempts: "Attempts",
+    averageAccuracy: "Average Accuracy",
+    loading: "Loading dashboard...",
+    createQuiz: "+ Create New Quiz",
+    viewAll: "View All",
+    students: "students",
+    avgScore: "Avg Score",
+    completedAt: "Completed at"
   }
 };
 
@@ -604,6 +637,39 @@ const th: typeof en = {
     correctStatus: "ถูกต้อง",
     incorrectStatus: "ไม่ถูกต้อง",
     skippedStatus: "ข้ามไป",
+  },
+  dashboardNew: {
+    liveSession: "เซสชันควิซสด",
+    activeNow: "กำลังทำงานอยู่",
+    goToMonitor: "ไปยังหน้าควบคุมสด",
+    noLiveSession: "ไม่มีเซสชันสดที่กำลังทำงาน",
+    publishedQuizzes: "แบบทดสอบที่เผยแพร่แล้ว",
+    draftQuizzes: "แบบทดสอบฉบับร่าง",
+    setupGuide: "ความก้าวหน้าการตั้งค่า",
+    setupChecklist: "รายการตรวจสอบการเตรียมสอน",
+    checklistItems: {
+      create: "สร้างแบบทดสอบแรก",
+      questions: "เพิ่มคำถามและคำเฉลย",
+      publish: "กดเผยแพร่แบบทดสอบ",
+      share: "แชร์รหัสห้องเรียนให้นักเรียน",
+      host: "เปิดโฮสต์เซสชันคุมสอบสด",
+      insights: "ดูผลลัพธ์ควิซและวิเคราะห์ด้วย AI"
+    },
+    recentSessionHistory: "ประวัติเซสชันล่าสุด",
+    classAnalytics: "ข้อมูลวิเคราะห์ภาพรวมชั้นเรียน",
+    searchQuizzes: "ค้นหาแบบทดสอบ...",
+    startSession: "เริ่มเซสชันสด",
+    edit: "แก้ไข",
+    averageScoreTrend: "แนวโน้มคะแนนเฉลี่ย",
+    totalStudents: "นักเรียนทั้งหมด",
+    attempts: "จำนวนครั้งที่ทำ",
+    averageAccuracy: "ความแม่นยำเฉลี่ย",
+    loading: "กำลังโหลดแดชบอร์ด...",
+    createQuiz: "+ สร้างแบบทดสอบใหม่",
+    viewAll: "ดูทั้งหมด",
+    students: "นักเรียน",
+    avgScore: "คะแนนเฉลี่ย",
+    completedAt: "เสร็จสิ้นเมื่อ"
   }
 };
 
@@ -898,6 +964,39 @@ const ja: typeof en = {
     correctStatus: "正解",
     incorrectStatus: "不正解",
     skippedStatus: "スキップ",
+  },
+  dashboardNew: {
+    liveSession: "ライブクイズセッション",
+    activeNow: "アクティブ中",
+    goToMonitor: "ライブ監視に進む",
+    noLiveSession: "実行中のライブセッションはありません",
+    publishedQuizzes: "公開済みのクイズ",
+    draftQuizzes: "下書きのクイズ",
+    setupGuide: "セットアップ進捗",
+    setupChecklist: "セットアップチェックリスト",
+    checklistItems: {
+      create: "クイズを作成する",
+      questions: "問題と解答を追加する",
+      publish: "クイズを公開する",
+      share: "クラスとアクセスコードを共有する",
+      host: "ライブセッションを開催する",
+      insights: "クラス分析とAIサマリーを表示する"
+    },
+    recentSessionHistory: "最近のセッション履歴",
+    classAnalytics: "クラス分析インサイト",
+    searchQuizzes: "クイズを検索...",
+    startSession: "セッションを開始",
+    edit: "編集",
+    averageScoreTrend: "平均スコアの傾向",
+    totalStudents: "総学生数",
+    attempts: "受験回数",
+    averageAccuracy: "平均正確率",
+    loading: "ダッシュボードを読み込み中...",
+    createQuiz: "+ 新規クイズ作成",
+    viewAll: "すべて見る",
+    students: "名",
+    avgScore: "平均点",
+    completedAt: "終了日時"
   }
 };
 

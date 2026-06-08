@@ -8,6 +8,7 @@ import { ArrowLeft, History, BarChart2, Search, BookOpen } from "lucide-react";
 import { sessionHistoryApi, type SessionSummary } from "@/services/sessionHistoryApi";
 import { quizApi } from "@/services/quizApi";
 import { SessionCard } from "@/components/teacher/session-history/SessionCard";
+import { SessionDeleteModal } from "@/components/teacher/session-history/SessionDeleteModal";
 import { useLang } from "@/lib/i18n/LanguageContext";
 import type { Quiz } from "@/types/teacher/quiz.types";
 
@@ -21,6 +22,22 @@ export default function SessionHistoryPage() {
   const [quiz,     setQuiz]     = useState<Quiz | null>(null);
   const [loading,  setLoading]  = useState(true);
   const [search,   setSearch]   = useState("");
+  const [deleteSessionTarget, setDeleteSessionTarget] = useState<SessionSummary | null>(null);
+  const [deletingSession, setDeletingSession] = useState(false);
+
+  const handleDeleteSessionConfirm = async () => {
+    if (!deleteSessionTarget) return;
+    setDeletingSession(true);
+    try {
+      await sessionHistoryApi.deleteSession(deleteSessionTarget.id);
+      setSessions(prev => prev.filter(s => s.id !== deleteSessionTarget.id));
+      setDeleteSessionTarget(null);
+    } catch (err) {
+      console.error("Failed to delete session:", err);
+    } finally {
+      setDeletingSession(false);
+    }
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -53,7 +70,24 @@ export default function SessionHistoryPage() {
   const quizChapter = (quiz as any)?.chapter || "";
 
   return (
-    <div className="min-h-screen text-foreground">
+    <div 
+      className="min-h-screen text-foreground"
+      data-ai-context-type="quiz-history"
+      data-ai-context-name={`ประวัติเซสชันของ ${quizTitle}`}
+      data-ai-context-data={JSON.stringify({
+        quiz: { id: quizId, title: quizTitle, subject: quizSubject, chapter: quizChapter },
+        sessionsCount: sessions.length,
+        sessionsList: sessions.map(s => ({
+          id: s.id,
+          label: s.sessionLabel,
+          startedAt: s.startedAt,
+          endedAt: s.endedAt,
+          studentCount: s.studentCount,
+          averageScore: s.stats?.averageScore,
+          completionPercentage: s.stats?.completionPercentage
+        }))
+      })}
+    >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
         {/* Header */}
@@ -155,12 +189,13 @@ export default function SessionHistoryPage() {
               animate={{ opacity: 1 }}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
             >
-              {filtered.map((session, i) => (
+               {filtered.map((session, i) => (
                 <SessionCard
                   key={session.id}
                   session={session}
                   index={i}
                   onView={(id) => router.push(`/teacher/quizzes/${quizId}/history/${id}`)}
+                  onDelete={() => setDeleteSessionTarget(session)}
                 />
               ))}
             </motion.div>
@@ -168,6 +203,14 @@ export default function SessionHistoryPage() {
         </AnimatePresence>
 
       </div>
+
+      <SessionDeleteModal
+        session={deleteSessionTarget}
+        isOpen={!!deleteSessionTarget}
+        onClose={() => setDeleteSessionTarget(null)}
+        onConfirm={handleDeleteSessionConfirm}
+        isDeleting={deletingSession}
+      />
     </div>
   );
 }

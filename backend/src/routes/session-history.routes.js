@@ -74,6 +74,39 @@ async function streamOllamaSSE(res, prompt) {
 // ── Routes ────────────────────────────────────────────────────────────────────
 
 /**
+ * GET /api/session-history/all
+ * List all past sessions across all quizzes, sorted by newest first.
+ */
+router.get("/all", async (req, res) => {
+  try {
+    const sessions = await QuizSessionResult.find({})
+      .populate("quizId", "title emoji gradient")
+      .select("sessionId sessionLabel startedAt endedAt stats students quizId createdAt")
+      .sort({ endedAt: -1 })
+      .lean();
+
+    const data = sessions.map(s => ({
+      id:           s._id.toString(),
+      sessionId:    s.sessionId,
+      sessionLabel: s.sessionLabel || "",
+      startedAt:    s.startedAt,
+      endedAt:      s.endedAt,
+      stats:        s.stats,
+      studentCount: (s.students || []).length,
+      quizId:       s.quizId?._id ? s.quizId._id.toString() : s.quizId || "",
+      quizTitle:    s.quizId?.title || "Unknown Quiz",
+      quizEmoji:    s.quizId?.emoji || "📄",
+      quizGradient: s.quizId?.gradient || "from-violet-500 to-purple-700",
+    }));
+
+    ok(res, data);
+  } catch (err) {
+    console.error("[session-history] list all error:", err);
+    fail(res, err.message, 500);
+  }
+});
+
+/**
  * GET /api/session-history/quiz/:quizId
  * List all past sessions for a quiz, sorted by newest first.
  */
@@ -433,4 +466,20 @@ IMPORTANT CRITICAL INSTRUCTION: You MUST write your entire response, headings, a
   }
 });
 
+/**
+ * DELETE /api/session-history/:sessionResultId
+ * Delete a past quiz session result.
+ */
+router.delete("/:sessionResultId", async (req, res) => {
+  try {
+    const session = await QuizSessionResult.findByIdAndDelete(req.params.sessionResultId).lean();
+    if (!session) return fail(res, "Session not found", 404);
+    ok(res, { message: "Session deleted successfully" });
+  } catch (err) {
+    console.error("[session-history] delete error:", err);
+    fail(res, err.message, 500);
+  }
+});
+
 module.exports = router;
+

@@ -1,5 +1,6 @@
 
+ทำส่วนของ API ให้เรียบร้อยทั้ง Backend frontend Database 
 โดยให้เน้นใช้ component ของ HeroUI เป็นหลักเพื่อให้จัดการได้ง่าย 
 แยก component ชัดเจนตาม Best practies และ
 ทำให้รองรับ darkmode light mode 
-รองรับหลายภาษาให้เรียบร้อย และรองรับ responsive
+รองรับหลายภาษา เช่น อังกฤษ ญี่ปุ่น  และไทย ให้เรียบร้อย และรองรับ responsive

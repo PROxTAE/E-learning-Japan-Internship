@@ -86,7 +86,7 @@ export default function Home() {
         </div>
 
         {/* CTA button to Teacher Dashboard */}
-        <Link href="/teacher/dashboard" className="w-full max-w-xs sm:max-w-sm">
+        <Link href="/teacher" className="w-full max-w-xs sm:max-w-sm">
           <button
             suppressHydrationWarning
             className="
