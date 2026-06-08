@@ -1,6 +1,95 @@
 @import "tailwindcss";
 @import "@heroui/styles";
 
+@theme {
+  /* Quantus Palette 2025 overrides */
+  --color-violet-50: #f5f3ff; /* Blue Chalk */
+  --color-violet-100: #ece9fc;
+  --color-violet-200: #dedaf3;
+  --color-violet-300: #c9c2e9;
+  --color-violet-400: #a78bfa;
+  --color-violet-500: #834dfb; /* Electric Violet */
+  --color-violet-600: #7033f9;
+  --color-violet-700: #5b1fe6;
+  --color-violet-800: #4c17c6;
+  --color-violet-900: #3f13a5;
+  --color-violet-950: #1b074d;
+
+  /* Purple overrides */
+  --color-purple-500: #834dfb;
+  --color-purple-600: #7033f9;
+
+  /* Yellow / Turbo overrides */
+  --color-yellow-400: #fff100;
+  --color-yellow-500: #f0e100; /* Turbo */
+  --color-yellow-600: #d8ca00;
+
+  /* Slate neutral overrides mapped to Haiti / Blue Chalk */
+  --color-slate-50: #f5f3ff; /* Blue Chalk */
+  --color-slate-100: #ece9fc;
+  --color-slate-200: #dedaf3;
+  --color-slate-300: #c9c2e9;
+  --color-slate-400: #a89fdb;
+  --color-slate-500: #887cc8;
+  --color-slate-600: #6b5fb4;
+  --color-slate-700: #564c96;
+  --color-slate-800: #3c346a;
+  --color-slate-900: #211836;
+  --color-slate-950: #18102b; /* Haiti */
+
+  /* Zinc neutral overrides mapped to Haiti / Blue Chalk */
+  --color-zinc-50: #f5f3ff; /* Blue Chalk */
+  --color-zinc-100: #ece9fc;
+  --color-zinc-200: #dedaf3;
+  --color-zinc-300: #c9c2e9;
+  --color-zinc-400: #a89fdb;
+  --color-zinc-500: #887cc8;
+  --color-zinc-600: #6b5fb4;
+  --color-zinc-700: #564c96;
+  --color-zinc-800: #3c346a;
+  --color-zinc-900: #211836;
+  --color-zinc-950: #18102b; /* Haiti */
+}
+
+:root {
+  /* HeroUI Semantic Colors - Light Mode */
+  --heroui-background: 250 100% 98%; /* Blue Chalk: #f5f3ff */
+  --heroui-foreground: 257 46% 11%;  /* Haiti: #18102b */
+  --heroui-primary: 251 96% 64%;     /* Electric Violet: #834dfb */
+  --heroui-primary-50: 250 100% 98%;  /* Blue Chalk */
+  --heroui-primary-100: 250 95% 95%;
+  --heroui-primary-200: 250 95% 88%;
+  --heroui-primary-300: 250 95% 80%;
+  --heroui-primary-400: 250 95% 72%;
+  --heroui-primary-500: 251 96% 64%;  /* Electric Violet */
+  --heroui-primary-600: 251 96% 56%;
+  --heroui-primary-700: 251 96% 48%;
+  --heroui-primary-800: 251 96% 40%;
+  --heroui-primary-900: 251 96% 30%;
+  
+  --heroui-warning: 56 100% 47%;      /* Turbo: #f0e100 */
+}
+
+.dark {
+  /* HeroUI Semantic Colors - Dark Mode */
+  --heroui-background: 257 46% 11%;  /* Haiti: #18102b */
+  --heroui-foreground: 250 100% 98%; /* Blue Chalk: #f5f3ff */
+  --heroui-primary: 251 96% 64%;     /* Electric Violet: #834dfb */
+  --heroui-primary-50: 257 46% 15%;
+  --heroui-primary-100: 257 46% 22%;
+  --heroui-primary-200: 257 46% 30%;
+  --heroui-primary-300: 257 46% 40%;
+  --heroui-primary-400: 257 46% 50%;
+  --heroui-primary-500: 251 96% 64%;  /* Electric Violet */
+  --heroui-primary-600: 251 96% 56%;
+  --heroui-primary-700: 251 96% 48%;
+  --heroui-primary-800: 251 96% 40%;
+  --heroui-primary-900: 251 96% 30%;
+  
+  --heroui-warning: 56 100% 47%;      /* Turbo: #f0e100 */
+}
+
+
 /* ── Universal font stack: each font covers its own script ── */
 body {
   font-family:
@@ -52,30 +141,30 @@ html {
    Dark  → deep navy-purple
 ───────────────────────────────────── */
 .quiz-bg {
-  background: linear-gradient(160deg, #5b21b6 0%, #7c3aed 50%, #6d28d9 100%);
+  background: linear-gradient(160deg, var(--color-violet-600) 0%, var(--color-violet-500) 50%, var(--color-violet-700) 100%);
   min-height: 100vh;
 }
 
 .dark .quiz-bg {
-  background: linear-gradient(160deg, #120736 0%, #2e0a7a 50%, #1a0550 100%);
+  background: linear-gradient(160deg, #18102b 0%, #211836 50%, #100b1d 100%);
 }
 
 /* Option card hover ring — purple accent */
 .option-ring:focus-visible {
-  outline: 2px solid #7c3aed;
+  outline: 2px solid var(--color-violet-500);
   outline-offset: 2px;
 }
 
 /* AI Context Inspector Hover styles */
 .ai-inspect-highlight {
-  outline: 2.5px dashed #7c3aed !important;
+  outline: 2.5px dashed var(--color-violet-500) !important;
   outline-offset: 4px;
-  background-color: rgba(124, 58, 237, 0.05) !important;
+  background-color: rgba(131, 77, 251, 0.05) !important;
   cursor: crosshair !important;
   transition: outline 0.15s ease, background-color 0.15s ease;
 }
 
 .dark .ai-inspect-highlight {
-  outline-color: #a78bfa !important;
+  outline-color: var(--color-violet-400) !important;
   background-color: rgba(167, 139, 250, 0.05) !important;
 }
