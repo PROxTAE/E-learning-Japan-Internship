@@ -75,7 +75,7 @@ export function TeacherTopbar({ onMenuToggle, searchQuery, onSearchChange }: Tea
               </p>
               <p className="text-[10px] text-default-400 leading-tight">Teacher</p>
             </div>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center text-white text-sm font-bold shrink-0">
+            <div className="w-8 h-8 rounded-full bg-brand-primary flex items-center justify-center text-white text-sm font-bold shrink-0 border-2 border-text-main">
               T
             </div>
             <ChevronDown className="w-3.5 h-3.5 text-default-400" />

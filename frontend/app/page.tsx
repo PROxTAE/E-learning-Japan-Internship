@@ -8,6 +8,13 @@ import { ArrowRight } from "lucide-react";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import { useLang } from "@/lib/i18n/LanguageContext";
+import {
+  OrangeFlowerCharacter,
+  OliveBlobCharacter,
+  LimeStarCharacter,
+  GreenDropletCharacter,
+  GradFlowerCharacter,
+} from "@/components/shared/ThemeCharacters";
 
 export default function Home() {
   const router = useRouter();
@@ -22,11 +29,28 @@ export default function Home() {
   };
 
   return (
-    <div className="quiz-bg fixed inset-0 overflow-y-auto">
-      {/* Blobs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-20 -left-20 w-64 sm:w-80 h-64 sm:h-80 rounded-full bg-purple-400/20 dark:bg-purple-300/10 blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-72 sm:w-96 h-72 sm:h-96 rounded-full bg-violet-800/30 dark:bg-violet-600/20 blur-3xl" />
+    <div className="quiz-bg fixed inset-0 overflow-y-auto select-none bg-bg-primary">
+      {/* Floating retro illustration characters in corners */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-90 dark:opacity-80">
+        {/* Top Left: Orange Flower Character */}
+        <div className="absolute -top-6 -left-6 sm:top-10 sm:left-10 transform -rotate-12 hover:rotate-3 transition-transform duration-300">
+          <OrangeFlowerCharacter size={160} />
+        </div>
+
+        {/* Bottom Right: Olive Blob Character */}
+        <div className="absolute -bottom-10 -right-10 sm:bottom-10 sm:right-10 transform rotate-12 hover:-rotate-3 transition-transform duration-300">
+          <OliveBlobCharacter size={160} />
+        </div>
+
+        {/* Peeking Left: Lime Star Character */}
+        <div className="absolute left-[-40px] top-[40%] transform rotate-45 hidden md:block">
+          <LimeStarCharacter size={110} />
+        </div>
+
+        {/* Peeking Right: Green Droplet Character */}
+        <div className="absolute right-[-30px] top-[30%] transform -rotate-12 hidden md:block">
+          <GreenDropletCharacter size={110} />
+        </div>
       </div>
 
       {/* Floating controls: Language + Theme */}
@@ -37,63 +61,63 @@ export default function Home() {
 
       {/* Centred content */}
       <div className="relative min-h-full flex flex-col items-center justify-center px-4 sm:px-8 py-16 text-center gap-6 sm:gap-8">
-
-        {/* Icon */}
-        <div className="
-          w-24 h-24 sm:w-28 sm:h-28 rounded-3xl
-          bg-white/10 dark:bg-white/5 backdrop-blur-sm
-          border-2 border-white/20 dark:border-white/10
-          flex items-center justify-center shadow-2xl
-          text-5xl sm:text-6xl
-        ">
-          🎓
+        
+        {/* Brand Icon: graduation cap character badge */}
+        <div className="transform rotate-3 hover:rotate-[-3deg] transition-transform duration-300 cursor-pointer">
+          <GradFlowerCharacter size={120} />
         </div>
 
         {/* Title + subtitle */}
         <div className="flex flex-col gap-2 sm:gap-3 max-w-xs sm:max-w-sm">
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-white leading-tight tracking-tight">
+          <h1 className="text-4xl sm:text-5xl font-black text-text-main leading-tight tracking-tight uppercase">
             {t.play.homeTitle.split(" ").slice(0, -1).join(" ")}<br />{t.play.homeTitle.split(" ").slice(-1)[0]}
           </h1>
-          <p className="text-white/55 text-base sm:text-lg">
+          <p className="text-text-muted font-bold text-sm sm:text-base tracking-wide">
             {t.play.homeSubtitle}
           </p>
         </div>
 
-        <form onSubmit={handleJoin} className="w-full max-w-xs sm:max-w-sm bg-white/10 backdrop-blur-md p-4 rounded-3xl border border-white/20 flex flex-col gap-3">
+        {/* Join form with neo-brutalism retro shadow card style */}
+        <form
+          onSubmit={handleJoin}
+          className="w-full max-w-xs sm:max-w-sm bg-bg-card p-6 rounded-[24px] retro-card flex flex-col gap-4 shadow-xl transition-all"
+        >
           <TextField className="w-full">
             <Input
               suppressHydrationWarning
               placeholder={t.play.enterCode}
               value={accessCode}
               onChange={(e) => setAccessCode(e.target.value)}
-              className="text-center text-xl font-bold tracking-widest uppercase bg-white/5 border-white/10 hover:border-white/20 focus:border-violet-500 rounded-xl h-12 w-full outline-none transition-all text-white"
+              className="text-center text-xl font-black tracking-widest uppercase bg-bg-secondary border-3 border-text-main hover:border-brand-primary focus:border-brand-primary rounded-[16px] h-14 w-full outline-none transition-all text-text-main placeholder:text-text-muted/65"
             />
           </TextField>
           <Button
             type="submit"
             size="lg"
-            className="w-full font-bold bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-lg shadow-violet-500/25 hover:-translate-y-0.5 flex items-center justify-center gap-2"
+            className="w-full font-black bg-brand-primary hover:bg-brand-primary-hover text-white rounded-full h-14 flex items-center justify-center gap-2 transition-all retro-btn cursor-pointer"
             isDisabled={!accessCode.trim()}
           >
-            {t.play.joinQuiz} <ArrowRight className="w-5 h-5" />
+            {t.play.joinQuiz} <ArrowRight className="w-5 h-5 stroke-[3]" />
           </Button>
         </form>
 
-        <div className="flex items-center gap-4 w-full max-w-xs sm:max-w-sm my-2">
-          <div className="h-px bg-white/20 flex-1" />
-          <span className="text-white/50 text-sm font-medium uppercase tracking-wider">OR</span>
-          <div className="h-px bg-white/20 flex-1" />
+        <div className="flex items-center gap-4 w-full max-w-xs sm:max-w-sm my-1">
+          <div className="h-[3px] bg-text-main flex-1 opacity-70" />
+          <span className="text-text-main text-sm font-black uppercase tracking-widest">OR</span>
+          <div className="h-[3px] bg-text-main flex-1 opacity-70" />
         </div>
 
-        {/* CTA button to Teacher Dashboard */}
+        {/* CTA button to Teacher Dashboard using retro border shadow style */}
         <Link href="/teacher/dashboard" className="w-full max-w-xs sm:max-w-sm">
           <button
             suppressHydrationWarning
             className="
-              w-full py-4 sm:py-4.5 rounded-2xl
-              bg-white/10 text-white font-bold text-lg sm:text-xl
-              border border-white/20 hover:bg-white/20
-              active:scale-97 transition-all duration-200
+              w-full py-4 rounded-[16px]
+              bg-bg-card text-text-main font-black text-lg sm:text-xl
+              border-3 border-text-main shadow-[4px_4px_0px_0px_var(--theme-text-main)]
+              hover:bg-bg-secondary hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[5px_5px_0px_0px_var(--theme-text-main)]
+              active:translate-x-[1px] active:translate-y-[1px] active:shadow-[3px_3px_0px_0px_var(--theme-text-main)]
+              transition-all duration-100 cursor-pointer
             "
           >
             {t.play.teacherPortal}

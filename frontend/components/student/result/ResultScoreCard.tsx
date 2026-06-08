@@ -19,9 +19,7 @@ export function ResultScoreCard({ studentName, score, total, percentage, onPlayA
   
   const isPassed = percentage >= 50;
   const strokeColor = isPassed ? "success" : "warning";
-  const bgGradient = isPassed 
-    ? "from-emerald-400 to-green-500" 
-    : "from-amber-400 to-orange-500";
+  const bgColor = isPassed ? "bg-emerald-500" : "bg-amber-500";
 
   return (
     <div
@@ -35,17 +33,17 @@ export function ResultScoreCard({ studentName, score, total, percentage, onPlayA
         animate={{ opacity: 1, scale: 1, y: 0 }}
         className="flex flex-col items-center gap-3 text-center"
       >
-        <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm border-2 border-white/20 flex items-center justify-center shadow-2xl">
-          <Trophy className="w-10 h-10 text-yellow-300 drop-shadow-lg" />
+        <div className="w-20 h-20 rounded-full bg-brand-primary/15 border-2 border-brand-primary/30 flex items-center justify-center shadow-lg">
+          <Trophy className="w-10 h-10 text-brand-secondary drop-shadow-md" />
         </div>
         <div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight">{t.play.quizComplete}</h1>
-          <p className="text-white/70 text-sm mt-1">{t.play.wellDone} <span className="font-bold text-white">{studentName}</span>!</p>
+          <h1 className="text-2xl font-extrabold text-text-main tracking-tight">{t.play.quizComplete}</h1>
+          <p className="text-text-muted text-sm mt-1">{t.play.wellDone} <span className="font-bold text-text-main">{studentName}</span>!</p>
         </div>
       </motion.div>
  
-      <Card className="w-full rounded-[32px] border-0 shadow-2xl overflow-hidden bg-white dark:bg-zinc-900">
-        <div className={`h-1.5 w-full bg-gradient-to-r ${bgGradient}`} />
+      <Card className="w-full rounded-[28px] border-2 border-theme-border shadow-xl overflow-hidden bg-bg-card">
+        <div className={`h-1.5 w-full ${bgColor}`} />
         <CardContent className="flex flex-col items-center gap-6 py-10 px-8">
           
           {/* Custom SVG Circular Progress */}
@@ -66,51 +64,50 @@ export function ResultScoreCard({ studentName, score, total, percentage, onPlayA
                 strokeLinecap="round"
                 transform="rotate(-90 72 72)"
               />
-              <text x="72" y="72" dominantBaseline="central" textAnchor="middle" className="text-3xl font-black fill-zinc-800 dark:fill-white" dy="0.1em">
+              <text x="72" y="72" dominantBaseline="central" textAnchor="middle" className="text-3xl font-black fill-text-main" dy="0.1em">
                 {percentage}%
               </text>
             </svg>
           </div>
           
           <div className="text-center">
-            <p className="text-zinc-500 dark:text-zinc-400 mt-1">
-              {t.play.youScored} <span className="font-bold text-zinc-800 dark:text-white">{score}</span> {t.play.outOf} {total} {t.play.correct}
+            <p className="text-text-muted mt-1">
+              {t.play.youScored} <span className="font-bold text-text-main">{score}</span> {t.play.outOf} {total} {t.play.correct}
             </p>
           </div>
  
           <div className="grid grid-cols-2 gap-4 w-full">
-            <div className="p-4 rounded-2xl border bg-zinc-50 dark:bg-zinc-800/50 border-zinc-100 dark:border-zinc-700/50 flex flex-col items-center gap-1">
-              <span className="text-2xl font-black text-zinc-800 dark:text-white">{score}/{total}</span>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">{t.play.score}</span>
+            <div className="p-4 rounded-2xl border-2 border-theme-border bg-bg-secondary flex flex-col items-center gap-1">
+              <span className="text-2xl font-black text-text-main">{score}/{total}</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted">{t.play.score}</span>
             </div>
-            <div className={`p-4 rounded-2xl border flex flex-col items-center gap-1 ${
+            <div className={`p-4 rounded-2xl border-2 flex flex-col items-center gap-1 ${
               isPassed 
-                ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/50" 
-                : "bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/50"
+                ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50" 
+                : "bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/50"
             }`}>
               <span className={`text-2xl font-black ${isPassed ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
                 {percentage}%
               </span>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">{t.play.accuracy}</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted">{t.play.accuracy}</span>
             </div>
           </div>
  
           <div className="flex flex-col gap-3 w-full mt-2">
             <Button
-              className="w-full py-6 rounded-2xl font-black text-lg bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-xl hover:shadow-violet-500/30 transition-all flex items-center gap-2"
+              className="w-full py-6 rounded-full font-black text-lg bg-brand-primary hover:bg-brand-primary-hover text-white shadow-md transition-all flex items-center gap-2"
               onPress={onPlayAgain}
             >
               <RotateCcw className="w-5 h-5" /> {t.play.playAgain}
             </Button>
             <Button
-              variant={"flat" as any}
-              className="w-full py-6 rounded-2xl font-bold text-zinc-600 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 flex items-center gap-2"
+              className="w-full py-6 rounded-full font-bold text-text-main bg-bg-secondary border-2 border-theme-border hover:bg-bg-secondary/80 flex items-center gap-2"
               onPress={onGoHome}
             >
               <Home className="w-5 h-5" /> {t.play.backHome}
             </Button>
           </div>
-
+ 
         </CardContent>
       </Card>
     </div>

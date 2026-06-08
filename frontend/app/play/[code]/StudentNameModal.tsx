@@ -49,20 +49,20 @@ export function StudentNameModal({ quizTitle, isOpen, onConfirm }: StudentNameMo
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
-            <div className="w-full max-w-sm bg-white dark:bg-zinc-900 rounded-[32px] shadow-2xl overflow-hidden">
-              {/* Top gradient bar */}
-              <div className="h-1.5 bg-gradient-to-r from-violet-500 to-purple-600" />
+            <div className="w-full max-w-sm bg-bg-card rounded-[24px] retro-card shadow-2xl overflow-hidden">
+              {/* Top brand flat bar */}
+              <div className="h-2 bg-brand-primary border-b-3 border-text-main" />
 
               <div className="p-8 flex flex-col items-center gap-6 text-center">
                 {/* Icon */}
-                <div className="w-16 h-16 rounded-full bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center">
-                  <User className="w-8 h-8 text-violet-500" />
+                <div className="w-16 h-16 rounded-full bg-bg-secondary border-3 border-text-main flex items-center justify-center">
+                  <User className="w-8 h-8 text-text-main" />
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-black text-zinc-800 dark:text-white">What's your name?</h2>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                    Your teacher will see your progress in <span className="font-semibold text-violet-500">{quizTitle}</span>
+                  <h2 className="text-xl font-black text-text-main">What's your name?</h2>
+                  <p className="text-sm text-text-muted mt-1">
+                    Your teacher will see your progress in <span className="font-black text-brand-primary">{quizTitle}</span>
                   </p>
                 </div>
 
@@ -73,21 +73,21 @@ export function StudentNameModal({ quizTitle, isOpen, onConfirm }: StudentNameMo
                     onChange={(e) => { setName(e.target.value); setError(""); }}
                     onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                     autoFocus
-                    className="w-full"
+                    className="w-full bg-bg-secondary text-text-main font-bold border-3 border-text-main rounded-[16px] overflow-hidden"
                     size={"lg" as any}
                   />
                   {error && (
-                    <p className="text-xs text-red-500 text-left font-medium">{error}</p>
+                    <p className="text-xs text-red-500 text-left font-black">{error}</p>
                   )}
                 </div>
 
                 <Button
                   onPress={handleSubmit}
                   size="lg"
-                  className="w-full h-14 rounded-2xl font-black text-lg bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-xl"
+                  className="w-full h-14 rounded-full font-black text-lg bg-brand-primary text-white shadow-xl retro-btn"
                 >
                   Join & Start Quiz
-                  <ArrowRight className="w-5 h-5 ml-1" />
+                  <ArrowRight className="w-5 h-5 ml-1 stroke-[3]" />
                 </Button>
               </div>
             </div>

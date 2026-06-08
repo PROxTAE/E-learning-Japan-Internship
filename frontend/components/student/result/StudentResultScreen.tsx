@@ -199,13 +199,13 @@ export function StudentResultScreen({ quizId, studentId, studentName, selectedAn
             disabled={aiLoading}
             className={`
               w-full flex items-center justify-between gap-3 px-5 py-4 rounded-2xl font-bold text-sm
-              transition-all duration-200 shadow-lg
+              transition-all duration-200 shadow-md border-2 border-theme-border
               ${
                 aiLoading
-                  ? "bg-violet-500/80 text-white cursor-wait"
+                  ? "bg-brand-primary/80 text-white cursor-wait"
                   : showAiPanel
-                  ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-violet-500/25"
-                  : "bg-white/15 hover:bg-white/25 text-white border border-white/20 backdrop-blur-md"
+                  ? "bg-brand-primary text-white"
+                  : "bg-bg-card text-text-main hover:bg-bg-secondary"
               }
             `}
           >

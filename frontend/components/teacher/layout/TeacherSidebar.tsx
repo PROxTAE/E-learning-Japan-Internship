@@ -8,6 +8,7 @@ import {
   BarChart2, Settings, LogOut, GraduationCap,
 } from "lucide-react";
 import { useLang } from "@/lib/i18n/LanguageContext";
+import { GradFlowerCharacter } from "@/components/shared/ThemeCharacters";
 
 const NAV_KEYS = [
   { key: "dashboard" as const, icon: LayoutDashboard, href: "/teacher/dashboard" },
@@ -43,7 +44,7 @@ function NavItem({ label, icon: Icon, href, isActive, danger, collapsed }: NavIt
       className={cn(
         "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200",
         isActive
-          ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-lg shadow-violet-500/25"
+          ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/20 font-bold"
           : danger
             ? "text-red-400 hover:bg-red-500/10"
             : "text-default-500 hover:bg-default-100 hover:text-default-900 dark:hover:bg-default-50/10 dark:hover:text-default-100"
@@ -76,8 +77,8 @@ export function TeacherSidebar({ collapsed, onToggle }: TeacherSidebarProps) {
         onClick={onToggle}
         className="flex items-center gap-3 px-4 h-16 border-b border-default-200/50 dark:border-default-700/30 w-full hover:bg-default-50 dark:hover:bg-white/5 transition-colors"
       >
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center shadow-lg shrink-0">
-          <GraduationCap className="w-5 h-5 text-white" />
+        <div className="shrink-0 flex items-center justify-center">
+          <GradFlowerCharacter size={38} />
         </div>
         {!collapsed && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-left overflow-hidden">

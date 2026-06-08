@@ -1,7 +1,80 @@
 @import "tailwindcss";
 @import "@heroui/styles";
 
-/* ── Universal font stack: each font covers its own script ── */
+@theme {
+  --color-bg-primary: var(--theme-bg);
+  --color-bg-secondary: var(--theme-bg-secondary);
+  --color-bg-card: var(--theme-card-bg);
+  --color-bg-card-dark: var(--theme-card-dark-bg);
+
+  --color-brand-primary: var(--theme-primary);
+  --color-brand-primary-hover: var(--theme-primary-hover);
+  --color-brand-primary-fg: var(--theme-primary-fg);
+
+  --color-brand-secondary: var(--theme-secondary);
+  --color-brand-secondary-hover: var(--theme-secondary-hover);
+  --color-brand-secondary-fg: var(--theme-secondary-fg);
+
+  --color-text-main: var(--theme-text-main);
+  --color-text-muted: var(--theme-text-muted);
+
+  --color-theme-border: var(--theme-border);
+
+  --radius-theme-card: var(--theme-radius-card);
+  --radius-theme-btn: var(--theme-radius-btn);
+
+  /* Override standard tailwind colors for automated backward compatibility */
+  --color-violet-50: var(--theme-bg-secondary);
+  --color-violet-100: var(--theme-bg-secondary);
+  --color-violet-200: var(--theme-bg-secondary);
+  --color-violet-300: var(--theme-primary);
+  --color-violet-400: var(--theme-primary);
+  --color-violet-500: var(--theme-primary);
+  --color-violet-600: var(--theme-primary);
+  --color-violet-700: var(--theme-primary-hover);
+  --color-violet-800: var(--theme-primary-hover);
+  --color-purple-500: var(--theme-secondary);
+  --color-purple-600: var(--theme-secondary);
+  --color-indigo-500: var(--theme-primary);
+  --color-indigo-600: var(--theme-primary);
+}
+
+:root {
+  --theme-bg: #FAF6F0;
+  --theme-bg-secondary: #F0E7DC;
+  --theme-card-bg: #FFFFFF;
+  --theme-card-dark-bg: #1F2229;
+  --theme-primary: #D05A3F;
+  --theme-primary-hover: #B74C32;
+  --theme-primary-fg: #FFFFFF;
+  --theme-secondary: #2E6F40;
+  --theme-secondary-hover: #225330;
+  --theme-secondary-fg: #FFFFFF;
+  --theme-text-main: #1C1C24;
+  --theme-text-muted: #626673;
+  --theme-border: #E6DDD1;
+  --theme-radius-card: 24px;
+  --theme-radius-btn: 9999px;
+}
+
+.dark {
+  --theme-bg: #12141D;
+  --theme-bg-secondary: #191C27;
+  --theme-card-bg: #212534;
+  --theme-card-dark-bg: #0F111A;
+  --theme-primary: #FF7A59;
+  --theme-primary-hover: #FF9175;
+  --theme-primary-fg: #12141D;
+  --theme-secondary: #419F67;
+  --theme-secondary-hover: #53B87D;
+  --theme-secondary-fg: #12141D;
+  --theme-text-main: #FAF8F5;
+  --theme-text-muted: #9099AF;
+  --theme-border: #2A2F45;
+  --theme-radius-card: 24px;
+  --theme-radius-btn: 9999px;
+}
+
 body {
   font-family:
     var(--font-inter),
@@ -11,9 +84,11 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--theme-bg);
+  color: var(--theme-text-main);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Script-specific line-height tweaks for readability */
 html[lang="th"] body {
   line-height: 1.8;
 }
@@ -30,6 +105,7 @@ html[lang="ko"] body {
 
 html {
   scroll-behavior: smooth;
+  background-color: var(--theme-bg);
 }
 
 *::-webkit-scrollbar {
@@ -46,36 +122,77 @@ html {
   cursor: pointer;
 }
 
-/* ─────────────────────────────────────
-   Quiz background gradient
-   Light → vibrant purple
-   Dark  → deep navy-purple
-───────────────────────────────────── */
 .quiz-bg {
-  background: linear-gradient(160deg, #5b21b6 0%, #7c3aed 50%, #6d28d9 100%);
+  background: var(--theme-bg);
   min-height: 100vh;
+  color: var(--theme-text-main);
 }
 
-.dark .quiz-bg {
-  background: linear-gradient(160deg, #120736 0%, #2e0a7a 50%, #1a0550 100%);
-}
-
-/* Option card hover ring — purple accent */
 .option-ring:focus-visible {
-  outline: 2px solid #7c3aed;
+  outline: 2px solid var(--theme-primary);
   outline-offset: 2px;
 }
 
-/* AI Context Inspector Hover styles */
 .ai-inspect-highlight {
-  outline: 2.5px dashed #7c3aed !important;
+  outline: 2.5px dashed var(--theme-primary) !important;
   outline-offset: 4px;
-  background-color: rgba(124, 58, 237, 0.05) !important;
+  background-color: rgba(148, 148, 236, 0.05) !important;
   cursor: crosshair !important;
   transition: outline 0.15s ease, background-color 0.15s ease;
 }
 
-.dark .ai-inspect-highlight {
-  outline-color: #a78bfa !important;
-  background-color: rgba(167, 139, 250, 0.05) !important;
+/* Playful Retro neo-brutalism styles */
+.retro-card {
+  border: 3px solid var(--theme-text-main);
+  box-shadow: 6px 6px 0px 0px var(--theme-text-main);
+  transition: all 0.2s ease;
+}
+
+.retro-btn {
+  border: 3px solid var(--theme-text-main);
+  box-shadow: 4px 4px 0px 0px var(--theme-text-main);
+  transition: all 0.1s ease;
+}
+
+.retro-btn:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0px 0px var(--theme-text-main);
+}
+
+.retro-btn:active:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow: 3px 3px 0px 0px var(--theme-text-main);
+}
+
+/* Disable and flatten backgrounds that use Tailwind's gradient utilities */
+.bg-gradient-to-r,
+.bg-gradient-to-br,
+.bg-gradient-to-t,
+.bg-gradient-to-tr,
+.bg-gradient-to-bl,
+.bg-gradient-to-tl {
+  background-image: none !important;
+}
+
+/* Set flat fallbacks for common gradient groups to align with theme primary/secondary */
+.from-violet-600,
+.from-violet-500,
+.from-purple-500,
+.from-purple-600,
+.from-indigo-600,
+.from-indigo-500 {
+  background-color: var(--theme-primary) !important;
+}
+
+.from-emerald-500,
+.from-emerald-400,
+.from-green-500 {
+  background-color: var(--theme-secondary) !important;
+}
+
+.from-amber-500,
+.from-orange-500,
+.from-yellow-500 {
+  background-color: #BCA135 !important;
+  /* Mustard flat color */
 }

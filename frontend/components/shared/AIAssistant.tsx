@@ -297,7 +297,7 @@ export default function AIAssistant() {
             transition-all duration-300 transform hover:scale-105 active:scale-95
             ${isOpen
               ? "bg-rose-500 hover:bg-rose-600 text-white"
-              : "bg-gradient-to-tr from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white"
+              : "bg-brand-primary hover:bg-brand-primary-hover text-white"
             }
           `}
           aria-label="Toggle AI Assistant"
@@ -376,9 +376,9 @@ export default function AIAssistant() {
             `}
           >
             {/* Header */}
-            <div className="p-4 border-b border-zinc-150 dark:border-zinc-800/80 bg-gradient-to-r from-violet-50/85 to-indigo-50/85 dark:from-zinc-900/60 dark:to-zinc-900/60 flex items-center justify-between">
+            <div className="p-4 border-b border-zinc-150 dark:border-zinc-800/80 bg-bg-secondary flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-violet-500/20">
+                <div className="w-10 h-10 rounded-2xl bg-brand-primary flex items-center justify-center text-white shadow-sm">
                   <Bot className="w-5 h-5" />
                 </div>
                 <div>
@@ -442,7 +442,7 @@ export default function AIAssistant() {
                       className={`
                         max-w-[85%] rounded-2xl p-3.5 text-sm leading-relaxed shadow-sm
                         ${msg.role === "user"
-                          ? "bg-gradient-to-tr from-violet-600 to-indigo-600 text-white rounded-tr-none shadow-md shadow-violet-500/10"
+                          ? "bg-brand-primary text-white rounded-tr-none shadow-sm"
                           : "bg-white/60 dark:bg-zinc-900/35 text-zinc-800 dark:text-zinc-200 border border-zinc-200/50 dark:border-zinc-800/40 rounded-tl-none shadow-[0_2px_12px_rgba(0,0,0,0.01)]"
                         }
                       `}
@@ -598,7 +598,7 @@ export default function AIAssistant() {
                 type="submit"
                 isIconOnly
                 isDisabled={isLoading || !input.trim()}
-                className="bg-gradient-to-tr from-violet-600 to-indigo-600 text-white rounded-xl shadow-lg shadow-violet-500/15 hover:shadow-violet-500/25 shrink-0"
+                className="bg-brand-primary hover:bg-brand-primary-hover text-white rounded-xl shadow-sm shrink-0"
               >
                 <Send className="w-4 h-4" />
               </Button>

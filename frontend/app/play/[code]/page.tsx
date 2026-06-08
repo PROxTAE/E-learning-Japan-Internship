@@ -15,6 +15,12 @@ import { useQuizSession } from "@/hooks/useQuizSession";
 import { StudentResultScreen } from "@/components/student/result/StudentResultScreen";
 import { useQuizInteractionLog } from "@/hooks/useQuizInteractionLog";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
+import {
+  OrangeFlowerCharacter,
+  OliveBlobCharacter,
+  LimeStarCharacter,
+  GreenDropletCharacter,
+} from "@/components/shared/ThemeCharacters";
 
 // sessionId must match the Teacher's monitoring page: quiz-session-{quizId}
 function sessionIdFromQuiz(quizId: string) {
@@ -396,7 +402,7 @@ export default function PlayQuizPage() {
   if (isFinished) {
     return (
       <div className="quiz-bg fixed inset-0 overflow-y-auto">
-        <Blobs />
+        <ThemeBackground />
         <div className="relative min-h-full flex flex-col items-center justify-center px-4 py-10">
           <StudentResultScreen 
             quizId={quiz.id}
@@ -417,8 +423,8 @@ export default function PlayQuizPage() {
   // ═══════════════════════════════════════════════════════════════════════════
   if (!started) {
     return (
-      <div className="quiz-bg fixed inset-0 overflow-y-auto">
-        <Blobs />
+      <div className="quiz-bg fixed inset-0 overflow-y-auto bg-bg-primary select-none">
+        <ThemeBackground />
 
         {/* ── Floating controls: Language + Theme ─────────────────────── */}
         <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
@@ -429,26 +435,29 @@ export default function PlayQuizPage() {
         <div className="relative min-h-full flex flex-col items-center justify-center px-4 py-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
             <Card
-              className="w-full rounded-[32px] border-0 shadow-2xl overflow-hidden bg-white dark:bg-zinc-900"
+              className="w-full rounded-[24px] retro-card bg-bg-card shadow-2xl overflow-hidden"
               data-ai-context-type="quiz"
               data-ai-context-name={quiz.title}
               data-ai-context-data={JSON.stringify({ title: quiz.title, description: quiz.description, questionCount: quiz.questions.length, durationMinutes: quiz.durationMinutes, hasTimeLimit: quiz.hasTimeLimit, category: quiz.category, code })}
             >
-              <div className="h-32 bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center relative">
-                <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '16px 16px' }} />
-                <span className="text-6xl relative z-10 drop-shadow-lg">📚</span>
+              <div className="h-36 bg-brand-primary/10 flex items-center justify-center relative border-b-3 border-text-main overflow-hidden">
+                <div className="absolute inset-0 opacity-15" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, var(--theme-text-main) 1px, transparent 0)', backgroundSize: '16px 16px' }} />
+                <div className="flex gap-6 items-center">
+                  <OrangeFlowerCharacter size={80} />
+                  <LimeStarCharacter size={80} />
+                </div>
               </div>
 
               <CardContent className="text-center py-10 px-8 flex flex-col items-center gap-6">
                 <div className="space-y-2">
-                  <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-violet-500">{t.play.readyToStart}</span>
-                  <h1 className="text-3xl font-black text-zinc-800 dark:text-white leading-tight">{quiz.title}</h1>
-                  <p className="text-zinc-500 dark:text-zinc-400 text-sm">{quiz.description}</p>
+                  <span className="text-[11px] font-black uppercase tracking-[0.2em] text-brand-primary">{t.play.readyToStart}</span>
+                  <h1 className="text-3xl font-black text-text-main leading-tight uppercase">{quiz.title}</h1>
+                  <p className="text-text-muted text-sm font-semibold">{quiz.description}</p>
                 </div>
 
                 <div className="w-full space-y-2 mt-2">
                   <div className="text-left">
-                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">{t.play.yourName}</label>
+                    <label className="text-[10px] font-black text-text-muted uppercase tracking-widest ml-1">{t.play.yourName}</label>
                     <Input
                       placeholder={t.play.namePlaceholder}
                       value={studentName}
@@ -458,33 +467,33 @@ export default function PlayQuizPage() {
                       size={"lg" as any}
                       variant={"bordered" as any}
                       color={"primary" as any}
-                      className="mt-1 bg-white dark:bg-zinc-800 rounded-2xl"
+                      className="mt-1 bg-bg-secondary text-text-main font-bold border-3 border-text-main rounded-[16px] overflow-hidden"
                     />
                   </div>
                 </div>
 
-                <div className="flex gap-4 w-full mt-2 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl p-4 border border-zinc-100 dark:border-zinc-700/50">
+                <div className="flex gap-4 w-full mt-2 bg-bg-secondary rounded-[16px] p-4 border-3 border-text-main">
                   <div className="flex-1">
-                    <p className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider">{t.play.questions}</p>
-                    <p className="text-xl font-black text-zinc-800 dark:text-white">{quiz.questions.length}</p>
+                    <p className="text-[10px] text-text-muted uppercase font-black tracking-wider">{t.play.questions}</p>
+                    <p className="text-xl font-black text-text-main">{quiz.questions.length}</p>
                   </div>
-                  <div className="w-px bg-zinc-200 dark:bg-zinc-700" />
+                  <div className="w-[3px] bg-text-main" />
                   <div className="flex-1">
-                    <p className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider">{t.play.duration}</p>
-                    <p className="text-xl font-black text-zinc-800 dark:text-white">{quiz.hasTimeLimit !== false ? `${quiz.durationMinutes}m` : t.play.noLimit}</p>
+                    <p className="text-[10px] text-text-muted uppercase font-black tracking-wider">{t.play.duration}</p>
+                    <p className="text-xl font-black text-text-main">{quiz.hasTimeLimit !== false ? `${quiz.durationMinutes}m` : t.play.noLimit}</p>
                   </div>
                 </div>
 
                 <Button
                   size="lg"
                   isDisabled={!studentName.trim()}
-                  className="w-full h-16 rounded-2xl font-black text-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-xl hover:shadow-violet-500/30 hover:-translate-y-1 transition-all"
+                  className="w-full h-16 rounded-full font-black text-xl bg-brand-primary text-white shadow-xl retro-btn cursor-pointer"
                   onPress={handleStartQuiz}
                 >
                   {t.play.startQuiz}
                 </Button>
 
-                <button onClick={() => router.push("/")} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 text-sm font-semibold transition-colors">
+                <button onClick={() => router.push("/")} className="text-text-muted hover:text-text-main text-sm font-bold transition-colors">
                   {t.play.notNow}
                 </button>
               </CardContent>
@@ -501,8 +510,8 @@ export default function PlayQuizPage() {
   const question = quiz.questions[currentIndex];
 
   return (
-    <div className="quiz-bg fixed inset-0 overflow-y-auto">
-      <Blobs />
+    <div className="quiz-bg fixed inset-0 overflow-y-auto bg-bg-primary select-none">
+      <ThemeBackground />
 
       {/* ── Session Recovered Banner ───────────────────────────────────────── */}
       <AnimatePresence>
@@ -511,7 +520,7 @@ export default function PlayQuizPage() {
             initial={{ opacity: 0, y: -60 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -60 }}
-            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-emerald-500/90 backdrop-blur-md text-white px-5 py-3 rounded-2xl shadow-xl border border-emerald-400/30"
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-emerald-500/90 backdrop-blur-md text-white px-5 py-3 rounded-2xl shadow-xl border-3 border-text-main"
           >
             <RotateCcw className="w-4 h-4 shrink-0" />
             <span className="font-bold text-sm">{t.play.sessionRestored}</span>
@@ -534,7 +543,7 @@ export default function PlayQuizPage() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center gap-3"
           >
-            <div className="text-5xl">⏸️</div>
+            <div className="text-5xl animate-bounce">⏸️</div>
             <p className="text-white font-black text-xl">{t.play.quizPaused}</p>
             <p className="text-white/60 text-sm">{t.play.waitingResume}</p>
           </motion.div>
@@ -548,26 +557,26 @@ export default function PlayQuizPage() {
           <div className="flex items-center justify-between mb-2">
             <button
               onClick={() => setStarted(false)}
-              className="w-10 h-10 rounded-2xl bg-white/20 dark:bg-white/10 backdrop-blur-md border border-white/25 text-white flex items-center justify-center hover:bg-white/30 transition-all"
+              className="w-10 h-10 rounded-[16px] bg-bg-card border-3 border-text-main text-text-main flex items-center justify-center hover:bg-bg-secondary hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_var(--theme-text-main)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_var(--theme-text-main)] transition-all cursor-pointer shadow-[2px_2px_0px_var(--theme-text-main)]"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-5 h-5 stroke-[3]" />
             </button>
 
-            <span className="text-white font-black text-sm tracking-widest">
+            <span className="text-text-main font-black text-sm tracking-widest bg-bg-card px-4 py-1.5 rounded-[12px] border-3 border-text-main shadow-[2px_2px_0px_var(--theme-text-main)]">
               {String(currentIndex + 1).padStart(2, "0")}{" "}
-              <span className="text-white/40 font-bold">/</span>{" "}
+              <span className="text-text-muted font-black">/</span>{" "}
               {String(quiz.questions.length).padStart(2, "0")}
             </span>
 
             {/* Right side: connection indicator + language + theme */}
             <div className="flex items-center gap-2">
               {/* Connection indicator */}
-              <div className={`flex items-center gap-1.5 backdrop-blur-md border border-white/25 rounded-full px-3 py-1.5 ${isConnected ? "bg-emerald-500/20" : "bg-white/20 dark:bg-white/10"}`}>
+              <div className={`flex items-center gap-1.5 bg-bg-card border-3 border-text-main rounded-full px-3 py-1 ${isConnected ? "text-emerald-600 dark:text-emerald-400" : "text-text-muted"}`}>
                 {isConnected
-                  ? <Wifi    className="w-3.5 h-3.5 text-emerald-300" />
-                  : <WifiOff className="w-3.5 h-3.5 text-white/50" />
+                  ? <Wifi    className="w-3.5 h-3.5" />
+                  : <WifiOff className="w-3.5 h-3.5" />
                 }
-                <span className={`font-bold text-xs uppercase tracking-tight ${isConnected ? "text-emerald-300" : "text-white/50"}`}>
+                <span className="font-black text-xs uppercase tracking-tight">
                   {isConnected ? t.play.live : t.play.offline}
                 </span>
               </div>
@@ -582,19 +591,19 @@ export default function PlayQuizPage() {
           
           {/* Global Timer Display */}
           {liveTimer !== null ? (
-            <div className={`flex items-center justify-center py-2 px-4 rounded-xl border font-mono font-bold text-lg mb-2 shadow-sm transition-colors ${
+            <div className={`flex items-center justify-center py-2 px-4 rounded-[16px] border-3 border-text-main font-mono font-black text-lg mb-2 shadow-[2px_2px_0px_var(--theme-text-main)] transition-colors ${
               liveTimer <= 60 
-                ? "bg-red-500/90 text-white border-red-400 animate-pulse" 
-                : "bg-white/20 dark:bg-black/20 text-white border-white/25"
+                ? "bg-red-500 text-white animate-pulse" 
+                : "bg-bg-card text-text-main"
             }`}>
               ⏱ {Math.floor(liveTimer / 60)}:{String(liveTimer % 60).padStart(2, '0')}
             </div>
           ) : (
             timeLeft !== null && quiz.hasTimeLimit !== false && quiz.durationMinutes > 0 && (
-              <div className={`flex items-center justify-center py-2 px-4 rounded-xl border font-mono font-bold text-lg mb-2 shadow-sm transition-colors ${
+              <div className={`flex items-center justify-center py-2 px-4 rounded-[16px] border-3 border-text-main font-mono font-black text-lg mb-2 shadow-[2px_2px_0px_var(--theme-text-main)] transition-colors ${
                 timeLeft < 60000 
-                  ? "bg-red-500/90 text-white border-red-400 animate-pulse" 
-                  : "bg-white/20 dark:bg-black/20 text-white border-white/25"
+                  ? "bg-red-500 text-white animate-pulse" 
+                  : "bg-bg-card text-text-main"
               }`}>
                 ⏱ {Math.floor(timeLeft / 60000)}:{String(Math.floor((timeLeft % 60000) / 1000)).padStart(2, '0')}
               </div>
@@ -614,22 +623,25 @@ export default function PlayQuizPage() {
               className="flex flex-col gap-5 sm:gap-6"
             >
               <Card
-                className="w-full rounded-[32px] border-0 shadow-2xl bg-white dark:bg-zinc-900 overflow-hidden"
+                className="w-full rounded-[24px] retro-card bg-bg-card overflow-hidden"
                 data-ai-context-type="question"
                 data-ai-context-name={question.text}
                 data-ai-context-data={JSON.stringify({ questionIndex: currentIndex + 1, total: quiz.questions.length, questionId: question.id, choiceCount: question.choices.length, category: quiz.category, studentName })}
               >
                 <CardContent className="px-6 sm:px-8 pt-8 sm:pt-10 pb-2">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-violet-500 mb-2 block">
-                    {quiz.category || "General"}
-                  </span>
-                  <h2 className="text-xl sm:text-2xl font-black text-zinc-800 dark:text-white leading-snug">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-brand-primary">
+                      {quiz.category || "General"}
+                    </span>
+                    <GreenDropletCharacter size={40} className="transform rotate-12" />
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-black text-text-main leading-snug">
                     {question.text}
                   </h2>
                   {question.imageUrl && (
-                    <div className="mt-6 rounded-2xl overflow-hidden border border-zinc-100 dark:border-zinc-800">
+                    <div className="mt-6 rounded-[16px] overflow-hidden border-3 border-text-main">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={question.imageUrl} alt="Question" className="w-full max-h-64 object-contain bg-zinc-50 dark:bg-black/20" />
+                      <img src={question.imageUrl} alt="Question" className="w-full max-h-64 object-contain bg-bg-secondary" />
                     </div>
                   )}
                 </CardContent>
@@ -638,7 +650,7 @@ export default function PlayQuizPage() {
                   <RadioGroup
                     value={currentSelection || ""}
                     onChange={(val) => handleSelectOption(val)}
-                    className="flex flex-col gap-3"
+                    className="flex flex-col gap-4"
                   >
                     {question.choices.map((choice, idx) => {
                       const isSelected = currentSelection === choice.id;
@@ -648,27 +660,27 @@ export default function PlayQuizPage() {
                           key={choice.id}
                           value={choice.id}
                           className={`
-                            w-full flex items-center gap-4 px-5 py-4 rounded-2xl border-2 transition-all cursor-pointer
+                            w-full flex items-center gap-4 px-5 py-4 rounded-[20px] border-3 transition-all cursor-pointer
                             ${isSelected
-                              ? "border-violet-500 bg-violet-50 dark:bg-violet-900/40 shadow-md"
-                              : "border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-800 hover:border-violet-200 dark:hover:border-violet-700"
+                              ? "border-text-main bg-brand-primary/25 shadow-[4px_4px_0px_var(--theme-text-main)] translate-x-[-2px] translate-y-[-2px]"
+                              : "border-text-main bg-bg-card hover:bg-bg-secondary hover:shadow-[4px_4px_0px_var(--theme-text-main)] hover:translate-x-[-2px] hover:translate-y-[-2px]"
                             }
                           `}
                         >
                           <div className={`
-                            shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-black text-sm transition-all
-                            ${isSelected ? "bg-violet-600 text-white" : "bg-zinc-100 dark:bg-zinc-700 text-zinc-500"}
+                            shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-black text-sm transition-all border-3 border-text-main
+                            ${isSelected ? "bg-brand-primary text-white" : "bg-bg-secondary text-text-main"}
                           `}>
                             {labels[idx] || idx + 1}
                           </div>
 
                           <div className="flex-1 flex items-center justify-between gap-4">
-                            <label className={`font-bold ${isSelected ? "text-violet-700 dark:text-violet-300" : "text-zinc-700 dark:text-zinc-200"}`}>
+                            <label className="font-bold text-text-main cursor-pointer">
                               {choice.text}
                             </label>
                             {choice.imageUrl && (
                               // eslint-disable-next-line @next/next/no-img-element
-                              <img src={choice.imageUrl} alt="" className="h-10 w-10 object-cover rounded-lg bg-black/10 shrink-0" />
+                              <img src={choice.imageUrl} alt="" className="h-12 w-12 object-cover rounded-lg border-2 border-text-main shrink-0" />
                             )}
                           </div>
 
@@ -684,7 +696,7 @@ export default function PlayQuizPage() {
 
               {/* Next button */}
               {isTeacherLed ? (
-                <div className="w-full py-5 rounded-2xl font-black text-lg text-center bg-white/10 text-white/80 border border-white/20 shadow-xl">
+                <div className="w-full py-5 rounded-[24px] font-black text-lg text-center bg-bg-card text-text-main border-3 border-text-main shadow-[4px_4px_0px_var(--theme-text-main)]">
                   {currentSelection 
                     ? t.play.waitingNext
                     : t.play.selectAnswer
@@ -697,10 +709,10 @@ export default function PlayQuizPage() {
                   onClick={handleNext}
                   disabled={!currentSelection || isPaused}
                   className={`
-                    w-full py-5 rounded-2xl font-black text-lg shadow-xl transition-all
+                    w-full py-5 rounded-[20px] font-black text-lg shadow-xl transition-all
                     ${currentSelection && !isPaused
-                      ? "bg-gradient-to-r from-emerald-400 to-green-500 text-white hover:shadow-green-500/25"
-                      : "bg-white/20 dark:bg-white/10 text-white/40 cursor-not-allowed"
+                      ? "bg-brand-secondary hover:bg-brand-secondary-hover text-white retro-btn cursor-pointer"
+                      : "bg-bg-secondary text-text-muted border-3 border-text-muted/40 cursor-not-allowed opacity-60"
                     }
                   `}
                 >
@@ -717,11 +729,18 @@ export default function PlayQuizPage() {
 
 // ── Shared UI Helpers ──────────────────────────────────────────────────────────
 
-function Blobs() {
+function ThemeBackground() {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <div className="absolute -top-20 -left-20 w-64 sm:w-80 h-64 sm:h-80 rounded-full bg-purple-400/20 dark:bg-purple-300/10 blur-3xl" />
-      <div className="absolute bottom-0 right-0 w-72 sm:w-96 h-72 sm:h-96 rounded-full bg-violet-800/30 dark:bg-violet-600/20 blur-3xl" />
+    <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-40 dark:opacity-20 select-none">
+      <div className="absolute top-12 left-6 transform -rotate-12">
+        <OrangeFlowerCharacter size={120} animate={true} />
+      </div>
+      <div className="absolute bottom-20 right-6 transform rotate-12">
+        <OliveBlobCharacter size={120} animate={true} />
+      </div>
+      <div className="absolute left-[-20px] top-[45%] transform rotate-45 hidden sm:block">
+        <LimeStarCharacter size={80} animate={true} />
+      </div>
     </div>
   );
 }

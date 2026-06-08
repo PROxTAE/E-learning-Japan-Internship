@@ -23,18 +23,17 @@ export function ThemeSwitcher() {
       title={isDark ? "Switch to light mode" : "Switch to dark mode"}
       className="
         w-10 h-10 rounded-full
-        bg-white/20 hover:bg-white/30
-        backdrop-blur-sm border border-white/30
+        bg-bg-card border-2 border-theme-border
         flex items-center justify-center
-        text-white transition-all duration-200
+        text-text-main transition-all duration-200
         hover:scale-110 active:scale-95
-        shadow-lg
+        shadow-md
       "
     >
       {isDark ? (
-        <Sun className="w-4 h-4 text-yellow-300" />
+        <Sun className="w-4 h-4 text-amber-500 animate-pulse" />
       ) : (
-        <Moon className="w-4 h-4 text-white" />
+        <Moon className="w-4 h-4 text-text-main" />
       )}
     </button>
   );
