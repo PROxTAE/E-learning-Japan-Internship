@@ -99,7 +99,7 @@ export default function QuizListPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] text-foreground">
+    <div suppressHydrationWarning className="min-h-[calc(100vh-64px)] text-foreground">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 space-y-6">
 
         {/* Header */}

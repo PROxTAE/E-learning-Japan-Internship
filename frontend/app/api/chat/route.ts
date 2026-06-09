@@ -42,10 +42,47 @@ export async function POST(req: Request) {
     // Map system language to full language name
     const userLanguage = lang === "th" ? "Thai" : lang === "ja" ? "Japanese" : "English";
 
+    const categoriesList = lang === "th" 
+      ? `["คณิตศาสตร์", "วิทยาศาสตร์", "การเขียนโปรแกรม", "ประวัติศาสตร์", "ภาษา", "ศิลปะ", "อื่น ๆ"]` 
+      : lang === "ja"
+        ? `["数学", "科学", "プログラミング", "歴史", "言語", "アート", "その他"]`
+        : `["Math", "Science", "Programming", "History", "Language", "Art", "Other"]`;
+
     // System instruction for the assistant
     let systemPrompt = `You are a helpful, smart, and friendly teaching assistant integrated into an E-Learning Web Application. 
 Your goal is to support teachers and students with their learning needs, creating quizzes, analyzing data, and answering questions.
 Keep your answers clear, concise, and structured.
+
+If the user wants to update, modify, or create a quiz, or edit a specific question/choice, you MUST provide the updated quiz structure.
+To apply changes directly to the quiz editor, you MUST start your response with a special JSON code block, formatted exactly like this:
+\`\`\`json_quiz_update
+{
+  "title": "Updated Quiz Title",
+  "description": "Updated description",
+  "subject": "Subject name",
+  "chapter": "Chapter name",
+  "category": "Science",
+  "difficulty": "easy",
+  "durationMinutes": 15,
+  "hasTimeLimit": true,
+  "showAnswersAfterQuiz": true,
+  "tags": ["tag1", "tag2"],
+  "questions": [
+    {
+      "id": "q-1",
+      "text": "Question text?",
+      "type": "multiple_choice",
+      "choices": [
+        { "id": "c-1", "text": "Choice A", "isCorrect": false },
+        { "id": "c-2", "text": "Choice B", "isCorrect": true }
+      ]
+    }
+  ]
+}
+\`\`\`
+For the "category" field, you MUST select one of the following values: ${categoriesList}.
+Ensure all question texts, types, choices, and correct status match the user's request. Retain other questions and choices as-is if they are not being changed, and keep their original IDs.
+Do not write any introductory text, prefix, or explanation before the JSON block. Start directly with the \`\`\`json_quiz_update block. After the JSON block, you can write a short explanation in ${userLanguage} to the user if needed.
 IMPORTANT: You MUST respond in ${userLanguage} language ONLY. This is critical as the user's active interface language is set to ${userLanguage}.`;
 
     if (lang === "th") {
@@ -96,6 +133,7 @@ IMPORTANT: You MUST respond in ${userLanguage} language ONLY. This is critical a
         stream: true,
         options: {
           temperature: 0.7,
+          num_predict: 2048, // Allow long responses for quizzes
         },
       }),
     });

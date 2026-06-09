@@ -23,7 +23,7 @@ export function QuizListHeader({ stats, onCreateQuiz }: QuizListHeaderProps) {
   ] as const;
 
   return (
-    <div className="space-y-4">
+    <div suppressHydrationWarning className="space-y-4">
       {/* Title row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -36,6 +36,7 @@ export function QuizListHeader({ stats, onCreateQuiz }: QuizListHeaderProps) {
         </div>
         <Button
           onPress={onCreateQuiz}
+          aria-label={ql.createQuiz}
           className="bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 transition-all"
           size="md"
         >

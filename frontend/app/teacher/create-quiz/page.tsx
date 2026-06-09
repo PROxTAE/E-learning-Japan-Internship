@@ -36,14 +36,14 @@ function CreateQuizInner() {
   useEffect(() => {
     if (editId) {
       loadQuiz(editId);
-    } else {
+    } else if (searchParams.get("from_ai") !== "true") {
       resetQuiz();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editId]);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
+    <div suppressHydrationWarning className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
       {/* Sticky header */}
       <QuizHeader
         t={tb}

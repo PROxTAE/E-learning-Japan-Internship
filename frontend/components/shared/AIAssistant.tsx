@@ -2,11 +2,13 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Button, Input, ScrollShadow, Skeleton, Card } from "@heroui/react";
-import { Sparkles, Send, X, Bot, Trash2, ArrowUpRight, MessageSquareCode, Maximize2, Minimize2, Target } from "lucide-react";
+import { Sparkles, Send, X, Bot, Trash2, ArrowUpRight, MessageSquareCode, Maximize2, Minimize2, Target, Square, Clock, HelpCircle, ChevronDown, ChevronUp, Info, BookOpen, Layers, Award, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { useLang } from "@/lib/i18n/LanguageContext";
 import { useContextSelector, type AIContext } from "@/hooks/useContextSelector";
+import { useQuizStore } from "@/store/quizStore";
+import { useRouter, usePathname } from "next/navigation";
 
 interface Message {
   id: string;
@@ -118,6 +120,362 @@ const localTranslations = {
   }
 };
 
+function cleanJsonString(str: string): string {
+  return str
+    .replace(/\/\/.*$/gm, "")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/'([^'\\]*(?:\\.[^'\\]*)*)'/g, '"$1"')
+    .replace(/,\s*([\]}])/g, "$1");
+}
+
+function repairTruncatedJson(str: string): string {
+  str = str.trim();
+  if (!str) return str;
+
+  let openBraces = 0;
+  let openBrackets = 0;
+  let inString = false;
+  let escape = false;
+
+  for (let i = 0; i < str.length; i++) {
+    const char = str[i];
+    if (escape) {
+      escape = false;
+      continue;
+    }
+    if (char === "\\") {
+      escape = true;
+      continue;
+    }
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (!inString) {
+      if (char === "{") openBraces++;
+      else if (char === "}") openBraces--;
+      else if (char === "[") openBrackets++;
+      else if (char === "]") openBrackets--;
+    }
+  }
+
+  if (inString) {
+    str += '"';
+  }
+
+  str = str.trim().replace(/,\s*$/, "").replace(/:\s*$/, "");
+
+  while (openBrackets > 0) {
+    str += "]";
+    openBrackets--;
+  }
+  while (openBraces > 0) {
+    str += "}";
+    openBraces--;
+  }
+
+  return str;
+}
+
+interface QuizUpdateSummaryProps {
+  codeString: string;
+  lang: string;
+  isGenerating?: boolean;
+}
+
+const summaryTranslations = {
+  en: {
+    updating: "Analyzing and applying quiz updates...",
+    updated: "Quiz updated successfully!",
+    title: "Quiz Title",
+    description: "Description",
+    category: "Category",
+    difficulty: "Difficulty",
+    duration: "Duration",
+    minutes: "mins",
+    noLimit: "No time limit",
+    questions: "Questions",
+    questionCount: (count: number) => `${count} question${count !== 1 ? "s" : ""}`,
+    showQuestions: "Show questions detail",
+    hideQuestions: "Hide questions detail",
+    correct: "Correct",
+    type: "Type",
+    multiple_choice: "Multiple Choice",
+    true_false: "True/False",
+    short_answer: "Short Answer",
+    chapter: "Chapter",
+    subject: "Subject",
+    confirmBtn: "Confirm & Create Quiz",
+    confirmBtnSuccess: "Applied to Quiz Builder!",
+    confirmBtnNavigate: "Apply & Go to Builder",
+  },
+  th: {
+    updating: "กำลังวิเคราะห์และอัปเดตแบบทดสอบ...",
+    updated: "ปรับปรุงข้อสอบเรียบร้อยแล้ว!",
+    title: "ชื่อแบบทดสอบ",
+    description: "คำอธิบาย",
+    category: "หมวดหมู่",
+    difficulty: "ระดับความยาก",
+    duration: "เวลาที่ใช้",
+    minutes: "นาที",
+    noLimit: "ไม่จำกัดเวลา",
+    questions: "ข้อสอบ",
+    questionCount: (count: number) => `${count} ข้อ`,
+    showQuestions: "แสดงรายละเอียดข้อสอบ",
+    hideQuestions: "ซ่อนรายละเอียดข้อสอบ",
+    correct: "ถูกต้อง",
+    type: "ประเภท",
+    multiple_choice: "ปรนัย (หลายตัวเลือก)",
+    true_false: "ถูก/ผิด",
+    short_answer: "อัตนัย (เติมคำ)",
+    chapter: "บทเรียน",
+    subject: "วิชา",
+    confirmBtn: "ยืนยันสร้างข้อสอบ",
+    confirmBtnSuccess: "นำไปใช้ในหน้าสร้างข้อสอบแล้ว!",
+    confirmBtnNavigate: "นำข้อมูลไปใช้ในหน้าสร้างข้อสอบ",
+  },
+  ja: {
+    updating: "クイズの更新を分析して適用しています...",
+    updated: "クイズが正常に更新されました！",
+    title: "クイズのタイトル",
+    description: "説明",
+    category: "カテゴリ",
+    difficulty: "難易度",
+    duration: "制限時間",
+    minutes: "分",
+    noLimit: "時間制限なし",
+    questions: "問題",
+    questionCount: (count: number) => `${count} 問`,
+    showQuestions: "問題の詳細を表示",
+    hideQuestions: "問題の詳細を非表示",
+    correct: "正解",
+    type: "タイプ",
+    multiple_choice: "選択式",
+    true_false: "○×問題",
+    short_answer: "記述式",
+    chapter: "章",
+    subject: "科目",
+    confirmBtn: "クイズ作成を確認",
+    confirmBtnSuccess: "クイズビルダーに適用されました！",
+    confirmBtnNavigate: "適用してビルダーに移動",
+  }
+};
+
+function QuizUpdateSummary({ codeString, lang, isGenerating }: QuizUpdateSummaryProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isApplied, setIsApplied] = useState(false);
+  const t = summaryTranslations[lang as "en" | "th" | "ja"] || summaryTranslations.en;
+
+  let quizData: any = null;
+  let parseError = false;
+
+  try {
+    const cleaned = cleanJsonString(codeString);
+    const repaired = repairTruncatedJson(cleaned);
+    quizData = JSON.parse(repaired);
+  } catch (e) {
+    parseError = true;
+  }
+
+  if (parseError || !quizData || typeof quizData !== "object") {
+    return (
+      <div className="my-3 p-4 rounded-2xl border border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-950/10 text-emerald-800 dark:text-emerald-300 text-xs flex items-center gap-3 font-medium shadow-sm">
+        <span className="relative flex h-3.5 w-3.5 shrink-0">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500"></span>
+        </span>
+        <div className="flex flex-col gap-0.5">
+          <span className="font-semibold text-[13px]">{t.updating}</span>
+        </div>
+      </div>
+    );
+  }
+
+  const title = quizData.title || "";
+  const description = quizData.description || "";
+  const category = quizData.category || "";
+  const difficulty = quizData.difficulty || "";
+  const durationMinutes = quizData.durationMinutes;
+  const subject = quizData.subject || "";
+  const chapter = quizData.chapter || "";
+  const questions = Array.isArray(quizData.questions) ? quizData.questions : [];
+
+  const handleApply = () => {
+    try {
+      useQuizStore.getState().updateQuizFromAi(quizData);
+      setIsApplied(true);
+      if (pathname !== "/teacher/create-quiz") {
+        router.push("/teacher/create-quiz?from_ai=true");
+      }
+    } catch (err) {
+      console.error("Failed to apply quiz update:", err);
+    }
+  };
+
+  return (
+    <div className="my-3 rounded-2xl border border-emerald-500/20 bg-white dark:bg-zinc-900/90 shadow-md shadow-emerald-500/5 overflow-hidden">
+      <div className="px-4 py-3 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 dark:from-emerald-500/20 dark:to-teal-500/20 border-b border-emerald-500/10 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center text-white shrink-0 shadow-sm shadow-emerald-500/20">
+            <Sparkles className="w-4 h-4 animate-pulse" />
+          </div>
+          <div>
+            <h4 className="font-bold text-[13px] text-emerald-800 dark:text-emerald-300">
+              {t.updated}
+            </h4>
+            {title && (
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium truncate max-w-[220px]">
+                {title}
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/40 border border-emerald-200/50 dark:border-emerald-800/40 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase">
+          {t.questionCount(questions.length)}
+        </div>
+      </div>
+
+      <div className="p-4 space-y-3">
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          {subject && (
+            <div className="flex items-center gap-2 p-2 rounded-xl bg-zinc-50 dark:bg-zinc-950/45 border border-zinc-100 dark:border-zinc-800/40">
+              <BookOpen className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium uppercase tracking-wider">{t.subject}</p>
+                <p className="font-semibold text-zinc-700 dark:text-zinc-300 truncate">{subject}</p>
+              </div>
+            </div>
+          )}
+          {chapter && (
+            <div className="flex items-center gap-2 p-2 rounded-xl bg-zinc-50 dark:bg-zinc-950/45 border border-zinc-100 dark:border-zinc-800/40">
+              <Layers className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium uppercase tracking-wider">{t.chapter}</p>
+                <p className="font-semibold text-zinc-700 dark:text-zinc-300 truncate">{chapter}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {description && (
+          <div className="p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-950/30 border border-zinc-100 dark:border-zinc-800/50 text-[11px] text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed">
+            <span className="font-bold text-[10px] text-zinc-400 dark:text-zinc-500 uppercase tracking-wider block mb-0.5">{t.description}</span>
+            {description}
+          </div>
+        )}
+
+        {questions.length > 0 && (
+          <div className="border-t border-zinc-100 dark:border-zinc-800/60 pt-3">
+            <button
+              type="button"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="w-full flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 font-bold transition-colors py-1 cursor-pointer bg-transparent border-none"
+            >
+              <span className="flex items-center gap-1.5">
+                <HelpCircle className="w-3.5 h-3.5 text-emerald-500" />
+                {isExpanded ? t.hideQuestions : t.showQuestions}
+              </span>
+              {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+
+            <AnimatePresence initial={false}>
+              {isExpanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden mt-2 space-y-2.5 max-h-[300px] overflow-y-auto pr-1 scrollbar-thin"
+                >
+                  {questions.map((q: any, qIdx: number) => (
+                    <div
+                      key={q.id || qIdx}
+                      className="p-2.5 rounded-xl bg-zinc-50/50 dark:bg-zinc-950/20 border border-zinc-100 dark:border-zinc-800/40 text-xs space-y-1.5"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="font-bold text-zinc-700 dark:text-zinc-300 flex-1">
+                          {qIdx + 1}. {q.text}
+                        </span>
+                        <span className="px-1.5 py-0.5 rounded bg-zinc-200/60 dark:bg-zinc-800 text-[9px] font-semibold text-zinc-600 dark:text-zinc-400 shrink-0">
+                          {t[q.type as keyof typeof t] || q.type}
+                        </span>
+                      </div>
+
+                      {Array.isArray(q.choices) && q.choices.length > 0 && (
+                        <div className="grid grid-cols-1 gap-1 pl-2">
+                          {q.choices.map((c: any, cIdx: number) => (
+                            <div
+                              key={c.id || cIdx}
+                              className={`
+                                flex items-center gap-1.5 py-1 px-2 rounded-lg text-[11px] font-medium
+                                ${c.isCorrect
+                                  ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/10"
+                                  : "text-zinc-500 dark:text-zinc-400"
+                                }
+                              `}
+                            >
+                              <span className={`
+                                w-4 h-4 rounded-full flex items-center justify-center text-[9px] shrink-0 font-bold
+                                ${c.isCorrect
+                                  ? "bg-emerald-500 text-white"
+                                  : "bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+                                }
+                              `}>
+                                {String.fromCharCode(65 + cIdx)}
+                              </span>
+                              <span className="truncate flex-1">{c.text}</span>
+                              {c.isCorrect && (
+                                <span className="text-[9px] bg-emerald-500 text-white px-1.5 py-0.2 rounded font-bold uppercase scale-90">
+                                  {t.correct}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
+
+      {!isGenerating && (
+        <div className="px-4 pb-4 border-t border-zinc-200/50 dark:border-zinc-800/40 pt-3 flex justify-end">
+          <button
+            type="button"
+            disabled={isApplied}
+            onClick={handleApply}
+            className={`
+              w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 shadow-sm
+              ${isApplied
+                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-450 border border-emerald-500/20 cursor-default"
+                : "bg-emerald-600 hover:bg-emerald-700 text-white hover:shadow-md hover:shadow-emerald-600/10 cursor-pointer active:scale-[0.98]"
+              }
+            `}
+          >
+            {isApplied ? (
+              <>
+                <Check className="w-4 h-4 text-emerald-500 animate-bounce" />
+                <span>{t.confirmBtnSuccess}</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-3.5 h-3.5 animate-pulse" />
+                <span>{pathname === "/teacher/create-quiz" ? t.confirmBtn : t.confirmBtnNavigate}</span>
+              </>
+            )}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AIAssistant() {
   const { lang } = useLang();
   const localT = localTranslations[lang] || localTranslations.en;
@@ -127,7 +485,7 @@ export default function AIAssistant() {
     {
       id: "welcome",
       role: "assistant",
-      content: "", // Content will be loaded dynamically based on language
+      content: "",
     },
   ]);
   const [input, setInput] = useState("");
@@ -147,19 +505,75 @@ export default function AIAssistant() {
     setIsSelectingContext(false);
   });
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const handleSelectEntirePage = () => {
+    try {
+      const elements = document.querySelectorAll("[data-ai-context-type]");
+      const pageData: any[] = [];
+      elements.forEach((el) => {
+        const type = el.getAttribute("data-ai-context-type") || "general";
+        const name = el.getAttribute("data-ai-context-name") || "Component";
+        const rawData = el.getAttribute("data-ai-context-data");
+        
+        let data = null;
+        if (rawData) {
+          try {
+            data = JSON.parse(rawData);
+          } catch (err) {
+            data = rawData;
+          }
+        }
+        pageData.push({ type, name, data });
+      });
 
-  // Auto-scroll to the bottom of the message list
+      const entirePageContext: AIContext = {
+        type: "page",
+        name: lang === "th" ? "ทั้งหน้าเว็บ" : lang === "ja" ? "画面全体" : "Entire Page",
+        data: {
+          url: window.location.href,
+          title: document.title,
+          components: pageData
+        }
+      };
+
+      setSelectedContexts((prev) => {
+        const exists = prev.some(c => c.type === "page");
+        if (exists) {
+          return prev.map(c => c.type === "page" ? entirePageContext : c);
+        }
+        return [...prev, entirePageContext];
+      });
+      setIsSelectingContext(false);
+    } catch (err) {
+      console.error("Failed to select entire page context:", err);
+    }
+  };
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const handleStopGeneration = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
-  // Handle Quick Suggestions
   const handleSuggestionClick = (suggestionText: string) => {
     setInput(suggestionText);
   };
 
-  // Clear Chat History
   const clearChat = () => {
     setMessages([
       {
@@ -172,7 +586,6 @@ export default function AIAssistant() {
     setErrorMsg(null);
   };
 
-  // Send message to Next.js API Route (which calls Ollama)
   const sendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!input.trim() || isLoading) return;
@@ -181,7 +594,6 @@ export default function AIAssistant() {
     setInput("");
     setErrorMsg(null);
 
-    // Create user message object
     const userMsg: Message = {
       id: Date.now().toString(),
       role: "user",
@@ -192,13 +604,29 @@ export default function AIAssistant() {
     setIsLoading(true);
 
     try {
-      // Map existing messages to API format
       const history = messages
         .filter((m) => m.id !== "welcome" && m.id !== "welcome-cleared")
         .map((m) => ({
           role: m.role,
           content: m.content || (m.id === "welcome" ? localT.welcome : localT.welcomeCleared),
         }));
+
+      const quizStore = useQuizStore.getState();
+      const currentContexts = [...selectedContexts];
+
+      if (quizStore && (quizStore.questions.length > 0 || quizStore.quiz.title)) {
+        currentContexts.push({
+          type: "current_quiz",
+          name: "Current Active Quiz",
+          data: {
+            quiz: quizStore.quiz,
+            questions: quizStore.questions
+          }
+        });
+      }
+
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
 
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -207,8 +635,9 @@ export default function AIAssistant() {
           prompt: userMessageText,
           messages: history,
           lang,
-          contexts: selectedContexts,
+          contexts: currentContexts,
         }),
+        signal: controller.signal,
       });
 
       if (!response.ok) {
@@ -230,7 +659,6 @@ export default function AIAssistant() {
         throw new Error("No response body received from server");
       }
 
-      // Add assistant message placeholder
       const assistantMsgId = (Date.now() + 1).toString();
       const assistantMsg: Message = {
         id: assistantMsgId,
@@ -242,6 +670,7 @@ export default function AIAssistant() {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
+      let assistantMessageContent = "";
 
       while (true) {
         const { done, value } = await reader.read();
@@ -259,10 +688,11 @@ export default function AIAssistant() {
               setActiveModel(parsed.model);
             }
             if (parsed.token) {
+              assistantMessageContent += parsed.token;
               setMessages((prev) =>
                 prev.map((msg) =>
                   msg.id === assistantMsgId
-                    ? { ...msg, content: msg.content + parsed.token }
+                    ? { ...msg, content: assistantMessageContent }
                     : msg
                 )
               );
@@ -275,11 +705,54 @@ export default function AIAssistant() {
           }
         }
       }
+
+      if (assistantMessageContent) {
+        const match = assistantMessageContent.match(/```json_quiz_update\s*([\s\S]*?)(?:\s*```|$)/);
+        if (match && match[1].trim()) {
+          try {
+            const cleanedJson = cleanJsonString(match[1]);
+            const repairedJson = repairTruncatedJson(cleanedJson);
+            const quizUpdate = JSON.parse(repairedJson);
+            console.log("Parsed valid quiz update from AI assistant:", quizUpdate);
+          } catch (e: any) {
+            console.error("Failed to parse quiz update JSON:", e);
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: `error-${Date.now()}`,
+                role: "assistant",
+                content: lang === "th"
+                  ? `⚠️ **ระบบได้รับคำสั่งแต่ไม่สามารถอัปเดตข้อมูลได้:** โครงสร้างข้อมูล JSON ที่ส่งกลับมาจาก AI ไม่ถูกต้องสมบูรณ์ (ข้อผิดพลาด: ${e.message})`
+                  : lang === "ja"
+                    ? `⚠️ **システムは指示を受信しましたが、更新できませんでした：** AIから返されたJSONデータが破損しています (エラー: ${e.message})`
+                    : `⚠️ **Received command but could not update quiz:** The JSON data returned by the AI was malformed or incomplete (Error: ${e.message})`
+              }
+            ]);
+          }
+        }
+      }
     } catch (err: any) {
-      console.error(err);
-      setErrorMsg(err.message || localT.errConnect);
+      if (err.name === "AbortError" || err.message?.includes("aborted")) {
+        console.log("Request aborted by user");
+        setMessages((prev) => [
+          ...prev.filter(m => m.content !== ""),
+          {
+            id: `stopped-${Date.now()}`,
+            role: "assistant",
+            content: lang === "th"
+              ? "*🛑 การตอบกลับถูกหยุดโดยผู้ใช้*"
+              : lang === "ja"
+                ? "*🛑 ユーザーによって生成が停止されました*"
+                : "*🛑 Response generation stopped by user*"
+          }
+        ]);
+      } else {
+        console.error(err);
+        setErrorMsg(err.message || localT.errConnect);
+      }
     } finally {
       setIsLoading(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -298,7 +771,7 @@ export default function AIAssistant() {
           onClick={() => setIsOpen(!isOpen)}
           className={`
             relative p-4 rounded-full shadow-2xl flex items-center justify-center
-            transition-all duration-300 transform hover:scale-105 active:scale-95
+            transition-all duration-300 transform hover:scale-105 active:scale-[0.95]
             ${isOpen
               ? "bg-rose-500 hover:bg-rose-600 text-white"
               : "bg-gradient-to-tr from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white"
@@ -306,7 +779,6 @@ export default function AIAssistant() {
           `}
           aria-label="Toggle AI Assistant"
         >
-          {/* Subtle pulse ring around button */}
           {!isOpen && (
             <span className="absolute inset-0 rounded-full bg-violet-600/30 animate-ping pointer-events-none" />
           )}
@@ -340,7 +812,7 @@ export default function AIAssistant() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
             transition={{ duration: 0.2 }}
-            className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-full border border-violet-250/80 dark:border-violet-850/80 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md shadow-2xl flex items-center gap-4 text-xs sm:text-sm font-semibold text-zinc-850 dark:text-zinc-100 shadow-violet-500/5 select-none"
+            className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-full border border-violet-200/80 dark:border-violet-800/80 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md shadow-2xl flex items-center gap-4 text-xs sm:text-sm font-semibold text-zinc-800 dark:text-zinc-100 shadow-violet-500/5 select-none"
           >
             <span className="flex items-center gap-2">
               <span className="inline-block w-2 h-2 rounded-full bg-violet-600 animate-ping" />
@@ -350,13 +822,23 @@ export default function AIAssistant() {
                   ? "検証モード：画面上のコンポーネントをクリックしてください..."
                   : "Inspection Mode: Click on a component on the page..."}
             </span>
-            <button
-              type="button"
-              onClick={() => setIsSelectingContext(false)}
-              className="px-2.5 py-1 rounded-lg text-[11px] bg-zinc-100 dark:bg-zinc-900 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/30 dark:hover:text-rose-400 transition-colors cursor-pointer border-none"
-            >
-              {lang === "th" ? "ยกเลิก" : lang === "ja" ? "キャンセル" : "Cancel"}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleSelectEntirePage}
+                className="px-2.5 py-1 rounded-lg text-[11px] bg-violet-600 text-white hover:bg-violet-700 transition-colors cursor-pointer border-none flex items-center gap-1 shadow-sm font-bold active:scale-[0.98]"
+              >
+                <Layers className="w-3 h-3 text-white" />
+                {lang === "th" ? "เลือกทั้งหน้า" : lang === "ja" ? "画面全体を選択" : "Select Entire Page"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsSelectingContext(false)}
+                className="px-2.5 py-1 rounded-lg text-[11px] bg-zinc-100 dark:bg-zinc-900 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-955/30 dark:hover:text-rose-455 transition-colors cursor-pointer border-none"
+              >
+                {lang === "th" ? "ยกเลิก" : lang === "ja" ? "キャンセル" : "Cancel"}
+              </button>
+            </div>
           </motion.div>
         )}
 
@@ -380,13 +862,13 @@ export default function AIAssistant() {
             `}
           >
             {/* Header */}
-            <div className="p-4 border-b border-zinc-150 dark:border-zinc-800/80 bg-gradient-to-r from-violet-50/85 to-indigo-50/85 dark:from-zinc-900/60 dark:to-zinc-900/60 flex items-center justify-between">
+            <div className="p-4 border-b border-zinc-200/50 dark:border-zinc-800/80 bg-gradient-to-r from-violet-50/85 to-indigo-50/85 dark:from-zinc-900/60 dark:to-zinc-900/60 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-violet-500/20">
                   <Bot className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-zinc-850 dark:text-zinc-100 text-sm flex items-center gap-1.5">
+                  <h3 className="font-bold text-zinc-800 dark:text-zinc-100 text-sm flex items-center gap-1.5">
                     {localT.headerTitle}
                     <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
                   </h3>
@@ -467,15 +949,26 @@ export default function AIAssistant() {
 
                               if (isInline) {
                                 return (
-                                  <code className="bg-violet-50 dark:bg-zinc-850 px-1.5 py-0.5 rounded text-violet-750 dark:text-violet-400 font-mono text-[12px] font-semibold border border-violet-100/50 dark:border-zinc-800/40" {...rest}>
+                                  <code className="bg-violet-50 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-violet-700 dark:text-violet-400 font-mono text-[12px] font-semibold border border-violet-100/50 dark:border-zinc-800/40" {...rest}>
                                     {children}
                                   </code>
                                 );
                               }
 
+                              const lang = match ? match[1] : "";
+                              if (lang === "json_quiz_update") {
+                                return (
+                                  <QuizUpdateSummary
+                                    codeString={String(children)}
+                                    lang={lang}
+                                    isGenerating={isLoading}
+                                  />
+                                );
+                              }
+
                               return (
                                 <CodeBlock
-                                  language={match ? match[1] : ""}
+                                  language={lang}
                                   code={String(children).replace(/\n$/, "")}
                                 />
                               );
@@ -513,7 +1006,7 @@ export default function AIAssistant() {
                       {localT.errTitle}
                     </p>
                     <p>{errorMsg}</p>
-                    <div className="mt-1 border-t border-rose-500/20 pt-1.5 text-[11px] text-rose-500/85">
+                    <div className="mt-1 border-t border-rose-500/25 pt-1.5 text-[11px] text-rose-500/85">
                       💡 {lang === "th" ? "คำแนะนำ" : lang === "ja" ? "推奨事項" : "Troubleshooting"}: <br />
                       {localT.errGuide1} <br />
                       {localT.errGuide2} <br />
@@ -527,14 +1020,14 @@ export default function AIAssistant() {
                 <div ref={messagesEndRef} />
               </ScrollShadow>
 
-              {/* Bottom Suggestions Overlay (Visible if chat is short) */}
+              {/* Bottom Suggestions Overlay */}
               {messages.length <= 2 && !isLoading && !errorMsg && (
-                <div className="px-4 py-2.5 border-t border-zinc-150 dark:border-zinc-900/60 bg-zinc-50/60 dark:bg-zinc-950/20 flex flex-col gap-2">
+                <div className="px-4 py-2.5 border-t border-zinc-200/50 dark:bg-zinc-950/20 flex flex-col gap-2">
                   <span className="text-[10px] font-extrabold text-violet-600 dark:text-violet-400 flex items-center gap-1 uppercase tracking-wider">
                     <MessageSquareCode className="w-3.5 h-3.5" /> {localT.suggestedTitle}
                   </span>
                   <div className="flex flex-col gap-1.5">
-                    {localT.suggestions.map((suggestion, idx) => (
+                    {localTranslations[lang as "th" | "en" | "ja"]?.suggestions?.map((suggestion, idx) => (
                       <button
                         key={idx}
                         onClick={() => handleSuggestionClick(suggestion)}
@@ -542,12 +1035,12 @@ export default function AIAssistant() {
                           w-full text-left px-3 py-2 rounded-xl text-xs
                           bg-white dark:bg-zinc-900/60 hover:bg-violet-50/50 dark:hover:bg-violet-950/20
                           border border-zinc-200/50 dark:border-zinc-800/50 hover:border-violet-300/50 dark:hover:border-violet-850
-                          text-zinc-700 dark:text-zinc-300 hover:text-violet-600 dark:hover:text-violet-300
+                          text-zinc-700 dark:text-zinc-300 hover:text-violet-600 dark:hover:text-violet-400
                           transition-all duration-200 flex items-center justify-between group cursor-pointer shadow-[0_1px_4px_rgba(0,0,0,0.01)]
                         "
                       >
                         <span className="truncate">{suggestion}</span>
-                        <ArrowUpRight className="w-3 h-3 text-zinc-400 group-hover:text-violet-500 opacity-0 group-hover:opacity-100 transition-all shrink-0" />
+                        <ArrowUpRight className="w-3 h-3 text-zinc-450 group-hover:text-violet-500 opacity-0 group-hover:opacity-100 transition-all shrink-0" />
                       </button>
                     ))}
                   </div>
@@ -557,13 +1050,19 @@ export default function AIAssistant() {
 
             {/* Active Context Reference Badges */}
             {selectedContexts.length > 0 && (
-              <div className="px-4 py-2 border-t border-zinc-150 dark:border-zinc-900/60 bg-violet-50/25 dark:bg-violet-950/10 flex flex-wrap gap-2 items-center">
+              <div className="px-4 py-2 border-t border-zinc-200/50 dark:border-zinc-900/60 bg-violet-50/25 dark:bg-violet-950/10 flex flex-wrap gap-2 items-center">
                 {selectedContexts.map((context, index) => (
-                  <div key={index} className="flex items-center gap-1.5 text-xs text-violet-750 dark:text-violet-400 font-medium bg-white dark:bg-zinc-900/50 px-2.5 py-1 rounded-xl border border-violet-200/30 dark:border-violet-900/30 max-w-full shrink-0">
+                  <div key={index} className="flex items-center gap-1.5 text-xs text-violet-700 dark:text-violet-400 font-medium bg-white dark:bg-zinc-900/50 px-2.5 py-1 rounded-xl border border-violet-200/30 dark:border-violet-900/30 max-w-full shrink-0">
                     <div className="px-1.5 py-0.5 rounded-md bg-violet-100/50 dark:bg-violet-950/40 text-[9px] font-bold uppercase border border-violet-200/30 dark:border-violet-900/30 shrink-0">
-                      {context.type === "student" ? (lang === "th" ? "นักเรียน" : lang === "ja" ? "学生" : "Student") : context.type === "quiz" ? (lang === "th" ? "แบบทดสอบ" : lang === "ja" ? "クイズ" : "Quiz") : context.type}
+                      {context.type === "student" 
+                        ? (lang === "th" ? "นักเรียน" : lang === "ja" ? "学生" : "Student") 
+                        : context.type === "quiz" 
+                          ? (lang === "th" ? "แบบทดสอบ" : lang === "ja" ? "クイズ" : "Quiz") 
+                          : context.type === "page" 
+                            ? (lang === "th" ? "หน้าเว็บ" : lang === "ja" ? "画面" : "Page") 
+                            : context.type}
                     </div>
-                    <span className="truncate max-w-[120px] font-semibold text-zinc-700 dark:text-zinc-300">
+                    <span className="truncate max-w-[120px] font-semibold text-zinc-700 dark:text-zinc-350 font-medium">
                       {context.name}
                     </span>
                     <button
@@ -579,7 +1078,7 @@ export default function AIAssistant() {
             )}
 
             {/* Input Bar */}
-            <form onSubmit={sendMessage} className="p-4 border-t border-zinc-150 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-950/50 flex gap-2 items-center">
+            <form onSubmit={sendMessage} className="p-4 border-t border-zinc-200/50 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-950/50 flex gap-2 items-center">
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -601,12 +1100,24 @@ export default function AIAssistant() {
                 <Target className="w-4.5 h-4.5" />
               </Button>
               <Button
-                type="submit"
+                type={isLoading ? "button" : "submit"}
+                onClick={isLoading ? handleStopGeneration : undefined}
                 isIconOnly
-                isDisabled={isLoading || !input.trim()}
-                className="bg-gradient-to-tr from-violet-600 to-indigo-600 text-white rounded-xl shadow-lg shadow-violet-500/15 hover:shadow-violet-500/25 shrink-0"
+                isDisabled={!isLoading && !input.trim()}
+                className={`
+                  shrink-0 rounded-xl shadow-lg transition-all duration-200
+                  ${isLoading 
+                    ? "bg-rose-500 hover:bg-rose-600 text-white shadow-rose-500/15 hover:shadow-rose-500/25 animate-pulse" 
+                    : "bg-gradient-to-tr from-violet-600 to-indigo-600 text-white shadow-violet-500/15 hover:shadow-violet-500/25"
+                  }
+                `}
+                aria-label={isLoading ? "Stop response generation" : "Send message"}
               >
-                <Send className="w-4 h-4" />
+                {isLoading ? (
+                  <Square className="w-4 h-4 fill-white" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
               </Button>
             </form>
           </motion.div>

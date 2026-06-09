@@ -69,6 +69,28 @@ interface QuizStore {
   setPreviewMode: (on: boolean) => void;
   setSaving: (on: boolean) => void;
   markClean: () => void;
+  updateQuizFromAi: (data: {
+    title?: string;
+    description?: string;
+    subject?: string;
+    chapter?: string;
+    difficulty?: Difficulty;
+    durationMinutes?: number;
+    hasTimeLimit?: boolean;
+    showAnswersAfterQuiz?: boolean;
+    tags?: string[];
+    category?: string;
+    questions?: {
+      id?: string;
+      text: string;
+      type: QuestionType;
+      choices: {
+        id?: string;
+        text: string;
+        isCorrect: boolean;
+      }[];
+    }[];
+  }) => void;
 }
 
 const DEFAULT_QUIZ: QuizFormData = {
@@ -237,5 +259,72 @@ export const useQuizStore = create<QuizStore>()(
     setPreviewMode: (on) => set((s) => { s.previewMode = on; }),
     setSaving: (on) => set((s) => { s.isSaving = on; }),
     markClean: () => set((s) => { s.isDirty = false; }),
+
+    updateQuizFromAi: (data) =>
+      set((s) => {
+        if (data.title !== undefined) s.quiz.title = data.title;
+        if (data.description !== undefined) s.quiz.description = data.description;
+        if (data.subject !== undefined) s.quiz.subject = data.subject;
+        if (data.chapter !== undefined) s.quiz.chapter = data.chapter;
+        if (data.difficulty !== undefined) s.quiz.difficulty = data.difficulty;
+        if (data.durationMinutes !== undefined) s.quiz.durationMinutes = data.durationMinutes;
+        if (data.hasTimeLimit !== undefined) s.quiz.hasTimeLimit = data.hasTimeLimit;
+        if (data.showAnswersAfterQuiz !== undefined) s.quiz.showAnswersAfterQuiz = data.showAnswersAfterQuiz;
+        if (data.tags !== undefined) s.quiz.tags = data.tags;
+        if (data.category !== undefined) s.quiz.category = data.category;
+        
+        if (data.questions !== undefined) {
+          const currentQuestions = [...s.questions];
+
+          data.questions.forEach((q) => {
+            const existingQ = q.id
+              ? currentQuestions.find((eq) => eq.id === q.id)
+              : currentQuestions.find((eq) => eq.text.trim().toLowerCase() === q.text.trim().toLowerCase());
+
+            const questionId = existingQ ? existingQ.id : (q.id || `q-${uid()}`);
+
+            const mappedQuestion = {
+              text: q.text,
+              type: q.type,
+              id: questionId,
+              order: existingQ ? existingQ.order : currentQuestions.length,
+              choices: (q.choices || []).map((c) => {
+                const existingC = existingQ
+                  ? (c.id ? existingQ.choices.find((ec) => ec.id === c.id) : existingQ.choices.find((ec) => ec.text.trim().toLowerCase() === c.text.trim().toLowerCase()))
+                  : null;
+                const choiceId = existingC ? existingC.id : (c.id || `c-${uid()}`);
+                return {
+                  text: c.text,
+                  isCorrect: c.isCorrect,
+                  id: choiceId
+                };
+              })
+            };
+
+            if (existingQ) {
+              const idx = currentQuestions.findIndex((eq) => eq.id === existingQ.id);
+              if (idx !== -1) {
+                currentQuestions[idx] = mappedQuestion;
+              }
+            } else {
+              currentQuestions.push(mappedQuestion);
+            }
+          });
+
+          // Sort by order and re-index sequentially
+          s.questions = currentQuestions
+            .sort((a, b) => a.order - b.order)
+            .map((q, idx) => ({ ...q, order: idx }));
+
+          if (s.questions.length > 0) {
+            if (!s.questions.some(q => q.id === s.activeQuestionId)) {
+              s.activeQuestionId = s.questions[0].id;
+            }
+          } else {
+            s.activeQuestionId = null;
+          }
+        }
+        s.isDirty = true;
+      }),
   }))
 );

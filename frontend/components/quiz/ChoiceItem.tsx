@@ -20,6 +20,7 @@ interface ChoiceItemProps {
 
 export function ChoiceItem({
   t,
+  questionId,
   choice,
   index,
   isTrueFalse,
@@ -39,6 +40,9 @@ export function ChoiceItem({
 
   return (
     <div
+      data-ai-context-type="choice"
+      data-ai-context-name={`Choice ${LETTERS[index] ?? index + 1}: ${choice.text}`}
+      data-ai-context-data={JSON.stringify({ questionId, choiceId: choice.id, text: choice.text, isCorrect: choice.isCorrect, letter: LETTERS[index] ?? index + 1 })}
       className={`
         group flex items-center gap-2.5 rounded-xl px-3 py-2.5 border-2 transition-all duration-150
         ${choice.isCorrect

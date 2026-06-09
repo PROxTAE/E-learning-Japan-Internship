@@ -118,7 +118,7 @@ function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onHistory, onSta
   const MappedIcon = customEmoji ? EMOJI_TO_ICON[customEmoji] : null;
 
   return (
-    <div
+    <div suppressHydrationWarning
       className="group relative flex flex-col rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 hover:border-violet-300 dark:hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-500/10 transition-all duration-300 overflow-hidden"
       data-ai-context-type="quiz"
       data-ai-context-name={quiz.title}
@@ -210,6 +210,7 @@ function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onHistory, onSta
           <Button
             key={s}
             onClick={() => onStatusChange(quiz, s)}
+            aria-label={s}
             className={`flex-1 py-1.5 h-auto text-[10px] font-semibold uppercase tracking-wide transition-colors rounded-none bg-transparent ${
               quiz.status === s
                 ? "bg-violet-600 text-white"
@@ -233,8 +234,8 @@ function ActionButton({ onClick, title, icon: Icon, color }: {
   return (
     <Button
       isIconOnly
+      aria-label={title}
       onClick={(e) => { e.stopPropagation(); onClick(); }}
-      {...{ title } as any}
       className={`w-8 h-8 min-w-0 rounded-lg ${color} text-white flex items-center justify-center shadow-md transition-transform hover:scale-110`}
     >
       <Icon className="w-3.5 h-3.5" />

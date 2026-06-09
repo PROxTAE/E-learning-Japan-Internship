@@ -92,7 +92,7 @@ export function QuestionCard({
       id={`question-card-${question.id}`}
       data-ai-context-type="question"
       data-ai-context-name={question.text || `Question ${index + 1}`}
-      data-ai-context-data={JSON.stringify({ index: index + 1, type: question.type, choiceCount: question.choices.length, hasCorrect: !hasNoCorrect })}
+      data-ai-context-data={JSON.stringify({ id: question.id, index: index + 1, type: question.type, choiceCount: question.choices.length, hasCorrect: !hasNoCorrect })}
       className={`
         group relative rounded-2xl border-2 transition-all duration-200 cursor-pointer
         ${isActive

@@ -50,7 +50,7 @@ export function QuizListFilters({
   ] as const;
 
   return (
-    <div className="flex flex-col gap-3">
+    <div suppressHydrationWarning className="flex flex-col gap-3">
       {/* Top row: search + view toggle */}
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Search */}
@@ -108,6 +108,7 @@ export function QuizListFilters({
             <Button
               key={mode}
               onPress={() => setViewMode(mode)}
+              aria-label={mode === "grid" ? ql.viewGrid ?? "Grid view" : ql.viewTable ?? "Table view"}
               className={`min-w-0 px-3 py-2 h-auto rounded-none transition-all ${
                 viewMode === mode
                   ? "bg-violet-600 text-white font-semibold"
@@ -128,6 +129,7 @@ export function QuizListFilters({
             <Button
               key={o.value}
               onPress={() => setStatusFilter(o.value as typeof statusFilter)}
+              aria-label={o.label}
               className={`min-w-0 h-auto px-3 py-1.5 rounded-none font-medium text-xs transition-all ${
                 statusFilter === o.value
                   ? "bg-violet-600 text-white"
@@ -145,6 +147,7 @@ export function QuizListFilters({
             <Button
               key={o.value}
               onPress={() => setDiffFilter(o.value as typeof diffFilter)}
+              aria-label={o.label}
               className={`min-w-0 h-auto px-3 py-1.5 rounded-none font-medium text-xs transition-all ${
                 diffFilter === o.value
                   ? "bg-violet-600 text-white"
