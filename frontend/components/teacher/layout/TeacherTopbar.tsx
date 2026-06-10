@@ -38,7 +38,7 @@ export function TeacherTopbar({ onMenuToggle, searchQuery, onSearchChange }: Tea
             placeholder={t.topbar.searchPlaceholder}
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm rounded-xl border border-default-200/50 dark:border-default-700/30 bg-default-100 dark:bg-default-50/10 text-default-900 dark:text-default-100 placeholder-default-400 outline-none focus:ring-2 focus:ring-violet-500/30 transition-all"
+            className="w-full pl-9 pr-4 py-2 text-sm rounded-xl border border-default-200/50 dark:border-default-700/30 bg-default-100 dark:bg-default-50/10 text-default-900 dark:text-default-100 placeholder-default-400 outline-none focus:ring-2 focus:ring-primary/30 transition-all"
           />
         </div>
       </div>
@@ -75,7 +75,7 @@ export function TeacherTopbar({ onMenuToggle, searchQuery, onSearchChange }: Tea
               </p>
               <p className="text-[10px] text-default-400 leading-tight">Teacher</p>
             </div>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center text-white text-sm font-bold shrink-0">
+            <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold shrink-0">
               T
             </div>
             <ChevronDown className="w-3.5 h-3.5 text-default-400" />

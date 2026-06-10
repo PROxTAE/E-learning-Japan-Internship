@@ -344,7 +344,8 @@ export function QuizSessionHeader({ quizTitle, quizCode, state, onStateChange, s
           </Button>
 
           <Button 
-            {...{ size: "sm", color: "danger", variant: "flat" } as any}
+            size="sm"
+            variant="danger-soft"
             className="flex items-center gap-2 font-bold"
             onPress={() => onStateChange({ isEnded: true } as any)}
           >

@@ -513,7 +513,7 @@ export default function AIAssistant() {
         const type = el.getAttribute("data-ai-context-type") || "general";
         const name = el.getAttribute("data-ai-context-name") || "Component";
         const rawData = el.getAttribute("data-ai-context-data");
-        
+
         let data = null;
         if (rawData) {
           try {
@@ -1054,12 +1054,12 @@ export default function AIAssistant() {
                 {selectedContexts.map((context, index) => (
                   <div key={index} className="flex items-center gap-1.5 text-xs text-violet-700 dark:text-violet-400 font-medium bg-white dark:bg-zinc-900/50 px-2.5 py-1 rounded-xl border border-violet-200/30 dark:border-violet-900/30 max-w-full shrink-0">
                     <div className="px-1.5 py-0.5 rounded-md bg-violet-100/50 dark:bg-violet-950/40 text-[9px] font-bold uppercase border border-violet-200/30 dark:border-violet-900/30 shrink-0">
-                      {context.type === "student" 
-                        ? (lang === "th" ? "นักเรียน" : lang === "ja" ? "学生" : "Student") 
-                        : context.type === "quiz" 
-                          ? (lang === "th" ? "แบบทดสอบ" : lang === "ja" ? "クイズ" : "Quiz") 
-                          : context.type === "page" 
-                            ? (lang === "th" ? "หน้าเว็บ" : lang === "ja" ? "画面" : "Page") 
+                      {context.type === "student"
+                        ? (lang === "th" ? "นักเรียน" : lang === "ja" ? "学生" : "Student")
+                        : context.type === "quiz"
+                          ? (lang === "th" ? "แบบทดสอบ" : lang === "ja" ? "クイズ" : "Quiz")
+                          : context.type === "page"
+                            ? (lang === "th" ? "หน้าเว็บ" : lang === "ja" ? "画面" : "Page")
                             : context.type}
                     </div>
                     <span className="truncate max-w-[120px] font-semibold text-zinc-700 dark:text-zinc-350 font-medium">
@@ -1106,8 +1106,8 @@ export default function AIAssistant() {
                 isDisabled={!isLoading && !input.trim()}
                 className={`
                   shrink-0 rounded-xl shadow-lg transition-all duration-200
-                  ${isLoading 
-                    ? "bg-rose-500 hover:bg-rose-600 text-white shadow-rose-500/15 hover:shadow-rose-500/25 animate-pulse" 
+                  ${isLoading
+                    ? "bg-rose-500 hover:bg-rose-600 text-white shadow-rose-500/15 hover:shadow-rose-500/25 animate-pulse"
                     : "bg-gradient-to-tr from-violet-600 to-indigo-600 text-white shadow-violet-500/15 hover:shadow-violet-500/25"
                   }
                 `}

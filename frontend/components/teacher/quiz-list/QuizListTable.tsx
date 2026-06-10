@@ -48,10 +48,10 @@ export function QuizListTable({ quizzes, onEdit, onDelete, onShare, onMonitor, o
               <div className="flex flex-col gap-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">{quiz.title}</span>
-                  <Chip {...{ size: "sm", color: STATUS_COLOR[quiz.status] } as any} className="text-[10px] h-5 capitalize shrink-0">
+                  <Chip size="sm" color={STATUS_COLOR[quiz.status]} className="text-[10px] h-5 capitalize shrink-0">
                     {quiz.status}
                   </Chip>
-                  <Chip {...{ size: "sm", color: DIFF_COLOR[quiz.difficulty], variant: "flat" } as any} className="text-[10px] h-5 capitalize shrink-0">
+                  <Chip size="sm" color={DIFF_COLOR[quiz.difficulty]} variant="soft" className="text-[10px] h-5 capitalize shrink-0">
                     {quiz.difficulty}
                   </Chip>
                 </div>
@@ -88,7 +88,7 @@ export function QuizListTable({ quizzes, onEdit, onDelete, onShare, onMonitor, o
             {/* Actions */}
             <div className="flex items-center gap-1.5 justify-end">
               {quiz.status === "published" && (
-                <ActionBtn onClick={() => onMonitor(quiz)} title={ql.monitor} className="text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-500/10">
+                <ActionBtn onClick={() => onMonitor(quiz)} title={ql.monitor} className="text-primary hover:bg-primary/10">
                   <Activity className="w-3.5 h-3.5" />
                 </ActionBtn>
               )}

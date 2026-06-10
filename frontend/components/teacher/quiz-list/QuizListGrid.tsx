@@ -119,7 +119,7 @@ function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onHistory, onSta
 
   return (
     <div suppressHydrationWarning
-      className="group relative flex flex-col rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 hover:border-violet-300 dark:hover:border-violet-500/50 hover:shadow-xl hover:shadow-violet-500/10 transition-all duration-300 overflow-hidden"
+      className="group relative flex flex-col rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 hover:border-primary/30 dark:hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 overflow-hidden"
       data-ai-context-type="quiz"
       data-ai-context-name={quiz.title}
       data-ai-context-data={JSON.stringify(quiz)}
@@ -141,7 +141,7 @@ function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onHistory, onSta
         {/* Hover actions overlay */}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
           {quiz.status === "published" && (
-            <ActionButton onClick={() => onMonitor(quiz)} title={ql.monitorLive} icon={Activity} color="bg-violet-600 hover:bg-violet-700" />
+            <ActionButton onClick={() => onMonitor(quiz)} title={ql.monitorLive} icon={Activity} color="bg-primary hover:bg-primary/95" />
           )}
           <ActionButton onClick={onHistory} title={ql.viewHistory} icon={History} color="bg-blue-600 hover:bg-blue-700" />
           <ActionButton onClick={() => onShare(quiz)} title={ql.share} icon={Share2} color="bg-emerald-600 hover:bg-emerald-700" />
@@ -151,7 +151,7 @@ function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onHistory, onSta
 
         {/* Status badge top-left */}
         <div className="absolute top-2 left-2">
-          <Chip {...{ size: "sm", color: STATUS_COLOR[quiz.status] } as any} className="text-[10px] h-5 capitalize font-semibold">
+          <Chip size="sm" color={STATUS_COLOR[quiz.status]} className="text-[10px] h-5 capitalize font-semibold">
             {quiz.status}
           </Chip>
         </div>
@@ -167,21 +167,21 @@ function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onHistory, onSta
         </div>
  
         <div className="flex items-center gap-1.5 flex-wrap">
-          <Chip {...{ size: "sm", color: DIFF_COLOR[quiz.difficulty], variant: "flat" } as any} className="text-[10px] h-5">
+          <Chip size="sm" color={DIFF_COLOR[quiz.difficulty]} variant="soft" className="text-[10px] h-5">
             {ql.diffLabel[quiz.difficulty] ?? quiz.difficulty}
           </Chip>
           {(quiz as any).category && (
-            <Chip {...{ size: "sm", variant: "flat" } as any} className="text-[10px] h-5 bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-default-400">
+            <Chip size="sm" variant="soft" className="text-[10px] h-5 bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300">
               {(quiz as any).category}
             </Chip>
           )}
           {quiz.subject && (
-            <Chip {...{ size: "sm", variant: "flat" } as any} className="text-[10px] h-5 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400">
+            <Chip size="sm" variant="soft" className="text-[10px] h-5 bg-primary/10 text-primary">
               {quiz.subject}
             </Chip>
           )}
           {quiz.chapter && (
-            <Chip {...{ size: "sm", variant: "flat" } as any} className="text-[10px] h-5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
+            <Chip size="sm" variant="soft" className="text-[10px] h-5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
               {quiz.chapter}
             </Chip>
           )}
@@ -211,10 +211,10 @@ function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onHistory, onSta
             key={s}
             onClick={() => onStatusChange(quiz, s)}
             aria-label={s}
-            className={`flex-1 py-1.5 h-auto text-[10px] font-semibold uppercase tracking-wide transition-colors rounded-none bg-transparent ${
+            className={`flex-1 py-1.5 h-auto text-[10px] font-semibold uppercase tracking-wide transition-colors rounded-none ${
               quiz.status === s
-                ? "bg-violet-600 text-white"
-                : "text-gray-400 dark:text-default-500 hover:bg-gray-50 dark:hover:bg-white/5"
+                ? "bg-primary text-primary-foreground"
+                : "bg-transparent text-gray-400 dark:text-default-500 hover:bg-gray-50 dark:hover:bg-white/5"
             }`}
           >
             {s}

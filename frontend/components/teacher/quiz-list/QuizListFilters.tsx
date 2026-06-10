@@ -30,23 +30,23 @@ export function QuizListFilters({
   const ql = t.quizList;
 
   const STATUS_OPTIONS = [
-    { value: "all",       label: ql.statusAll },
+    { value: "all", label: ql.statusAll },
     { value: "published", label: ql.statusPublished },
-    { value: "draft",     label: ql.statusDraft },
-    { value: "archived",  label: ql.statusArchived },
+    { value: "draft", label: ql.statusDraft },
+    { value: "archived", label: ql.statusArchived },
   ] as const;
 
   const DIFF_OPTIONS = [
-    { value: "all",    label: ql.diffAll },
-    { value: "easy",   label: ql.diffEasy },
+    { value: "all", label: ql.diffAll },
+    { value: "easy", label: ql.diffEasy },
     { value: "medium", label: ql.diffMedium },
-    { value: "hard",   label: ql.diffHard },
+    { value: "hard", label: ql.diffHard },
   ] as const;
 
   const SORT_OPTIONS = [
     { value: "updatedAt", label: ql.sortUpdatedAt },
-    { value: "title",     label: ql.sortTitle },
-    { value: "attempts",  label: ql.sortAttempts },
+    { value: "title", label: ql.sortTitle },
+    { value: "attempts", label: ql.sortAttempts },
   ] as const;
 
   return (
@@ -108,12 +108,11 @@ export function QuizListFilters({
             <Button
               key={mode}
               onPress={() => setViewMode(mode)}
-              aria-label={mode === "grid" ? ql.viewGrid ?? "Grid view" : ql.viewTable ?? "Table view"}
-              className={`min-w-0 px-3 py-2 h-auto rounded-none transition-all ${
-                viewMode === mode
+              aria-label={mode === "grid" ? (ql as any).viewGrid || "Grid view" : (ql as any).viewTable || "Table view"}
+              className={`min-w-0 px-3 py-2 h-auto rounded-none transition-all ${viewMode === mode
                   ? "bg-violet-600 text-white font-semibold"
                   : "bg-transparent text-gray-500 dark:text-default-400 hover:bg-gray-50 dark:hover:bg-white/5"
-              }`}
+                }`}
             >
               {mode === "grid" ? <LayoutGrid className="w-4 h-4" /> : <List className="w-4 h-4" />}
             </Button>
@@ -130,11 +129,10 @@ export function QuizListFilters({
               key={o.value}
               onPress={() => setStatusFilter(o.value as typeof statusFilter)}
               aria-label={o.label}
-              className={`min-w-0 h-auto px-3 py-1.5 rounded-none font-medium text-xs transition-all ${
-                statusFilter === o.value
+              className={`min-w-0 h-auto px-3 py-1.5 rounded-none font-medium text-xs transition-all ${statusFilter === o.value
                   ? "bg-violet-600 text-white"
                   : "bg-transparent text-gray-600 dark:text-default-400 hover:bg-gray-50 dark:hover:bg-white/5"
-              }`}
+                }`}
             >
               {o.label}
             </Button>
@@ -148,11 +146,10 @@ export function QuizListFilters({
               key={o.value}
               onPress={() => setDiffFilter(o.value as typeof diffFilter)}
               aria-label={o.label}
-              className={`min-w-0 h-auto px-3 py-1.5 rounded-none font-medium text-xs transition-all ${
-                diffFilter === o.value
+              className={`min-w-0 h-auto px-3 py-1.5 rounded-none font-medium text-xs transition-all ${diffFilter === o.value
                   ? "bg-violet-600 text-white"
                   : "bg-transparent text-gray-600 dark:text-default-400 hover:bg-gray-50 dark:hover:bg-white/5"
-              }`}
+                }`}
             >
               {o.label}
             </Button>

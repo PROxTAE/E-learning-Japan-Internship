@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "@heroui/styles";
 
+@source "../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}";
+
 @theme {
   /* Quantus Palette 2025 overrides */
   --color-violet-50: #f5f3ff; /* Blue Chalk */
@@ -49,6 +51,35 @@
   --color-zinc-800: #3c346a;
   --color-zinc-900: #211836;
   --color-zinc-950: #18102b; /* Haiti */
+
+  /* HeroUI semantic colors mapped to standard Tailwind class tokens */
+  --color-primary: hsl(var(--heroui-primary));
+  --color-primary-50: hsl(var(--heroui-primary-50));
+  --color-primary-100: hsl(var(--heroui-primary-100));
+  --color-primary-200: hsl(var(--heroui-primary-200));
+  --color-primary-300: hsl(var(--heroui-primary-300));
+  --color-primary-400: hsl(var(--heroui-primary-400));
+  --color-primary-500: hsl(var(--heroui-primary-500));
+  --color-primary-600: hsl(var(--heroui-primary-600));
+  --color-primary-700: hsl(var(--heroui-primary-700));
+  --color-primary-800: hsl(var(--heroui-primary-800));
+  --color-primary-900: hsl(var(--heroui-primary-900));
+  --color-primary-foreground: hsl(var(--heroui-primary-foreground, 0 0% 100%));
+
+  --color-secondary: hsl(var(--heroui-secondary));
+  --color-success: hsl(var(--heroui-success));
+  --color-warning: hsl(var(--heroui-warning));
+  --color-danger: hsl(var(--heroui-danger));
+  --color-default: hsl(var(--heroui-default));
+
+  --color-secondary-foreground: hsl(var(--heroui-secondary-foreground, 0 0% 100%));
+  --color-success-foreground: hsl(var(--heroui-success-foreground, 0 0% 100%));
+  --color-warning-foreground: hsl(var(--heroui-warning-foreground, 0 0% 0%));
+  --color-danger-foreground: hsl(var(--heroui-danger-foreground, 0 0% 100%));
+  --color-default-foreground: hsl(var(--heroui-default-foreground));
+
+  --color-background: hsl(var(--heroui-background));
+  --color-foreground: hsl(var(--heroui-foreground));
 }
 
 :root {
@@ -68,6 +99,19 @@
   --heroui-primary-900: 251 96% 30%;
   
   --heroui-warning: 56 100% 47%;      /* Turbo: #f0e100 */
+  --heroui-warning-foreground: 257 46% 11%;
+
+  --heroui-secondary: 270 91% 65%;
+  --heroui-secondary-foreground: 0 0% 100%;
+
+  --heroui-success: 142.1 76.2% 36.3%; /* #16a34a */
+  --heroui-success-foreground: 0 0% 100%;
+
+  --heroui-danger: 346.8 84.1% 50.2%; /* #ef4444 */
+  --heroui-danger-foreground: 0 0% 100%;
+
+  --heroui-default: 240 5.9% 90%; /* #e4e4e7 */
+  --heroui-default-foreground: 257 46% 11%;
 }
 
 .dark {
@@ -87,6 +131,19 @@
   --heroui-primary-900: 251 96% 30%;
   
   --heroui-warning: 56 100% 47%;      /* Turbo: #f0e100 */
+  --heroui-warning-foreground: 257 46% 11%;
+
+  --heroui-secondary: 270 91% 65%;
+  --heroui-secondary-foreground: 0 0% 100%;
+
+  --heroui-success: 142.1 70.2% 45.3%;
+  --heroui-success-foreground: 0 0% 100%;
+
+  --heroui-danger: 346.8 84.1% 60.2%;
+  --heroui-danger-foreground: 0 0% 100%;
+
+  --heroui-default: 240 5.9% 20%;
+  --heroui-default-foreground: 250 100% 98%;
 }
 
 

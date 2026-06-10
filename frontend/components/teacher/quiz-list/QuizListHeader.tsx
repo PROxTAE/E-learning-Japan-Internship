@@ -16,7 +16,7 @@ export function QuizListHeader({ stats, onCreateQuiz }: QuizListHeaderProps) {
   const ql = t.quizList;
 
   const STAT_ITEMS = [
-    { key: "total",     label: ql.statTotal,     icon: BookOpen,  color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-50 dark:bg-violet-500/10" },
+    { key: "total",     label: ql.statTotal,     icon: BookOpen,  color: "text-primary", bg: "bg-primary/10 dark:bg-primary/20" },
     { key: "published", label: ql.statPublished,  icon: Globe,     color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-500/10" },
     { key: "draft",     label: ql.statDrafts,     icon: FileText,  color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-500/10" },
     { key: "archived",  label: ql.statArchived,   icon: Archive,   color: "text-gray-500 dark:text-gray-400", bg: "bg-gray-50 dark:bg-white/5" },
@@ -37,7 +37,7 @@ export function QuizListHeader({ stats, onCreateQuiz }: QuizListHeaderProps) {
         <Button
           onPress={onCreateQuiz}
           aria-label={ql.createQuiz}
-          className="bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 transition-all"
+          className="bg-primary text-primary-foreground font-semibold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all"
           size="md"
         >
           <Plus className="w-4 h-4" />
