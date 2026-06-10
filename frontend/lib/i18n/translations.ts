@@ -342,8 +342,21 @@ const en = {
     viewAll: "View All",
     students: "students",
     avgScore: "Avg Score",
-    completedAt: "Completed at"
-  }
+    completedAt: "Completed at",
+  },
+  login: {
+    title: "Teacher Portal",
+    subtitle: "AI-Assisted Learning Analytics Platform",
+    emailLabel: "Email Address",
+    emailPlaceholder: "teacher@school.ac.jp",
+    passwordLabel: "Password",
+    passwordPlaceholder: "Enter your password",
+    signIn: "Sign In",
+    signingIn: "Signing in...",
+    errorTitle: "Login Failed",
+    welcomeBack: "Welcome back",
+    tagline: "Real-time insights for every classroom.",
+  },
 };
 
 const th: typeof en = {
@@ -669,8 +682,21 @@ const th: typeof en = {
     viewAll: "ดูทั้งหมด",
     students: "นักเรียน",
     avgScore: "คะแนนเฉลี่ย",
-    completedAt: "เสร็จสิ้นเมื่อ"
-  }
+    completedAt: "เสร็จสิ้นเมื่อ",
+  },
+  login: {
+    title: "พอร์ทัลอาจารย์",
+    subtitle: "แพลตฟอร์มวิเคราะห์การเรียนรู้ด้วย AI",
+    emailLabel: "อีเมล",
+    emailPlaceholder: "teacher@school.ac.th",
+    passwordLabel: "รหัสผ่าน",
+    passwordPlaceholder: "กรอกรหัสผ่าน",
+    signIn: "เข้าสู่ระบบ",
+    signingIn: "กำลังเข้าสู่ระบบ...",
+    errorTitle: "เข้าสู่ระบบไม่สำเร็จ",
+    welcomeBack: "ยินดีต้อนรับกลับ",
+    tagline: "ข้อมูลเชิงลึกแบบเรียลไทม์สำหรับทุกห้องเรียน",
+  },
 };
 
 const ja: typeof en = {
@@ -996,8 +1022,21 @@ const ja: typeof en = {
     viewAll: "すべて見る",
     students: "名",
     avgScore: "平均点",
-    completedAt: "終了日時"
-  }
+    completedAt: "終了日時",
+  },
+  login: {
+    title: "教師ポータル",
+    subtitle: "AI支援リアルタイム学習分析プラットフォーム",
+    emailLabel: "メールアドレス",
+    emailPlaceholder: "teacher@school.ac.jp",
+    passwordLabel: "パスワード",
+    passwordPlaceholder: "パスワードを入力",
+    signIn: "ログイン",
+    signingIn: "ログイン中...",
+    errorTitle: "ログイン失敗",
+    welcomeBack: "おかえりなさい",
+    tagline: "すべての教室にリアルタイムの洞察を",
+  },
 };
 
 export const translations = { en, th, ja };

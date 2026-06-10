@@ -14,6 +14,9 @@ import { quizApi } from "@/services/quizApi";
 import { sessionHistoryApi } from "@/services/sessionHistoryApi";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { Dropdown, Button } from "@heroui/react";
+import { getTeacher } from "@/lib/auth";
+import { authApi } from "@/services/authApi";
+import { ShareQuizModal } from "../dashboard/ShareQuizModal";
 
 interface TeacherSidebarProps {
   collapsed: boolean;
@@ -52,6 +55,10 @@ export function TeacherSidebar({
 
   // Active query ID parsed dynamically to prevent Next.js Suspense bailout
   const [activeQueryId, setActiveQueryId] = useState<string | null>(null);
+
+  // Share Modal States
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [selectedShareQuiz, setSelectedShareQuiz] = useState<any | null>(null);
 
   // Fetch quizzes and past session history on load
   useEffect(() => {
@@ -131,9 +138,13 @@ export function TeacherSidebar({
     router.push("/teacher/create-quiz");
   };
 
+  // Get teacher info from token
+  const teacher = getTeacher();
+
   const handleLogoutClick = () => {
+    authApi.logout();
     onMobileClose?.();
-    router.push("/");
+    router.push("/teacher/login");
   };
 
   return (
@@ -151,15 +162,17 @@ export function TeacherSidebar({
           onClick={isMobile ? onMobileClose : onToggle}
           className="flex items-center gap-3 px-4 h-16 w-full hover:bg-default-100 dark:hover:bg-white/[0.03] transition-colors text-left border-none bg-transparent cursor-pointer"
         >
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00bcd4] to-violet-600 flex items-center justify-center shadow-lg shadow-violet-500/20 shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
             <GraduationCap className="w-5 h-5 text-white" />
           </div>
           {(!collapsed || isMobile) && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-left overflow-hidden">
               <p className="text-sm font-bold text-default-900 dark:text-white whitespace-nowrap">
-                {t.nav.brand}
+                {teacher?.name || t.nav.brand}
               </p>
-              <p className="text-xs text-default-500 dark:text-slate-400 whitespace-nowrap">{t.nav.portalSubtitle}</p>
+              <p className="text-xs text-default-500 dark:text-slate-400 whitespace-nowrap truncate max-w-[160px]">
+                {teacher?.email || t.nav.portalSubtitle}
+              </p>
             </motion.div>
           )}
         </button>
@@ -327,21 +340,19 @@ export function TeacherSidebar({
                                         router.push(`/teacher/quizzes/${qId}/history`);
                                       } else if (key === "share") {
                                         let accessCode = quiz.accessCode;
+                                        let targetQuiz = quiz;
                                         if (!accessCode) {
                                           try {
                                             const updated = await quizApi.generateCode(qId);
                                             accessCode = updated.accessCode;
+                                            targetQuiz = { ...quiz, accessCode };
                                             setQuizzes(prev => prev.map(q => (q.id || q._id) === qId ? { ...q, accessCode } : q));
                                           } catch (err) {
                                             console.error("Failed to generate access code on share:", err);
                                           }
                                         }
-                                        if (accessCode) {
-                                          const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
-                                          const joinUrl = `${baseUrl}/play/${accessCode}`;
-                                          navigator.clipboard.writeText(joinUrl);
-                                          alert("Copied share link to clipboard: " + joinUrl);
-                                        }
+                                        setSelectedShareQuiz(targetQuiz);
+                                        setShareModalOpen(true);
                                       } else if (key === "delete") {
                                         const confirmDelete = window.confirm(t.quizList.deleteConfirmText || "Are you sure you want to delete this quiz?");
                                         if (confirmDelete) {
@@ -492,6 +503,18 @@ export function TeacherSidebar({
           {(!collapsed || isMobile) && <span>{t.nav.logout}</span>}
         </button>
       </div>
+
+      {/* Share Quiz Modal */}
+      {selectedShareQuiz && (
+        <ShareQuizModal
+          quiz={selectedShareQuiz}
+          isOpen={shareModalOpen}
+          onClose={() => {
+            setShareModalOpen(false);
+            setSelectedShareQuiz(null);
+          }}
+        />
+      )}
     </motion.aside>
   );
 }

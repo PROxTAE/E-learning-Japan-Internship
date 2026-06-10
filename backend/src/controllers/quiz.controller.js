@@ -35,12 +35,13 @@ async function generateUniqueCode() {
   return code;
 }
 
-// ── List all quizzes (with optional filters) ────────────────────
-// GET /api/quizzes?status=published&category=Math&page=1&limit=20
+// ── List quizzes for the logged-in teacher ───────────────────────────
+// GET /api/quizzes?status=published&category=Math&page=1&limit=50
 async function listQuizzes(req, res) {
   try {
     const { status, category, page = 1, limit = 50 } = req.query;
-    const filter = {};
+    // Scope to the authenticated teacher's quizzes only
+    const filter = { createdBy: req.teacher.id };
     if (status)   filter.status   = status;
     if (category) filter.category = category;
 
@@ -61,7 +62,7 @@ async function listQuizzes(req, res) {
 // GET /api/quizzes/:id
 async function getQuiz(req, res) {
   try {
-    const quiz = await Quiz.findById(req.params.id);
+    const quiz = await Quiz.findOne({ _id: req.params.id, createdBy: req.teacher.id });
     if (!quiz) return fail(res, "Quiz not found", 404);
     ok(res, quiz);
   } catch (err) {
@@ -85,6 +86,7 @@ async function createQuiz(req, res) {
       questions: [],
       subject: subject || "",
       chapter: chapter || "",
+      createdBy: req.teacher.id, // ← set to the authenticated teacher
     });
     ok(res, quiz, 201);
   } catch (err) {
@@ -136,8 +138,8 @@ async function updateQuiz(req, res) {
       ...(chapter          !== undefined && { chapter }),
     };
 
-    const quiz = await Quiz.findByIdAndUpdate(
-      req.params.id,
+    const quiz = await Quiz.findOneAndUpdate(
+      { _id: req.params.id, createdBy: req.teacher.id },
       { $set: update },
       { returnDocument: "after", runValidators: true }
     );
@@ -153,8 +155,8 @@ async function updateQuiz(req, res) {
 async function generateCode(req, res) {
   try {
     const code = await generateUniqueCode();
-    const quiz = await Quiz.findByIdAndUpdate(
-      req.params.id,
+    const quiz = await Quiz.findOneAndUpdate(
+      { _id: req.params.id, createdBy: req.teacher.id },
       { $set: { accessCode: code, status: "published" } },
       { returnDocument: "after" }
     );
@@ -201,8 +203,8 @@ async function setStatus(req, res) {
     const allowed = ["draft", "published", "archived"];
     if (!allowed.includes(status)) return fail(res, `status must be one of: ${allowed.join(", ")}`);
 
-    const quiz = await Quiz.findByIdAndUpdate(
-      req.params.id,
+    const quiz = await Quiz.findOneAndUpdate(
+      { _id: req.params.id, createdBy: req.teacher.id },
       { $set: { status } },
       { returnDocument: "after" }
     );
@@ -217,7 +219,7 @@ async function setStatus(req, res) {
 // DELETE /api/quizzes/:id
 async function deleteQuiz(req, res) {
   try {
-    const quiz = await Quiz.findByIdAndDelete(req.params.id);
+    const quiz = await Quiz.findOneAndDelete({ _id: req.params.id, createdBy: req.teacher.id });
     if (!quiz) return fail(res, "Quiz not found", 404);
     ok(res, { id: req.params.id });
   } catch (err) {

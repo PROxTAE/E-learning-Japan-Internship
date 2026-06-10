@@ -4,6 +4,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import type { Quiz, QuizFormData, Question } from "@/types/quiz";
+import { getToken } from "@/lib/auth";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://150.15.79.45:5000";
 console.log("Quiz API BASE_URL:", BASE_URL);
@@ -11,9 +12,15 @@ console.log("Quiz API BASE_URL:", BASE_URL);
 // ── internal fetch helper ─────────────────────────────────────
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = getToken();
+  const { headers, ...restInit } = init || {};
   const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { "Content-Type": "application/json", ...init?.headers },
-    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...headers,
+    },
+    ...restInit,
   });
   const body = await res.json();
   if (!res.ok || !body.success) {

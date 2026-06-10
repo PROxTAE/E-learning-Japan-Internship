@@ -9,6 +9,8 @@ const path    = require("path");
 
 const { connectDB }        = require("./db");
 const { getRedisClient }   = require("./redis/redisClient");
+const authRoutes           = require("./routes/auth.routes");
+const adminRoutes          = require("./routes/admin.routes");
 const quizRoutes           = require("./routes/quiz.routes");
 const monitoringRoutes     = require("./routes/monitoring.routes");
 const dashboardRoutes      = require("./routes/dashboard.routes");
@@ -33,12 +35,14 @@ app.get("/", (_req, res) => {
   res.send("<h1>Quiz Backend + Socket.IO Running!</h1><p><a href='/api/health'>/api/health</a></p>");
 });
 
-app.use("/api/quizzes", quizRoutes);
-app.use("/api/monitoring", monitoringRoutes);
-app.use("/api/dashboard", dashboardRoutes);
-app.use("/api/quiz-logs", quizLogRoutes);
+app.use("/api/auth",            authRoutes);
+app.use("/api/admin",           adminRoutes);
+app.use("/api/quizzes",         quizRoutes);
+app.use("/api/monitoring",      monitoringRoutes);
+app.use("/api/dashboard",       dashboardRoutes);
+app.use("/api/quiz-logs",       quizLogRoutes);
 app.use("/api/session-history", sessionHistoryRoutes);
-app.get("/api/play/:code", getQuizByCode);
+app.get("/api/play/:code",      getQuizByCode);
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString(), socketio: true });

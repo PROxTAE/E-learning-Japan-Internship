@@ -211,11 +211,8 @@ function QuizCard({ quiz, onEdit, onDelete, onShare, onMonitor, onHistory, onSta
             key={s}
             onClick={() => onStatusChange(quiz, s)}
             aria-label={s}
-            className={`flex-1 py-1.5 h-auto text-[10px] font-semibold uppercase tracking-wide transition-colors rounded-none ${
-              quiz.status === s
-                ? "bg-primary text-primary-foreground"
-                : "bg-transparent text-gray-400 dark:text-default-500 hover:bg-gray-50 dark:hover:bg-white/5"
-            }`}
+            variant={quiz.status === s ? "primary" : "ghost"}
+            className="flex-1 py-1.5 h-auto text-[10px] font-semibold uppercase tracking-wide transition-colors rounded-none"
           >
             {s}
           </Button>
