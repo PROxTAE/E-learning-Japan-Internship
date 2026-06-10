@@ -5,6 +5,9 @@ import { Search, Bell, Menu, Settings, LogOut, User, ChevronDown } from "lucide-
 import { useLang } from "@/lib/i18n/LanguageContext";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
+import { useRouter } from "next/navigation";
+import { getTeacher } from "@/lib/auth";
+import { authApi } from "@/services/authApi";
 
 interface TeacherTopbarProps {
   onMenuToggle: () => void;
@@ -13,8 +16,15 @@ interface TeacherTopbarProps {
 }
 
 export function TeacherTopbar({ onMenuToggle, searchQuery, onSearchChange }: TeacherTopbarProps) {
+  const router = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { t } = useLang();
+  const teacher = getTeacher();
+
+  const handleLogout = () => {
+    authApi.logout();
+    router.push("/teacher/login");
+  };
 
   return (
     <header className="h-16 flex items-center gap-3 px-4 lg:px-6 border-b border-default-200/50 dark:border-default-700/30 bg-white/80 dark:bg-white/5 backdrop-blur-xl sticky top-0 z-30">
@@ -71,12 +81,14 @@ export function TeacherTopbar({ onMenuToggle, searchQuery, onSearchChange }: Tea
           >
             <div className="text-right hidden sm:block">
               <p className="text-xs font-semibold text-default-700 dark:text-default-200 leading-tight">
-                Mr. Takajo
+                {teacher?.name || "Mr. Takajo"}
               </p>
-              <p className="text-[10px] text-default-400 leading-tight">Teacher</p>
+              <p className="text-[10px] text-default-400 leading-tight">
+                Teacher
+              </p>
             </div>
             <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold shrink-0">
-              T
+              {teacher?.name ? teacher.name.charAt(0).toUpperCase() : "T"}
             </div>
             <ChevronDown className="w-3.5 h-3.5 text-default-400" />
           </button>
@@ -99,7 +111,11 @@ export function TeacherTopbar({ onMenuToggle, searchQuery, onSearchChange }: Tea
                   </button>
                 ))}
                 <div className="border-t border-default-100 dark:border-default-700/30" />
-                <button suppressHydrationWarning className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                <button
+                  suppressHydrationWarning
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                >
                   <LogOut className="w-4 h-4" />
                   {t.topbar.logout}
                 </button>

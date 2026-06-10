@@ -5,6 +5,7 @@ import { Plus, Activity, BarChart2, Users } from "lucide-react";
 import { useLang } from "@/lib/i18n/LanguageContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { getTeacher } from "@/lib/auth";
 
 function computeTodayString(lang: "en" | "th" | "ja"): string {
   const now = new Date();
@@ -35,6 +36,7 @@ export function WelcomeBanner() {
   const { t, lang } = useLang();
   const router = useRouter();
   const w = t.welcome;
+  const teacher = getTeacher();
 
   // Defer date/greeting to client only — avoids SSR/CSR hydration mismatch
   const [greeting, setGreeting] = useState("");
@@ -83,7 +85,7 @@ export function WelcomeBanner() {
       transition={{ duration: 0.45, ease: "easeOut" }}
       data-ai-context-type="dashboard"
       data-ai-context-name="Welcome Banner"
-      data-ai-context-data={JSON.stringify({ section: "welcome", teacher: "Mr. Takajo" })}
+      data-ai-context-data={JSON.stringify({ section: "welcome", teacher: teacher?.name || "Mr. Takajo" })}
       className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 p-6 lg:p-8 text-white shadow-2xl shadow-violet-500/30"
     >
       {/* Background decorative blobs */}
@@ -115,7 +117,7 @@ export function WelcomeBanner() {
               {greeting && (
                 <>
                   {greeting},{" "}
-                  <span className="text-yellow-300">Mr. Takajo</span> 👋
+                  <span className="text-yellow-300">{teacher?.name || "Mr. Takajo"}</span> 👋
                 </>
               )}
             </h1>
