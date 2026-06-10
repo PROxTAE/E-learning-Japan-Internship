@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Spinner, Button } from "@heroui/react";
 import { useLang } from "@/lib/i18n/LanguageContext";
 import { quizApi } from "@/services/quizApi";
+import type { Quiz } from "@/types/quiz";
 import type { StudentResult } from "@/services/studentResultApi";
 import { ResultScoreCard } from "./ResultScoreCard";
 import { AnswerReviewList } from "./AnswerReviewList";
@@ -57,9 +58,10 @@ interface StudentResultScreenProps {
   logId?: string | null;
   onPlayAgain: () => void;
   onGoHome: () => void;
+  quiz?: Quiz | null;
 }
 
-export function StudentResultScreen({ quizId, studentId, studentName, selectedAnswers, logId, onPlayAgain, onGoHome }: StudentResultScreenProps) {
+export function StudentResultScreen({ quizId, studentId, studentName, selectedAnswers, logId, onPlayAgain, onGoHome, quiz }: StudentResultScreenProps) {
   const { lang } = useLang();
   const [result, setResult] = useState<StudentResult | null>(null);
   const [loading, setLoading] = useState(true);
@@ -78,58 +80,116 @@ export function StudentResultScreen({ quizId, studentId, studentName, selectedAn
     let mounted = true;
     setLoading(true);
 
-    quizApi.getQuiz(quizId)
-      .then((fullQuiz) => {
+    async function loadResultData() {
+      try {
+        // 1. Determine the target quiz object
+        let activeQuiz = quiz;
+        if (!activeQuiz) {
+          const { MOCK_QUIZ } = await import("@/services/quizApi");
+          activeQuiz = MOCK_QUIZ;
+        }
+
+        // 2. Fetch the interaction log containing correctness details (public endpoint)
+        let logData: any = null;
+        if (logId) {
+          try {
+            const res = await fetch(`/api/quiz-logs/${logId}`);
+            const body = await res.json();
+            if (body.success) logData = body.data;
+          } catch (err) {
+            console.error("Failed to fetch log by logId:", err);
+          }
+        }
+
+        if (!logData && studentId && quizId) {
+          try {
+            const res = await fetch(`/api/quiz-logs/student/${studentId}/quiz/${quizId}`);
+            const body = await res.json();
+            if (body.success) logData = body.data;
+          } catch (err) {
+            console.error("Failed to fetch student log fallback:", err);
+          }
+        }
+
         if (!mounted) return;
-        
+
+        // 3. Compile the reviews comparing student choices against correct answers
         let correctCount = 0;
-        const reviews = fullQuiz.questions.map((q: any) => {
+        const reviews = activeQuiz.questions.map((q: any) => {
           const qId = q.id || q._id;
-          const studentChoiceId = selectedAnswers[qId] || null;
+          
+          // Find matching question in the log data
+          const ansLog = logData?.answer_logs?.find(
+            (al: any) => al.question_id === qId
+          );
+
+          // Get selected choice ID from local state or backend log
+          const studentChoiceId = selectedAnswers[qId] || ansLog?.final_answer?.[0] || null;
           const studentChoice = q.choices.find((c: any) => (c.id || c._id) === studentChoiceId);
-          const correctChoice = q.choices.find((c: any) => c.isCorrect);
-          
-          const isCorrect = studentChoiceId === (correctChoice?.id || correctChoice?._id);
+
+          // Get correct choice ID from backend log or check local choices for isCorrect flag
+          let correctChoiceId = ansLog?.correct_answers?.[0] || null;
+          if (!correctChoiceId) {
+            const correctChoiceObj = q.choices.find((c: any) => c.isCorrect);
+            correctChoiceId = correctChoiceObj?.id || correctChoiceObj?._id || null;
+          }
+          const correctChoice = q.choices.find((c: any) => (c.id || c._id) === correctChoiceId);
+
+          // Determine correctness
+          const isCorrect = ansLog 
+            ? ansLog.is_correct 
+            : (studentChoiceId !== null && studentChoiceId === correctChoiceId);
+
           if (isCorrect) correctCount++;
-          
+
           return {
             questionId: qId,
             questionText: q.text || q.title || "Question",
             selectedChoiceId: studentChoiceId,
             selectedChoiceText: studentChoice?.text || null,
-            correctChoiceId: correctChoice?.id || correctChoice?._id || "",
+            correctChoiceId: correctChoiceId || "",
             correctChoiceText: correctChoice?.text || "Unknown",
             isCorrect
           };
         });
 
-        const total = fullQuiz.questions.length;
+        // Use backend total score if available
+        if (logData && typeof logData.summary?.total_score === "number") {
+          correctCount = logData.summary.total_score;
+        }
+
+        const total = activeQuiz.questions.length;
         const percentage = total > 0 ? Math.round((correctCount / total) * 100) : 0;
-        
+
         const calculatedResult = {
           score: correctCount,
           total,
           percentage,
           reviews
         };
-        
+
         setResult(calculatedResult);
-        setShowAnswers(fullQuiz.showAnswersAfterQuiz !== false);
-        
+        setShowAnswers(activeQuiz.showAnswersAfterQuiz !== false);
+
         if (percentage >= 50) {
           setShowConfetti(true);
-          setTimeout(() => setShowConfetti(false), 5000);
+          setTimeout(() => {
+            if (mounted) setShowConfetti(false);
+          }, 5000);
         }
-      })
-      .catch((err) => console.error("Failed to load result:", err))
-      .finally(() => {
+      } catch (err) {
+        console.error("Failed to compile result:", err);
+      } finally {
         if (mounted) setLoading(false);
-      });
+      }
+    }
+
+    loadResultData();
 
     return () => {
       mounted = false;
     };
-  }, [quizId, selectedAnswers]);
+  }, [quizId, selectedAnswers, logId, studentId, quiz]);
 
   // ── AI Analysis handler ───────────────────────────────────────
   const handleAiAnalysis = async () => {

@@ -406,6 +406,7 @@ export default function PlayQuizPage() {
             logId={submittedLogId}
             onPlayAgain={handlePlayAgain}
             onGoHome={() => router.push("/")}
+            quiz={quiz}
           />
         </div>
       </div>

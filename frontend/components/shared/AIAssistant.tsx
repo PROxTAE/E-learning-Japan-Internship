@@ -477,7 +477,13 @@ function QuizUpdateSummary({ codeString, lang, isGenerating }: QuizUpdateSummary
 }
 
 export default function AIAssistant() {
+  const pathname = usePathname();
   const { lang } = useLang();
+
+  if (pathname === "/" || pathname === "/teacher/login" || pathname?.startsWith("/play")) {
+    return null;
+  }
+
   const localT = localTranslations[lang] || localTranslations.en;
 
   const [isOpen, setIsOpen] = useState(false);
