@@ -480,10 +480,6 @@ export default function AIAssistant() {
   const pathname = usePathname();
   const { lang } = useLang();
 
-  if (pathname === "/" || pathname === "/teacher/login" || pathname?.startsWith("/play")) {
-    return null;
-  }
-
   const localT = localTranslations[lang] || localTranslations.en;
 
   const [isOpen, setIsOpen] = useState(false);
@@ -767,6 +763,10 @@ export default function AIAssistant() {
     "ช่วยอธิบายความแตกต่างระหว่าง GET กับ POST",
     "ขอตัวอย่างข้อสอบเกี่ยวกับ React Hooks",
   ];
+
+  if (pathname === "/" || pathname === "/teacher/login" || pathname?.startsWith("/play")) {
+    return null;
+  }
 
   return (
     <>

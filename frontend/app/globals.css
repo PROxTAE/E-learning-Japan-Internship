@@ -1,16 +1,19 @@
 @import "tailwindcss";
+@import "@heroui/styles";
 @plugin "../hero.js";
 
 @source "../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}";
 
 @theme {
   /* Quantus Palette 2025 overrides */
-  --color-violet-50: #f5f3ff; /* Blue Chalk */
+  --color-violet-50: #f5f3ff;
+  /* Blue Chalk */
   --color-violet-100: #ece9fc;
   --color-violet-200: #dedaf3;
   --color-violet-300: #c9c2e9;
   --color-violet-400: #a78bfa;
-  --color-violet-500: #834dfb; /* Electric Violet */
+  --color-violet-500: #834dfb;
+  /* Electric Violet */
   --color-violet-600: #7033f9;
   --color-violet-700: #5b1fe6;
   --color-violet-800: #4c17c6;
@@ -23,11 +26,13 @@
 
   /* Yellow / Turbo overrides */
   --color-yellow-400: #fff100;
-  --color-yellow-500: #f0e100; /* Turbo */
+  --color-yellow-500: #f0e100;
+  /* Turbo */
   --color-yellow-600: #d8ca00;
 
   /* Slate neutral overrides mapped to Haiti / Blue Chalk */
-  --color-slate-50: #f5f3ff; /* Blue Chalk */
+  --color-slate-50: #f5f3ff;
+  /* Blue Chalk */
   --color-slate-100: #ece9fc;
   --color-slate-200: #dedaf3;
   --color-slate-300: #c9c2e9;
@@ -37,10 +42,12 @@
   --color-slate-700: #564c96;
   --color-slate-800: #3c346a;
   --color-slate-900: #211836;
-  --color-slate-950: #18102b; /* Haiti */
+  --color-slate-950: #18102b;
+  /* Haiti */
 
   /* Zinc neutral overrides mapped to Haiti / Blue Chalk */
-  --color-zinc-50: #f5f3ff; /* Blue Chalk */
+  --color-zinc-50: #f5f3ff;
+  /* Blue Chalk */
   --color-zinc-100: #ece9fc;
   --color-zinc-200: #dedaf3;
   --color-zinc-300: #c9c2e9;
@@ -50,7 +57,8 @@
   --color-zinc-700: #564c96;
   --color-zinc-800: #3c346a;
   --color-zinc-900: #211836;
-  --color-zinc-950: #18102b; /* Haiti */
+  --color-zinc-950: #18102b;
+  /* Haiti */
 
   /* HeroUI semantic colors mapped to standard Tailwind class tokens */
   --color-primary: hsl(var(--heroui-primary));
@@ -84,53 +92,67 @@
 
 :root {
   /* HeroUI Semantic Colors - Light Mode */
-  --heroui-background: 250 100% 98%; /* Blue Chalk: #f5f3ff */
-  --heroui-foreground: 257 46% 11%;  /* Haiti: #18102b */
-  --heroui-primary: 251 96% 64%;     /* Electric Violet: #834dfb */
-  --heroui-primary-50: 250 100% 98%;  /* Blue Chalk */
+  --heroui-background: 250 100% 98%;
+  /* Blue Chalk: #f5f3ff */
+  --heroui-foreground: 257 46% 11%;
+  /* Haiti: #18102b */
+  --heroui-primary: 251 96% 64%;
+  /* Electric Violet: #834dfb */
+  --heroui-primary-50: 250 100% 98%;
+  /* Blue Chalk */
   --heroui-primary-100: 250 95% 95%;
   --heroui-primary-200: 250 95% 88%;
   --heroui-primary-300: 250 95% 80%;
   --heroui-primary-400: 250 95% 72%;
-  --heroui-primary-500: 251 96% 64%;  /* Electric Violet */
+  --heroui-primary-500: 251 96% 64%;
+  /* Electric Violet */
   --heroui-primary-600: 251 96% 56%;
   --heroui-primary-700: 251 96% 48%;
   --heroui-primary-800: 251 96% 40%;
   --heroui-primary-900: 251 96% 30%;
-  
-  --heroui-warning: 56 100% 47%;      /* Turbo: #f0e100 */
+
+  --heroui-warning: 56 100% 47%;
+  /* Turbo: #f0e100 */
   --heroui-warning-foreground: 257 46% 11%;
 
   --heroui-secondary: 270 91% 65%;
   --heroui-secondary-foreground: 0 0% 100%;
 
-  --heroui-success: 142.1 76.2% 36.3%; /* #16a34a */
+  --heroui-success: 142.1 76.2% 36.3%;
+  /* #16a34a */
   --heroui-success-foreground: 0 0% 100%;
 
-  --heroui-danger: 346.8 84.1% 50.2%; /* #ef4444 */
+  --heroui-danger: 346.8 84.1% 50.2%;
+  /* #ef4444 */
   --heroui-danger-foreground: 0 0% 100%;
 
-  --heroui-default: 240 5.9% 90%; /* #e4e4e7 */
+  --heroui-default: 240 5.9% 90%;
+  /* #e4e4e7 */
   --heroui-default-foreground: 257 46% 11%;
 }
 
 .dark {
   /* HeroUI Semantic Colors - Dark Mode */
-  --heroui-background: 257 46% 11%;  /* Haiti: #18102b */
-  --heroui-foreground: 250 100% 98%; /* Blue Chalk: #f5f3ff */
-  --heroui-primary: 251 96% 64%;     /* Electric Violet: #834dfb */
+  --heroui-background: 257 46% 11%;
+  /* Haiti: #18102b */
+  --heroui-foreground: 250 100% 98%;
+  /* Blue Chalk: #f5f3ff */
+  --heroui-primary: 251 96% 64%;
+  /* Electric Violet: #834dfb */
   --heroui-primary-50: 257 46% 15%;
   --heroui-primary-100: 257 46% 22%;
   --heroui-primary-200: 257 46% 30%;
   --heroui-primary-300: 257 46% 40%;
   --heroui-primary-400: 257 46% 50%;
-  --heroui-primary-500: 251 96% 64%;  /* Electric Violet */
+  --heroui-primary-500: 251 96% 64%;
+  /* Electric Violet */
   --heroui-primary-600: 251 96% 56%;
   --heroui-primary-700: 251 96% 48%;
   --heroui-primary-800: 251 96% 40%;
   --heroui-primary-900: 251 96% 30%;
-  
-  --heroui-warning: 56 100% 47%;      /* Turbo: #f0e100 */
+
+  --heroui-warning: 56 100% 47%;
+  /* Turbo: #f0e100 */
   --heroui-warning-foreground: 257 46% 11%;
 
   --heroui-secondary: 270 91% 65%;

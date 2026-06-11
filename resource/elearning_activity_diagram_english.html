@@ -12,7 +12,7 @@ svg text { font-family: var(--font-sans, sans-serif); }
 <div class="scroll-wrap">
 <svg width="1320" viewBox="0 0 1320 2560" role="img" xmlns="http://www.w3.org/2000/svg">
 <title>E-Learning System Activity Diagram (Swimlane) — English</title>
-<desc>Activity diagram showing 4 main flows: Quiz Creation, Student Join, Gameplay, and Session Control across 5 swimlanes: Student, Teacher, Backend, MongoDB, Redis</desc>
+<desc>Activity diagram showing 8 flows: Quiz Creation, Student Join, Gameplay, Session Control (9 actions), Session End/Archive, Student Disconnect, State Recovery, Interaction Log — across 5 swimlanes: Student, Teacher, Backend, MongoDB, Redis</desc>
 <defs>
   <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
     <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -35,28 +35,31 @@ svg text { font-family: var(--font-sans, sans-serif); }
   <marker id="arr-o" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
     <path d="M2 1L8 5L2 9" fill="none" stroke="#D85A30" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
   </marker>
+  <marker id="arr-t" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="#185FA5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
 </defs>
 
 <!-- ===== LANE BACKGROUNDS ===== -->
-<rect x="60" y="0" width="220" height="2560" fill="#E6F1FB" fill-opacity="0.18" stroke="#85B7EB" stroke-width="0.5"/>
-<rect x="280" y="0" width="220" height="2560" fill="#E1F5EE" fill-opacity="0.18" stroke="#5DCAA5" stroke-width="0.5"/>
-<rect x="500" y="0" width="260" height="2560" fill="#EEEDFE" fill-opacity="0.18" stroke="#AFA9EC" stroke-width="0.5"/>
-<rect x="760" y="0" width="280" height="2560" fill="#FAEEDA" fill-opacity="0.18" stroke="#FAC775" stroke-width="0.5"/>
+<rect x="60"   y="0" width="220" height="2560" fill="#E6F1FB" fill-opacity="0.18" stroke="#85B7EB" stroke-width="0.5"/>
+<rect x="280"  y="0" width="220" height="2560" fill="#E1F5EE" fill-opacity="0.18" stroke="#5DCAA5" stroke-width="0.5"/>
+<rect x="500"  y="0" width="260" height="2560" fill="#EEEDFE" fill-opacity="0.18" stroke="#AFA9EC" stroke-width="0.5"/>
+<rect x="760"  y="0" width="280" height="2560" fill="#FAEEDA" fill-opacity="0.18" stroke="#FAC775" stroke-width="0.5"/>
 <rect x="1040" y="0" width="280" height="2560" fill="#FAECE7" fill-opacity="0.18" stroke="#F0997B" stroke-width="0.5"/>
 
 <!-- ===== LANE HEADERS ===== -->
-<rect x="60" y="0" width="220" height="48" fill="#378ADD"/>
-<text x="170" y="29" text-anchor="middle" font-size="14" font-weight="500" fill="white">Client (Student)</text>
+<rect x="60"   y="0" width="220" height="48" fill="#378ADD"/>
+<text x="170"  y="29" text-anchor="middle" font-size="14" font-weight="500" fill="white">Client (Student)</text>
 
-<rect x="280" y="0" width="220" height="48" fill="#1D9E75"/>
-<text x="390" y="29" text-anchor="middle" font-size="14" font-weight="500" fill="white">Client (Teacher)</text>
+<rect x="280"  y="0" width="220" height="48" fill="#1D9E75"/>
+<text x="390"  y="29" text-anchor="middle" font-size="14" font-weight="500" fill="white">Client (Teacher)</text>
 
-<rect x="500" y="0" width="260" height="48" fill="#7F77DD"/>
-<text x="630" y="22" text-anchor="middle" font-size="13" font-weight="500" fill="white">Backend</text>
-<text x="630" y="38" text-anchor="middle" font-size="11" font-weight="400" fill="white">(Node.js / Socket.io)</text>
+<rect x="500"  y="0" width="260" height="48" fill="#7F77DD"/>
+<text x="630"  y="22" text-anchor="middle" font-size="13" font-weight="500" fill="white">Backend</text>
+<text x="630"  y="38" text-anchor="middle" font-size="11" font-weight="400" fill="white">(Node.js / Socket.IO)</text>
 
-<rect x="760" y="0" width="280" height="48" fill="#BA7517"/>
-<text x="900" y="29" text-anchor="middle" font-size="14" font-weight="500" fill="white">MongoDB</text>
+<rect x="760"  y="0" width="280" height="48" fill="#BA7517"/>
+<text x="900"  y="29" text-anchor="middle" font-size="14" font-weight="500" fill="white">MongoDB</text>
 
 <rect x="1040" y="0" width="280" height="48" fill="#D85A30"/>
 <text x="1180" y="22" text-anchor="middle" font-size="13" font-weight="500" fill="white">Redis</text>
@@ -72,7 +75,6 @@ svg text { font-family: var(--font-sans, sans-serif); }
 <rect x="296" y="102" width="186" height="46" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
 <text x="389" y="122" text-anchor="middle" font-size="11" font-weight="500" fill="#085041">① Fill in Quiz Details</text>
 <text x="389" y="138" text-anchor="middle" font-size="10" fill="#085041">Create / edit quiz, then save</text>
-<!-- Teacher → Backend -->
 <line x1="482" y1="125" x2="498" y2="125" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arr-g)" fill="none"/>
 <text x="490" y="119" text-anchor="middle" font-size="9" font-style="italic" fill="#0F6E56">POST /api/quizzes</text>
 
@@ -80,7 +82,6 @@ svg text { font-family: var(--font-sans, sans-serif); }
 <rect x="516" y="102" width="224" height="46" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
 <text x="628" y="122" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">② Receive REST API Request</text>
 <text x="628" y="138" text-anchor="middle" font-size="10" fill="#26215C">POST / PUT /api/quizzes</text>
-<!-- Backend → MongoDB -->
 <line x1="740" y1="125" x2="758" y2="125" stroke="#854F0B" stroke-width="1.5" marker-end="url(#arr-a)" fill="none"/>
 
 <!-- Step 3: MongoDB saves quiz -->
@@ -88,7 +89,6 @@ svg text { font-family: var(--font-sans, sans-serif); }
 <text x="899" y="122" text-anchor="middle" font-size="11" font-weight="500" fill="#412402">③ Save Quiz to Database</text>
 <text x="899" y="138" text-anchor="middle" font-size="10" fill="#412402">Questions, choices, answer key</text>
 
-<!-- Vertical connectors flow 1 -->
 <line x1="389" y1="148" x2="389" y2="168" stroke="#0F6E56" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
 <line x1="628" y1="148" x2="628" y2="168" stroke="#534AB7" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
 
@@ -100,7 +100,7 @@ svg text { font-family: var(--font-sans, sans-serif); }
 
 <!-- Step 5: Backend creates code + saves -->
 <rect x="516" y="168" width="224" height="46" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
-<text x="628" y="188" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">⑤ Generate Code (e.g. RX-9201)</text>
+<text x="628" y="188" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">⑤ Generate Code (e.g. RX9201)</text>
 <text x="628" y="204" text-anchor="middle" font-size="10" fill="#26215C">Save access code to DB</text>
 <line x1="740" y1="191" x2="758" y2="191" stroke="#854F0B" stroke-width="1.5" marker-end="url(#arr-a)" fill="none"/>
 
@@ -124,15 +124,14 @@ svg text { font-family: var(--font-sans, sans-serif); }
 <text x="628" y="253" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">⑦ Verify Quiz Session Exists</text>
 <text x="628" y="267" text-anchor="middle" font-size="10" fill="#26215C">Connect WebSocket</text>
 <text x="628" y="280" text-anchor="middle" font-size="10" fill="#26215C">Check if room already exists</text>
-<!-- Backend → Redis -->
 <line x1="740" y1="260" x2="1038" y2="260" stroke="#D85A30" stroke-width="1.5" marker-end="url(#arr-o)" fill="none"/>
-<text x="890" y="254" text-anchor="middle" font-size="9" font-style="italic" fill="#D85A30">get / create session</text>
+<text x="890" y="254" text-anchor="middle" font-size="9" font-style="italic" fill="#D85A30">getOrCreateSession</text>
 
 <!-- Step 8: Redis session state -->
 <rect x="1056" y="234" width="246" height="52" rx="8" fill="#F5C4B3" stroke="#D85A30" stroke-width="0.5"/>
 <text x="1179" y="253" text-anchor="middle" font-size="11" font-weight="500" fill="#4A1B0C">⑧ Load Session State</text>
-<text x="1179" y="267" text-anchor="middle" font-size="10" fill="#4A1B0C">Student count, answers</text>
-<text x="1179" y="280" text-anchor="middle" font-size="10" fill="#4A1B0C">New room → create empty session</text>
+<text x="1179" y="267" text-anchor="middle" font-size="10" fill="#4A1B0C">quiz:{id}:session (create if new)</text>
+<text x="1179" y="280" text-anchor="middle" font-size="10" fill="#4A1B0C">TTL = 24h, renews on activity</text>
 
 <!-- Backend → MongoDB fetch quiz -->
 <line x1="628" y1="286" x2="628" y2="306" stroke="#534AB7" stroke-width="1.5" fill="none"/>
@@ -194,16 +193,16 @@ svg text { font-family: var(--font-sans, sans-serif); }
 <!-- Step 5: Backend receives student data -->
 <rect x="516" y="484" width="224" height="52" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
 <text x="628" y="503" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">⑤ Receive Student Data</text>
-<text x="628" y="517" text-anchor="middle" font-size="10" fill="#26215C">From WebSocket event</text>
-<text x="628" y="530" text-anchor="middle" font-size="10" fill="#26215C">Identify student via Socket ID</text>
+<text x="628" y="517" text-anchor="middle" font-size="10" fill="#26215C">Check isLocked (reject if locked)</text>
+<text x="628" y="530" text-anchor="middle" font-size="10" fill="#26215C">upsertStudent into Redis</text>
 <line x1="740" y1="510" x2="1038" y2="510" stroke="#D85A30" stroke-width="1.5" marker-end="url(#arr-o)" fill="none"/>
-<text x="890" y="504" text-anchor="middle" font-size="9" font-style="italic" fill="#D85A30">Upsert Student</text>
+<text x="890" y="504" text-anchor="middle" font-size="9" font-style="italic" fill="#D85A30">upsertStudent</text>
 
 <!-- Step 6: Redis saves student -->
 <rect x="1056" y="484" width="246" height="52" rx="8" fill="#F5C4B3" stroke="#D85A30" stroke-width="0.5"/>
 <text x="1179" y="503" text-anchor="middle" font-size="11" font-weight="500" fill="#4A1B0C">⑥ Save Student to Session</text>
-<text x="1179" y="517" text-anchor="middle" font-size="10" fill="#4A1B0C">Name, Avatar, isOnline=true</text>
-<text x="1179" y="530" text-anchor="middle" font-size="10" fill="#4A1B0C">Upsert into Redis session</text>
+<text x="1179" y="517" text-anchor="middle" font-size="10" fill="#4A1B0C">quiz:{id}:students — name, avatar</text>
+<text x="1179" y="530" text-anchor="middle" font-size="10" fill="#4A1B0C">isOnline=true, joinedAt</text>
 
 <line x1="1179" y1="536" x2="1179" y2="550" stroke="#D85A30" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
 
@@ -253,17 +252,16 @@ svg text { font-family: var(--font-sans, sans-serif); }
 <!-- Step 2: Backend receives answer -->
 <rect x="516" y="728" width="224" height="52" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
 <text x="628" y="747" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">② Receive Answer from Student</text>
-<text x="628" y="761" text-anchor="middle" font-size="10" fill="#26215C">Via Socket event</text>
-<text x="628" y="774" text-anchor="middle" font-size="10" fill="#26215C">Prepare to validate</text>
+<text x="628" y="761" text-anchor="middle" font-size="10" fill="#26215C">Check isPaused (reject if paused)</text>
+<text x="628" y="774" text-anchor="middle" font-size="10" fill="#26215C">Fetch quiz from MongoDB (validate)</text>
 
-<!-- Backend → MongoDB (optional) -->
-<line x1="740" y1="744" x2="758" y2="744" stroke="#854F0B" stroke-width="1.5" marker-end="url(#arr-a)" fill="none"/>
-<text x="749" y="738" text-anchor="middle" font-size="9" font-style="italic" fill="#854F0B">(optional)</text>
+<!-- Backend → MongoDB to get answer key -->
+<line x1="740" y1="754" x2="758" y2="754" stroke="#854F0B" stroke-width="1.5" marker-end="url(#arr-a)" fill="none"/>
 
 <rect x="776" y="728" width="246" height="52" rx="8" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
 <text x="899" y="747" text-anchor="middle" font-size="11" font-weight="500" fill="#412402">③ Verify Answer Correctness</text>
 <text x="899" y="761" text-anchor="middle" font-size="10" fill="#412402">Compare with answer key</text>
-<text x="899" y="774" text-anchor="middle" font-size="10" fill="#412402">→ isCorrect (optional step)</text>
+<text x="899" y="774" text-anchor="middle" font-size="10" fill="#412402">isCorrect = re-validated server-side</text>
 
 <!-- Backend → Redis recordAnswer -->
 <line x1="628" y1="780" x2="628" y2="800" stroke="#534AB7" stroke-width="1.5" fill="none"/>
@@ -272,10 +270,10 @@ svg text { font-family: var(--font-sans, sans-serif); }
 
 <!-- Step 4: Redis record + confusion + score -->
 <rect x="1056" y="804" width="246" height="68" rx="8" fill="#F5C4B3" stroke="#D85A30" stroke-width="0.5"/>
-<text x="1179" y="824" text-anchor="middle" font-size="11" font-weight="500" fill="#4A1B0C">④ Record Answer</text>
-<text x="1179" y="840" text-anchor="middle" font-size="10" fill="#4A1B0C">Confusion Level: change count + time</text>
-<text x="1179" y="854" text-anchor="middle" font-size="10" fill="#4A1B0C">→ high / low / none</text>
-<text x="1179" y="868" text-anchor="middle" font-size="10" fill="#4A1B0C">Score: update student's score</text>
+<text x="1179" y="824" text-anchor="middle" font-size="11" font-weight="500" fill="#4A1B0C">④ Record Answer in Redis</text>
+<text x="1179" y="840" text-anchor="middle" font-size="10" fill="#4A1B0C">quiz:{id}:answers:{studentId}</text>
+<text x="1179" y="854" text-anchor="middle" font-size="10" fill="#4A1B0C">Confusion: changeCount + time</text>
+<text x="1179" y="868" text-anchor="middle" font-size="10" fill="#4A1B0C">→ high / low / none</text>
 
 <line x1="1179" y1="872" x2="1179" y2="886" stroke="#D85A30" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
 
@@ -301,10 +299,12 @@ svg text { font-family: var(--font-sans, sans-serif); }
 <!-- Step 7: Backend → Teacher Broadcast ANSWER_UPDATE (Async) -->
 <rect x="516" y="966" width="224" height="52" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
 <text x="628" y="986" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">⑦ Broadcast ANSWER_UPDATE</text>
-<text x="628" y="1000" text-anchor="middle" font-size="10" fill="#26215C">→ Teacher (Async / Broadcast)</text>
+<text x="628" y="1000" text-anchor="middle" font-size="10" fill="#26215C">→ Teacher room (async)</text>
 <text x="628" y="1013" text-anchor="middle" font-size="10" fill="#26215C">Teacher listens, does not request</text>
 <line x1="516" y1="992" x2="482" y2="992" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arr-g)" fill="none"/>
 <text x="499" y="986" text-anchor="middle" font-size="9" font-style="italic" fill="#534AB7">ANSWER_UPDATE ⟶</text>
+
+<line x1="628" y1="950" x2="628" y2="966" stroke="#534AB7" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
 
 <!-- Step 8: Teacher dashboard updates -->
 <rect x="296" y="966" width="186" height="52" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
@@ -312,116 +312,330 @@ svg text { font-family: var(--font-sans, sans-serif); }
 <text x="389" y="1000" text-anchor="middle" font-size="10" fill="#085041">Timeline chart moves</text>
 <text x="389" y="1013" text-anchor="middle" font-size="10" fill="#085041">Score + Confusion status shown</text>
 
-<!-- Vertical links flow3 -->
-<line x1="628" y1="950" x2="628" y2="966" stroke="#534AB7" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
-
 <!-- ============================================================ -->
-<!-- FLOW 4A: SESSION CONTROL (PAUSE / RESUME) -->
+<!-- FLOW 4A: SESSION CONTROL (ALL 9 ACTIONS) -->
 <!-- ============================================================ -->
 <rect x="60" y="1042" width="1260" height="30" fill="#D85A30" fill-opacity="0.10"/>
-<text x="690" y="1062" text-anchor="middle" font-size="13" font-weight="500" fill="#4A1B0C">Flow 4A — Session Control: Pause / Resume</text>
+<text x="690" y="1062" text-anchor="middle" font-size="13" font-weight="500" fill="#4A1B0C">Flow 4A — Session Control (9 Control Actions)</text>
 
-<!-- Step 1: Teacher presses Pause/Resume -->
-<rect x="296" y="1088" width="186" height="46" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
-<text x="389" y="1108" text-anchor="middle" font-size="11" font-weight="500" fill="#085041">① Press Pause / Resume</text>
-<text x="389" y="1124" text-anchor="middle" font-size="10" fill="#085041">Control exam room</text>
-<line x1="482" y1="1111" x2="498" y2="1111" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arr-g)" fill="none"/>
-<text x="490" y="1105" text-anchor="middle" font-size="9" font-style="italic" fill="#0F6E56">CONTROL_SESSION</text>
+<!-- Row 1 — action dispatch (h=88) -->
+<!-- Teacher box -->
+<rect x="296" y="1090" width="186" height="88" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="389" y="1104" text-anchor="middle" font-size="11" font-weight="500" fill="#085041">① Send Control Action</text>
+<text x="389" y="1118" text-anchor="middle" font-size="10" fill="#085041">CONTROL_SESSION {action}</text>
+<text x="389" y="1131" text-anchor="middle" font-size="9" font-style="italic" fill="#085041">pause · resume</text>
+<text x="389" y="1144" text-anchor="middle" font-size="9" font-style="italic" fill="#085041">lock · unlock · teacher_led</text>
+<text x="389" y="1157" text-anchor="middle" font-size="9" font-style="italic" fill="#085041">set_question_index · set_timer</text>
+<text x="389" y="1170" text-anchor="middle" font-size="9" font-style="italic" fill="#085041">reset_student · regenerate_code</text>
+<!-- Arrow Teacher→Backend -->
+<line x1="482" y1="1134" x2="498" y2="1134" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arr-g)" fill="none"/>
+<text x="490" y="1128" text-anchor="middle" font-size="9" font-style="italic" fill="#0F6E56">CONTROL_SESSION</text>
 
-<!-- Step 2: Backend receives -->
-<rect x="516" y="1088" width="224" height="46" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
-<text x="628" y="1108" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">② Receive CONTROL_SESSION</text>
-<text x="628" y="1124" text-anchor="middle" font-size="10" fill="#26215C">action: "pause" / "resume"</text>
-<line x1="740" y1="1111" x2="1038" y2="1111" stroke="#D85A30" stroke-width="1.5" marker-end="url(#arr-o)" fill="none"/>
-<text x="890" y="1105" text-anchor="middle" font-size="9" font-style="italic" fill="#D85A30">update isPaused</text>
+<!-- Backend box -->
+<rect x="516" y="1090" width="224" height="88" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="1104" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">② Process Control Action</text>
+<text x="628" y="1118" text-anchor="middle" font-size="10" fill="#26215C">Validate action + params</text>
+<text x="628" y="1131" text-anchor="middle" font-size="10" fill="#26215C">Most actions → update Redis</text>
+<text x="628" y="1144" text-anchor="middle" font-size="10" fill="#26215C">regenerate_code → MongoDB</text>
+<text x="628" y="1157" text-anchor="middle" font-size="10" fill="#26215C">  findByIdAndUpdate(accessCode)</text>
+<text x="628" y="1170" text-anchor="middle" font-size="10" fill="#26215C">reset_student → resetAnswers</text>
+<!-- Arrow Backend→MongoDB -->
+<line x1="740" y1="1134" x2="758" y2="1134" stroke="#854F0B" stroke-width="1.5" marker-end="url(#arr-a)" fill="none"/>
+<text x="749" y="1127" text-anchor="middle" font-size="9" font-style="italic" fill="#854F0B">regen</text>
+<!-- Arrow Backend→Redis -->
+<line x1="740" y1="1148" x2="1038" y2="1148" stroke="#D85A30" stroke-width="1.5" marker-end="url(#arr-o)" fill="none"/>
+<text x="889" y="1142" text-anchor="middle" font-size="9" font-style="italic" fill="#D85A30">update flags</text>
 
-<!-- Step 3: Redis updates isPaused -->
-<rect x="1056" y="1088" width="246" height="46" rx="8" fill="#F5C4B3" stroke="#D85A30" stroke-width="0.5"/>
-<text x="1179" y="1108" text-anchor="middle" font-size="11" font-weight="500" fill="#4A1B0C">③ Update isPaused Flag</text>
-<text x="1179" y="1124" text-anchor="middle" font-size="10" fill="#4A1B0C">On that session</text>
+<!-- MongoDB box (regenerate_code) -->
+<rect x="776" y="1090" width="246" height="88" rx="8" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+<text x="899" y="1104" text-anchor="middle" font-size="11" font-weight="500" fill="#412402">③ (regenerate_code only)</text>
+<text x="899" y="1118" text-anchor="middle" font-size="10" fill="#412402">Generate new 6-char code</text>
+<text x="899" y="1131" text-anchor="middle" font-size="10" fill="#412402">Loop: check uniqueness</text>
+<text x="899" y="1144" text-anchor="middle" font-size="10" fill="#412402">  Quiz.findOne(accessCode)</text>
+<text x="899" y="1157" text-anchor="middle" font-size="10" fill="#412402">Update quiz.accessCode</text>
 
-<line x1="628" y1="1134" x2="628" y2="1150" stroke="#534AB7" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+<!-- Redis box -->
+<rect x="1056" y="1090" width="246" height="88" rx="8" fill="#F5C4B3" stroke="#D85A30" stroke-width="0.5"/>
+<text x="1179" y="1104" text-anchor="middle" font-size="11" font-weight="500" fill="#4A1B0C">③ Update Session State</text>
+<text x="1179" y="1118" text-anchor="middle" font-size="10" fill="#4A1B0C">isPaused / isLocked (bool)</text>
+<text x="1179" y="1131" text-anchor="middle" font-size="10" fill="#4A1B0C">isTeacherLed / questionIndex</text>
+<text x="1179" y="1144" text-anchor="middle" font-size="10" fill="#4A1B0C">timer / timerActive</text>
+<text x="1179" y="1157" text-anchor="middle" font-size="10" fill="#4A1B0C">resetStudentAnswers (reset_student)</text>
+<text x="1179" y="1170" text-anchor="middle" font-size="10" fill="#4A1B0C">→ then emit SESSION_STATE to teacher</text>
 
-<!-- Step 4: Backend Broadcast SESSION_CONTROL -->
-<rect x="516" y="1150" width="224" height="46" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
-<text x="628" y="1170" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">④ Broadcast SESSION_CONTROL</text>
-<text x="628" y="1186" text-anchor="middle" font-size="10" fill="#26215C">To everyone in the room</text>
-<line x1="516" y1="1173" x2="262" y2="1173" stroke="#185FA5" stroke-width="1.5" marker-end="url(#arr-b)" fill="none"/>
-<text x="380" y="1167" text-anchor="middle" font-size="9" font-style="italic" fill="#185FA5">SESSION_CONTROL</text>
+<!-- Vertical connector to row 2 -->
+<line x1="628" y1="1178" x2="628" y2="1196" stroke="#534AB7" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
 
-<!-- Step 5: Student screen locks/unlocks -->
-<rect x="76" y="1150" width="186" height="46" rx="8" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
-<text x="169" y="1170" text-anchor="middle" font-size="11" font-weight="500" fill="#042C53">⑤ Exam Screen Locks / Unlocks</text>
-<text x="169" y="1186" text-anchor="middle" font-size="10" fill="#042C53">Immediately applied</text>
+<!-- Row 2 — broadcast (h=52) -->
+<!-- Backend broadcast box -->
+<rect x="516" y="1196" width="224" height="52" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="1215" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">④ Broadcast SESSION_CONTROL</text>
+<text x="628" y="1229" text-anchor="middle" font-size="10" fill="#26215C">to all in session room (io.to)</text>
+<text x="628" y="1243" text-anchor="middle" font-size="10" fill="#26215C">Full payload incl. new data</text>
+<!-- Arrow to Student -->
+<line x1="516" y1="1222" x2="262" y2="1222" stroke="#185FA5" stroke-width="1.5" marker-end="url(#arr-b)" fill="none"/>
+<text x="380" y="1216" text-anchor="middle" font-size="9" font-style="italic" fill="#185FA5">SESSION_CONTROL</text>
+<!-- Arrow to Teacher -->
+<line x1="516" y1="1236" x2="482" y2="1236" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arr-g)" fill="none"/>
+
+<!-- Student react box -->
+<rect x="76" y="1196" width="186" height="52" rx="8" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
+<text x="169" y="1215" text-anchor="middle" font-size="11" font-weight="500" fill="#042C53">⑤ UI Reacts to Event</text>
+<text x="169" y="1229" text-anchor="middle" font-size="10" fill="#042C53">Pause overlay / lock screen</text>
+<text x="169" y="1243" text-anchor="middle" font-size="10" fill="#042C53">New question / timer reset</text>
+
+<!-- Teacher react box -->
+<rect x="296" y="1196" width="186" height="52" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="389" y="1215" text-anchor="middle" font-size="11" font-weight="500" fill="#085041">⑤ Dashboard Updates</text>
+<text x="389" y="1229" text-anchor="middle" font-size="10" fill="#085041">New code in QR section</text>
+<text x="389" y="1243" text-anchor="middle" font-size="10" fill="#085041">Student reset / stats refresh</text>
 
 <!-- ============================================================ -->
-<!-- FLOW 4B: STUDENT DISCONNECT -->
+<!-- FLOW 4B: SESSION END & ARCHIVE -->
 <!-- ============================================================ -->
-<rect x="60" y="1220" width="1260" height="30" fill="#E24B4A" fill-opacity="0.10"/>
-<text x="690" y="1240" text-anchor="middle" font-size="13" font-weight="500" fill="#501313">Flow 4B — Student Disconnect</text>
+<rect x="60" y="1276" width="1260" height="30" fill="#185FA5" fill-opacity="0.10"/>
+<text x="690" y="1296" text-anchor="middle" font-size="13" font-weight="500" fill="#042C53">Flow 4B — Session End &amp; Archive</text>
 
-<!-- Step 1: Student disconnects -->
-<rect x="76" y="1266" width="186" height="52" rx="8" fill="#F7C1C1" stroke="#A32D2D" stroke-width="0.5"/>
-<text x="169" y="1285" text-anchor="middle" font-size="11" font-weight="500" fill="#501313">① Student Disconnects</text>
-<text x="169" y="1299" text-anchor="middle" font-size="10" fill="#501313">Browser closed, network lost,</text>
-<text x="169" y="1312" text-anchor="middle" font-size="10" fill="#501313">or page changed</text>
-<line x1="262" y1="1292" x2="498" y2="1292" stroke="#A32D2D" stroke-width="1.5" marker-end="url(#arr-r)" fill="none"/>
-<text x="380" y="1286" text-anchor="middle" font-size="9" font-style="italic" fill="#A32D2D">socket: disconnect</text>
+<!-- Row 1 (y=1322, h=46): teacher sends end action -->
+<rect x="296" y="1322" width="186" height="46" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="389" y="1342" text-anchor="middle" font-size="11" font-weight="500" fill="#085041">① Click "End Session"</text>
+<text x="389" y="1358" text-anchor="middle" font-size="10" fill="#085041">CONTROL_SESSION {action:'end'}</text>
+<line x1="482" y1="1345" x2="498" y2="1345" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arr-g)" fill="none"/>
+<text x="490" y="1339" text-anchor="middle" font-size="9" font-style="italic" fill="#0F6E56">CONTROL_SESSION(end)</text>
 
-<!-- Step 2: Backend detects disconnect -->
-<rect x="516" y="1266" width="224" height="52" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
-<text x="628" y="1285" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">② Detect Disconnect Event</text>
-<text x="628" y="1299" text-anchor="middle" font-size="10" fill="#26215C">Socket event: "disconnect"</text>
-<text x="628" y="1312" text-anchor="middle" font-size="10" fill="#26215C">Identify student by Socket ID</text>
-<line x1="740" y1="1292" x2="1038" y2="1292" stroke="#D85A30" stroke-width="1.5" marker-end="url(#arr-o)" fill="none"/>
-<text x="890" y="1286" text-anchor="middle" font-size="9" font-style="italic" fill="#D85A30">isOnline=false</text>
+<rect x="516" y="1322" width="224" height="46" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="1342" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">② Receive end action</text>
+<text x="628" y="1358" text-anchor="middle" font-size="10" fill="#26215C">Fetch snapshot + quiz questions</text>
+<!-- Backend→Redis arrow for getFullSessionState -->
+<line x1="740" y1="1338" x2="1038" y2="1338" stroke="#D85A30" stroke-width="1.5" marker-end="url(#arr-o)" fill="none"/>
+<text x="889" y="1332" text-anchor="middle" font-size="9" font-style="italic" fill="#D85A30">getFullSessionState</text>
+<!-- Backend→MongoDB to fetch quiz -->
+<line x1="740" y1="1352" x2="758" y2="1352" stroke="#854F0B" stroke-width="1.5" marker-end="url(#arr-a)" fill="none"/>
+<text x="749" y="1346" text-anchor="middle" font-size="9" font-style="italic" fill="#854F0B">Quiz.findById</text>
 
-<!-- Step 3: Redis updates isOnline=false -->
-<rect x="1056" y="1266" width="246" height="52" rx="8" fill="#F5C4B3" stroke="#D85A30" stroke-width="0.5"/>
-<text x="1179" y="1285" text-anchor="middle" font-size="11" font-weight="500" fill="#4A1B0C">③ Set isOnline=false</text>
-<text x="1179" y="1299" text-anchor="middle" font-size="10" fill="#4A1B0C">Recalculate room stats</text>
-<text x="1179" y="1312" text-anchor="middle" font-size="10" fill="#4A1B0C">Active users decremented</text>
+<rect x="776" y="1322" width="246" height="46" rx="8" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+<text x="899" y="1342" text-anchor="middle" font-size="11" font-weight="500" fill="#412402">③ Return Quiz Questions</text>
+<text x="899" y="1358" text-anchor="middle" font-size="10" fill="#412402">Question list for stats calc</text>
 
-<line x1="628" y1="1318" x2="628" y2="1334" stroke="#534AB7" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+<rect x="1056" y="1322" width="246" height="46" rx="8" fill="#F5C4B3" stroke="#D85A30" stroke-width="0.5"/>
+<text x="1179" y="1342" text-anchor="middle" font-size="11" font-weight="500" fill="#4A1B0C">③ Return Full Snapshot</text>
+<text x="1179" y="1358" text-anchor="middle" font-size="10" fill="#4A1B0C">students, answers, startedAt</text>
 
-<!-- Step 4: Broadcast STUDENT_LEFT -->
-<rect x="516" y="1334" width="224" height="46" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
-<text x="628" y="1354" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">④ Broadcast STUDENT_LEFT</text>
-<text x="628" y="1370" text-anchor="middle" font-size="10" fill="#26215C">To teacher's room</text>
-<line x1="516" y1="1357" x2="482" y2="1357" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arr-g)" fill="none"/>
-<text x="499" y="1351" text-anchor="middle" font-size="9" font-style="italic" fill="#534AB7">STUDENT_LEFT</text>
+<!-- Vertical connector -->
+<line x1="628" y1="1368" x2="628" y2="1386" stroke="#534AB7" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
 
-<!-- Step 5: Teacher sees student offline -->
-<rect x="296" y="1334" width="186" height="46" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
-<text x="389" y="1354" text-anchor="middle" font-size="11" font-weight="500" fill="#085041">⑤ Student Shown as Offline</text>
-<text x="389" y="1370" text-anchor="middle" font-size="10" fill="#085041">Name grayed out in list</text>
+<!-- Row 2 (y=1386, h=68): calculate + archive + delete -->
+<rect x="516" y="1386" width="224" height="68" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="1403" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">④ Calculate Stats &amp; Scores</text>
+<text x="628" y="1417" text-anchor="middle" font-size="10" fill="#26215C">Per-student: score, scorePercent</text>
+<text x="628" y="1431" text-anchor="middle" font-size="10" fill="#26215C">Per-question: correctPct, avgTime</text>
+<text x="628" y="1445" text-anchor="middle" font-size="10" fill="#26215C">confusionCount, choiceDistribution</text>
+<!-- Backend→MongoDB create -->
+<line x1="740" y1="1416" x2="758" y2="1416" stroke="#854F0B" stroke-width="1.5" marker-end="url(#arr-a)" fill="none"/>
+<text x="749" y="1410" text-anchor="middle" font-size="9" font-style="italic" fill="#854F0B">create()</text>
+<!-- Backend→Redis deleteSession (after archive) -->
+<line x1="740" y1="1432" x2="1038" y2="1432" stroke="#D85A30" stroke-width="1.5" marker-end="url(#arr-o)" fill="none"/>
+<text x="889" y="1426" text-anchor="middle" font-size="9" font-style="italic" fill="#D85A30">deleteSession (after archive)</text>
+
+<rect x="776" y="1386" width="246" height="68" rx="8" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+<text x="899" y="1403" text-anchor="middle" font-size="11" font-weight="500" fill="#412402">⑤ QuizSessionResult.create()</text>
+<text x="899" y="1417" text-anchor="middle" font-size="10" fill="#412402">sessionId, quizId, sessionLabel</text>
+<text x="899" y="1431" text-anchor="middle" font-size="10" fill="#412402">students[], answers[], stats</text>
+<text x="899" y="1445" text-anchor="middle" font-size="10" fill="#412402">questionStats[], startedAt/endedAt</text>
+
+<rect x="1056" y="1386" width="246" height="68" rx="8" fill="#F5C4B3" stroke="#D85A30" stroke-width="0.5"/>
+<text x="1179" y="1403" text-anchor="middle" font-size="11" font-weight="500" fill="#4A1B0C">⑥ deleteSession()</text>
+<text x="1179" y="1417" text-anchor="middle" font-size="10" fill="#4A1B0C">Remove quiz:{id}:session</text>
+<text x="1179" y="1431" text-anchor="middle" font-size="10" fill="#4A1B0C">Remove quiz:{id}:students</text>
+<text x="1179" y="1445" text-anchor="middle" font-size="10" fill="#4A1B0C">Remove quiz:{id}:answers:*</text>
+
+<!-- Vertical connector -->
+<line x1="628" y1="1454" x2="628" y2="1472" stroke="#534AB7" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+
+<!-- Row 3 (y=1472, h=46): broadcast end + clients react -->
+<rect x="516" y="1472" width="224" height="46" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="1492" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">⑦ Broadcast SESSION_CONTROL(end)</text>
+<text x="628" y="1508" text-anchor="middle" font-size="10" fill="#26215C">To all in session room</text>
+<!-- Backend→Student -->
+<line x1="516" y1="1488" x2="262" y2="1488" stroke="#185FA5" stroke-width="1.5" marker-end="url(#arr-b)" fill="none"/>
+<text x="380" y="1482" text-anchor="middle" font-size="9" font-style="italic" fill="#185FA5">SESSION_CONTROL(end)</text>
+<!-- Backend→Teacher -->
+<line x1="516" y1="1501" x2="482" y2="1501" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arr-g)" fill="none"/>
+
+<rect x="76" y="1472" width="186" height="46" rx="8" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
+<text x="169" y="1492" text-anchor="middle" font-size="11" font-weight="500" fill="#042C53">⑧ Session Locked</text>
+<text x="169" y="1508" text-anchor="middle" font-size="10" fill="#042C53">Cannot submit new answers</text>
+
+<rect x="296" y="1472" width="186" height="46" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="389" y="1492" text-anchor="middle" font-size="11" font-weight="500" fill="#085041">⑧ Session Archived</text>
+<text x="389" y="1508" text-anchor="middle" font-size="10" fill="#085041">View in Session History page</text>
+
+<!-- ============================================================ -->
+<!-- FLOW 4C: STUDENT DISCONNECT -->
+<!-- ============================================================ -->
+<rect x="60" y="1548" width="1260" height="30" fill="#E24B4A" fill-opacity="0.10"/>
+<text x="690" y="1568" text-anchor="middle" font-size="13" font-weight="500" fill="#501313">Flow 4C — Student Disconnect</text>
+
+<!-- Row 1 (y=1594, h=52) -->
+<rect x="76" y="1594" width="186" height="52" rx="8" fill="#F7C1C1" stroke="#A32D2D" stroke-width="0.5"/>
+<text x="169" y="1613" text-anchor="middle" font-size="11" font-weight="500" fill="#501313">① Student Disconnects</text>
+<text x="169" y="1627" text-anchor="middle" font-size="10" fill="#501313">Browser closed, network lost,</text>
+<text x="169" y="1640" text-anchor="middle" font-size="10" fill="#501313">or page changed</text>
+<line x1="262" y1="1620" x2="498" y2="1620" stroke="#A32D2D" stroke-width="1.5" marker-end="url(#arr-r)" fill="none"/>
+<text x="380" y="1614" text-anchor="middle" font-size="9" font-style="italic" fill="#A32D2D">socket: disconnect</text>
+
+<rect x="516" y="1594" width="224" height="52" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="1613" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">② Detect Disconnect Event</text>
+<text x="628" y="1627" text-anchor="middle" font-size="10" fill="#26215C">Socket event: "disconnect"</text>
+<text x="628" y="1640" text-anchor="middle" font-size="10" fill="#26215C">Identify student by socket.data</text>
+<line x1="740" y1="1620" x2="1038" y2="1620" stroke="#D85A30" stroke-width="1.5" marker-end="url(#arr-o)" fill="none"/>
+<text x="889" y="1614" text-anchor="middle" font-size="9" font-style="italic" fill="#D85A30">setStudentOffline</text>
+
+<rect x="1056" y="1594" width="246" height="52" rx="8" fill="#F5C4B3" stroke="#D85A30" stroke-width="0.5"/>
+<text x="1179" y="1613" text-anchor="middle" font-size="11" font-weight="500" fill="#4A1B0C">③ Set isOnline = false</text>
+<text x="1179" y="1627" text-anchor="middle" font-size="10" fill="#4A1B0C">Recalculate room stats</text>
+<text x="1179" y="1640" text-anchor="middle" font-size="10" fill="#4A1B0C">Active users decremented</text>
+
+<!-- Vertical connector -->
+<line x1="628" y1="1646" x2="628" y2="1662" stroke="#534AB7" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+
+<!-- Row 2 (y=1662, h=46) -->
+<rect x="516" y="1662" width="224" height="46" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="1682" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">④ Broadcast STUDENT_LEFT</text>
+<text x="628" y="1698" text-anchor="middle" font-size="10" fill="#26215C">To teacher's room</text>
+<line x1="516" y1="1685" x2="482" y2="1685" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arr-g)" fill="none"/>
+<text x="499" y="1679" text-anchor="middle" font-size="9" font-style="italic" fill="#534AB7">STUDENT_LEFT</text>
+
+<rect x="296" y="1662" width="186" height="46" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="389" y="1682" text-anchor="middle" font-size="11" font-weight="500" fill="#085041">⑤ Student Shown as Offline</text>
+<text x="389" y="1698" text-anchor="middle" font-size="10" fill="#085041">Name grayed out in list</text>
+
+<!-- ============================================================ -->
+<!-- FLOW 5: STATE RECOVERY (TEACHER RECONNECT) -->
+<!-- ============================================================ -->
+<rect x="60" y="1736" width="1260" height="30" fill="#534AB7" fill-opacity="0.10"/>
+<text x="690" y="1756" text-anchor="middle" font-size="13" font-weight="500" fill="#3C3489">Flow 5 — State Recovery (Teacher Reconnect / Page Refresh)</text>
+
+<!-- Row 1 (y=1782, h=52) -->
+<rect x="296" y="1782" width="186" height="52" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="389" y="1801" text-anchor="middle" font-size="11" font-weight="500" fill="#085041">① Page Refresh / Reconnect</text>
+<text x="389" y="1815" text-anchor="middle" font-size="10" fill="#085041">emit GET_SESSION_STATE</text>
+<text x="389" y="1828" text-anchor="middle" font-size="10" fill="#085041">{sessionId, quizId}</text>
+<line x1="482" y1="1808" x2="498" y2="1808" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arr-g)" fill="none"/>
+<text x="490" y="1802" text-anchor="middle" font-size="9" font-style="italic" fill="#0F6E56">GET_SESSION_STATE</text>
+
+<rect x="516" y="1782" width="224" height="52" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="1801" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">② Receive GET_SESSION_STATE</text>
+<text x="628" y="1815" text-anchor="middle" font-size="10" fill="#26215C">If no session → create fresh one</text>
+<text x="628" y="1828" text-anchor="middle" font-size="10" fill="#26215C">Otherwise → fetch from Redis</text>
+<line x1="740" y1="1808" x2="1038" y2="1808" stroke="#D85A30" stroke-width="1.5" marker-end="url(#arr-o)" fill="none"/>
+<text x="889" y="1802" text-anchor="middle" font-size="9" font-style="italic" fill="#D85A30">getFullSessionState</text>
+
+<rect x="1056" y="1782" width="246" height="52" rx="8" fill="#F5C4B3" stroke="#D85A30" stroke-width="0.5"/>
+<text x="1179" y="1801" text-anchor="middle" font-size="11" font-weight="500" fill="#4A1B0C">③ Return Full Snapshot</text>
+<text x="1179" y="1815" text-anchor="middle" font-size="10" fill="#4A1B0C">students, answers, session meta</text>
+<text x="1179" y="1828" text-anchor="middle" font-size="10" fill="#4A1B0C">isPaused, isLocked, timer, stats</text>
+
+<!-- Vertical connector -->
+<line x1="628" y1="1834" x2="628" y2="1852" stroke="#534AB7" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+
+<!-- Row 2 (y=1852, h=46) -->
+<rect x="516" y="1852" width="224" height="46" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="1872" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">④ Emit SESSION_STATE event</text>
+<text x="628" y="1888" text-anchor="middle" font-size="10" fill="#26215C">Full snapshot → requesting socket</text>
+<line x1="516" y1="1875" x2="482" y2="1875" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arr-g)" fill="none"/>
+<text x="499" y="1869" text-anchor="middle" font-size="9" font-style="italic" fill="#534AB7">SESSION_STATE</text>
+
+<rect x="296" y="1852" width="186" height="46" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="389" y="1872" text-anchor="middle" font-size="11" font-weight="500" fill="#085041">⑤ Dashboard Fully Restored</text>
+<text x="389" y="1888" text-anchor="middle" font-size="10" fill="#085041">Student list, stats, charts reloaded</text>
+
+<!-- ============================================================ -->
+<!-- FLOW 6: INTERACTION LOG SUBMISSION -->
+<!-- ============================================================ -->
+<rect x="60" y="1926" width="1260" height="30" fill="#1D9E75" fill-opacity="0.10"/>
+<text x="690" y="1946" text-anchor="middle" font-size="13" font-weight="500" fill="#085041">Flow 6 — Interaction Log Submission (POST /api/quiz-logs)</text>
+
+<!-- Row 1 (y=1972, h=52): student posts log + backend validates via MongoDB -->
+<rect x="76" y="1972" width="186" height="52" rx="8" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
+<text x="169" y="1991" text-anchor="middle" font-size="11" font-weight="500" fill="#042C53">① Submit Interaction Log</text>
+<text x="169" y="2005" text-anchor="middle" font-size="10" fill="#042C53">POST /api/quiz-logs</text>
+<text x="169" y="2018" text-anchor="middle" font-size="10" fill="#042C53">answers[], confusionLevel, timing</text>
+<line x1="262" y1="1998" x2="498" y2="1998" stroke="#185FA5" stroke-width="1.5" marker-end="url(#arr-b)" fill="none"/>
+<text x="380" y="1992" text-anchor="middle" font-size="9" font-style="italic" fill="#185FA5">POST /api/quiz-logs</text>
+
+<rect x="516" y="1972" width="224" height="52" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="1991" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">② Receive Quiz Log (REST)</text>
+<text x="628" y="2005" text-anchor="middle" font-size="10" fill="#26215C">Validate schema, extract quizId</text>
+<text x="628" y="2018" text-anchor="middle" font-size="10" fill="#26215C">Re-validate answers via MongoDB</text>
+<line x1="740" y1="1998" x2="758" y2="1998" stroke="#854F0B" stroke-width="1.5" marker-end="url(#arr-a)" fill="none"/>
+<text x="749" y="1992" text-anchor="middle" font-size="9" font-style="italic" fill="#854F0B">findById</text>
+
+<rect x="776" y="1972" width="246" height="52" rx="8" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+<text x="899" y="1991" text-anchor="middle" font-size="11" font-weight="500" fill="#412402">③ Fetch Answer Key</text>
+<text x="899" y="2005" text-anchor="middle" font-size="10" fill="#412402">Quiz.findById(quizId)</text>
+<text x="899" y="2018" text-anchor="middle" font-size="10" fill="#412402">Re-validate each answer server-side</text>
+<line x1="776" y1="1998" x2="740" y2="1998" stroke="#854F0B" stroke-width="1.5" marker-end="url(#arr)" fill="none"/>
+
+<!-- Vertical connector -->
+<line x1="628" y1="2024" x2="628" y2="2042" stroke="#534AB7" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+
+<!-- Row 2 (y=2042, h=52): backend saves log -->
+<rect x="516" y="2042" width="224" height="52" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="2061" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">④ Save Interaction Log</text>
+<text x="628" y="2075" text-anchor="middle" font-size="10" fill="#26215C">Corrected isCorrect flags applied</text>
+<text x="628" y="2088" text-anchor="middle" font-size="10" fill="#26215C">quizinteractionlogs collection</text>
+<line x1="740" y1="2068" x2="758" y2="2068" stroke="#854F0B" stroke-width="1.5" marker-end="url(#arr-a)" fill="none"/>
+<text x="749" y="2062" text-anchor="middle" font-size="9" font-style="italic" fill="#854F0B">create()</text>
+
+<rect x="776" y="2042" width="246" height="52" rx="8" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+<text x="899" y="2061" text-anchor="middle" font-size="11" font-weight="500" fill="#412402">⑤ Create InteractionLog Doc</text>
+<text x="899" y="2075" text-anchor="middle" font-size="10" fill="#412402">studentId, sessionId, quizId</text>
+<text x="899" y="2088" text-anchor="middle" font-size="10" fill="#412402">answers[], confusionLevel, timing</text>
+
+<!-- Vertical connector -->
+<line x1="628" y1="2094" x2="628" y2="2112" stroke="#534AB7" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+
+<!-- Row 3 (y=2112, h=46): return 201 to student -->
+<rect x="516" y="2112" width="224" height="46" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="628" y="2132" text-anchor="middle" font-size="11" font-weight="500" fill="#26215C">⑥ Return 201 Created</text>
+<text x="628" y="2148" text-anchor="middle" font-size="10" fill="#26215C">Response confirms log saved</text>
+<line x1="516" y1="2135" x2="262" y2="2135" stroke="#185FA5" stroke-width="1.5" marker-end="url(#arr-b)" fill="none"/>
+<text x="380" y="2129" text-anchor="middle" font-size="9" font-style="italic" fill="#185FA5">201 Created</text>
+
+<rect x="76" y="2112" width="186" height="46" rx="8" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
+<text x="169" y="2132" text-anchor="middle" font-size="11" font-weight="500" fill="#042C53">Log confirmed</text>
+<text x="169" y="2148" text-anchor="middle" font-size="10" fill="#042C53">Score / results shown to student</text>
 
 <!-- ============================================================ -->
 <!-- LEGEND -->
 <!-- ============================================================ -->
-<rect x="60" y="1408" width="1260" height="30" fill="#888780" fill-opacity="0.10"/>
-<text x="690" y="1428" text-anchor="middle" font-size="12" font-weight="500" fill="var(--color-text-primary)">Legend</text>
+<rect x="60" y="2192" width="1260" height="30" fill="#888780" fill-opacity="0.10"/>
+<text x="690" y="2212" text-anchor="middle" font-size="12" font-weight="500" fill="var(--color-text-primary)">Legend</text>
 
-<rect x="80" y="1452" width="158" height="36" rx="8" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
-<text x="159" y="1474" text-anchor="middle" font-size="11" fill="#042C53">Client (Student)</text>
+<rect x="80"  y="2236" width="158" height="36" rx="8" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
+<text x="159" y="2258" text-anchor="middle" font-size="11" fill="#042C53">Client (Student)</text>
 
-<rect x="258" y="1452" width="158" height="36" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
-<text x="337" y="1474" text-anchor="middle" font-size="11" fill="#085041">Client (Teacher)</text>
+<rect x="258" y="2236" width="158" height="36" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="337" y="2258" text-anchor="middle" font-size="11" fill="#085041">Client (Teacher)</text>
 
-<rect x="436" y="1452" width="158" height="36" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
-<text x="515" y="1474" text-anchor="middle" font-size="11" fill="#26215C">Backend</text>
+<rect x="436" y="2236" width="158" height="36" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text x="515" y="2258" text-anchor="middle" font-size="11" fill="#26215C">Backend</text>
 
-<rect x="614" y="1452" width="158" height="36" rx="8" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
-<text x="693" y="1474" text-anchor="middle" font-size="11" fill="#412402">MongoDB</text>
+<rect x="614" y="2236" width="158" height="36" rx="8" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+<text x="693" y="2258" text-anchor="middle" font-size="11" fill="#412402">MongoDB</text>
 
-<rect x="792" y="1452" width="158" height="36" rx="8" fill="#F5C4B3" stroke="#D85A30" stroke-width="0.5"/>
-<text x="871" y="1474" text-anchor="middle" font-size="11" fill="#4A1B0C">Redis</text>
+<rect x="792" y="2236" width="158" height="36" rx="8" fill="#F5C4B3" stroke="#D85A30" stroke-width="0.5"/>
+<text x="871" y="2258" text-anchor="middle" font-size="11" fill="#4A1B0C">Redis</text>
 
-<line x1="970" y1="1470" x2="1070" y2="1470" stroke="#185FA5" stroke-width="1.5" marker-end="url(#arr-b)" fill="none"/>
-<text x="1080" y="1474" text-anchor="start" font-size="10" fill="var(--color-text-secondary)">REST / WebSocket event</text>
+<line x1="970" y1="2254" x2="1070" y2="2254" stroke="#185FA5" stroke-width="1.5" marker-end="url(#arr-b)" fill="none"/>
+<text x="1080" y="2258" text-anchor="start" font-size="10" fill="var(--color-text-secondary)">REST / WebSocket event</text>
 
-<line x1="970" y1="1496" x2="1070" y2="1496" stroke="#888780" stroke-width="1" stroke-dasharray="4 3" fill="none"/>
-<text x="1080" y="1500" text-anchor="start" font-size="10" fill="var(--color-text-secondary)">Sequential flow (vertical)</text>
+<line x1="970" y1="2280" x2="1070" y2="2280" stroke="#888780" stroke-width="1" stroke-dasharray="4 3" fill="none"/>
+<text x="1080" y="2284" text-anchor="start" font-size="10" fill="var(--color-text-secondary)">Sequential flow (vertical)</text>
+
+<!-- Flow index -->
+<text x="80"  y="2316" text-anchor="start" font-size="10" font-weight="500" fill="var(--color-text-secondary)">Flows: 1 Quiz Creation · 2 Student Join · 3 Answer Submission · 4A Session Control (9 actions) · 4B Session End &amp; Archive · 4C Student Disconnect · 5 State Recovery · 6 Interaction Log</text>
 
 </svg>
 </div>
