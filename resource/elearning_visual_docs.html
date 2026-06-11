@@ -55,8 +55,8 @@
   .nav-section { padding: 8px 20px 4px; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
   .nav-item {
     display: flex; align-items: center; gap: 8px;
-    padding: 7px 20px;
-    font-size: 13px; color: var(--text-muted);
+    padding: 6px 20px;
+    font-size: 12.5px; color: var(--text-muted);
     cursor: pointer; text-decoration: none;
     transition: all 0.15s;
     border-left: 2px solid transparent;
@@ -69,7 +69,7 @@
   .nav-item .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
 
   /* MAIN */
-  .main { margin-left: 240px; padding: 48px 56px; max-width: 960px; }
+  .main { margin-left: 240px; padding: 48px 56px; max-width: 980px; }
 
   /* HERO */
   .hero {
@@ -77,7 +77,7 @@
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 48px;
-    margin-bottom: 48px;
+    margin-bottom: 32px;
     position: relative;
     overflow: hidden;
   }
@@ -106,7 +106,7 @@
     margin-bottom: 12px;
   }
   .hero h1 span { color: var(--accent); }
-  .hero p { color: var(--text-muted); font-size: 15px; max-width: 560px; }
+  .hero p { color: var(--text-muted); font-size: 15px; max-width: 620px; }
   .tech-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
   .tech-pill {
     background: var(--surface2); border: 1px solid var(--border);
@@ -118,6 +118,17 @@
   .tech-pill.be { border-color: rgba(0,212,170,0.4); color: var(--accent2); }
   .tech-pill.db { border-color: rgba(255,209,102,0.4); color: var(--accent4); }
   .tech-pill.ai { border-color: rgba(255,107,107,0.4); color: var(--accent3); }
+
+  /* CHANNELS */
+  .channel-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 14px; margin-bottom: 16px; }
+  .channel-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px;
+  }
+  .channel-card .ch-icon { font-size: 22px; margin-bottom: 8px; }
+  .channel-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .channel-card h4 code { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent2); }
+  .channel-card p { font-size: 12.5px; color: var(--text-muted); line-height: 1.6; }
 
   /* SECTION */
   .section { margin-bottom: 56px; scroll-margin-top: 24px; }
@@ -165,10 +176,39 @@
   .field-type { font-family: 'IBM Plex Mono', monospace; color: var(--accent4); font-size: 11px; }
   .field-desc { color: var(--text-muted); font-size: 12.5px; }
 
+  /* API TABLE */
+  .api-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .api-table th {
+    padding: 9px 12px; background: var(--surface2);
+    color: var(--text-muted); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    text-align: left; border-bottom: 1px solid var(--border);
+  }
+  .api-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .api-table tr:last-child td { border-bottom: none; }
+  .api-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .method {
+    display: inline-block; font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 700; padding: 1px 7px;
+    border-radius: 4px; margin-right: 6px; letter-spacing: 0.04em;
+  }
+  .m-get   { background: rgba(0,212,170,0.12);  color: var(--accent2); border: 1px solid rgba(0,212,170,0.25); }
+  .m-post  { background: rgba(108,99,255,0.12); color: #a89cf7;        border: 1px solid rgba(108,99,255,0.25); }
+  .m-put   { background: rgba(255,209,102,0.12);color: var(--accent4); border: 1px solid rgba(255,209,102,0.25); }
+  .m-del   { background: rgba(239,71,111,0.12); color: var(--red);     border: 1px solid rgba(239,71,111,0.25); }
+  .api-path { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--text); white-space: nowrap; }
+  .auth-badge {
+    display: inline-block; font-size: 10px; padding: 1px 8px;
+    border-radius: 10px; font-weight: 600;
+  }
+  .auth-teacher { background: rgba(108,99,255,0.12); color: #a89cf7; }
+  .auth-admin   { background: rgba(239,71,111,0.12); color: var(--red); }
+  .auth-public  { background: rgba(0,212,170,0.1);   color: var(--accent2); }
+
   /* WEBSOCKET EVENTS */
   .event-list { display: flex; flex-direction: column; gap: 10px; }
   .event-item {
-    display: grid; grid-template-columns: 120px 1fr;
+    display: grid; grid-template-columns: 130px 1fr;
     gap: 0; border: 1px solid var(--border);
     border-radius: 10px; overflow: hidden;
   }
@@ -183,19 +223,19 @@
   .event-dir.s2c { background: rgba(0,212,170,0.08); }
   .event-dir.s2b { background: rgba(255,209,102,0.08); }
   .dir-label { font-size: 10px; color: var(--text-muted); font-weight: 400; }
-  .dir-arrow { font-size: 16px; }
   .event-body { padding: 12px 16px; background: var(--surface2); }
   .event-name { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500; color: var(--accent); margin-bottom: 3px; }
   .event-desc { font-size: 12.5px; color: var(--text-muted); }
+  .event-desc code { font-family: 'IBM Plex Mono', monospace; font-size: 11px; background: var(--surface); padding: 1px 6px; border-radius: 3px; color: var(--accent2); }
 
   /* FEATURES */
   .feature-card {
     border: 1px solid var(--border);
     border-radius: 14px; overflow: hidden;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
   }
   .feature-header {
-    padding: 20px 24px;
+    padding: 18px 24px;
     display: flex; align-items: flex-start; gap: 16px;
     cursor: pointer;
     background: var(--surface);
@@ -208,7 +248,7 @@
     padding: 2px 8px; border-radius: 4px;
     flex-shrink: 0; margin-top: 3px;
   }
-  .feature-title { font-size: 16px; font-weight: 600; }
+  .feature-title { font-size: 15.5px; font-weight: 600; }
   .feature-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
   .feature-body {
     padding: 0 24px;
@@ -216,7 +256,7 @@
     transition: max-height 0.35s ease, padding 0.2s;
     background: var(--surface2);
   }
-  .feature-body.open { max-height: 2000px; padding: 24px; }
+  .feature-body.open { max-height: 3000px; padding: 24px; }
 
   .info-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
   .info-box {
@@ -225,6 +265,7 @@
   }
   .info-box h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 10px; }
   .info-box p { font-size: 13px; color: var(--text); line-height: 1.6; }
+  .info-box code { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent2); }
   .step-list { list-style: none; }
   .step-list li {
     display: flex; gap: 12px; align-items: flex-start;
@@ -250,7 +291,6 @@
     font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
     color: var(--text-muted); margin-bottom: 16px;
   }
-  .flow-svg { width: 100%; overflow: visible; }
 
   /* MATRIX DEMO */
   .matrix-demo {
@@ -368,15 +408,27 @@
     padding: 2px 8px; border-radius: 4px; color: var(--text-muted);
   }
 
-  /* TOOLTIP */
-  .tooltip-trigger { border-bottom: 1px dotted var(--text-muted); cursor: help; }
+  /* CONTROL ACTIONS */
+  .action-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 16px; }
+  .action-card { border-radius: 10px; padding: 14px; text-align: center; background: var(--surface); border: 1px solid var(--border); }
+  .action-card .a-icon { font-size: 20px; margin-bottom: 6px; }
+  .action-card .a-name { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--accent2); margin-bottom: 4px; }
+  .action-card .a-desc { font-size: 11.5px; color: var(--text-muted); line-height: 1.5; }
+
+  /* CALLOUT */
+  .callout {
+    background: rgba(0,212,170,0.06); border: 1px solid rgba(0,212,170,0.2);
+    border-radius: 10px; padding: 14px 18px; margin-top: 16px;
+    font-size: 13px; color: var(--text);
+  }
+  .callout strong { color: var(--accent2); }
 
   /* RESPONSIVE */
   @media (max-width: 900px) {
     .sidebar { display: none; }
     .main { margin-left: 0; padding: 24px 20px; }
-    .schema-grid, .info-row { grid-template-columns: 1fr; }
-    .confusion-grid { grid-template-columns: 1fr; }
+    .schema-grid, .info-row, .channel-grid { grid-template-columns: 1fr; }
+    .confusion-grid, .action-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -386,19 +438,28 @@
 <nav class="sidebar">
   <div class="sidebar-logo">
     <h2>E-Learning Docs</h2>
-    <p>System Specification v2025</p>
+    <p>System Specification — June 2026</p>
   </div>
   <div class="nav-section">ภาพรวม</div>
   <a class="nav-item active" href="#overview"><span class="dot"></span> System Overview</a>
   <a class="nav-item" href="#schema"><span class="dot"></span> Database Schema</a>
+  <a class="nav-item" href="#api"><span class="dot"></span> REST API Catalog</a>
   <a class="nav-item" href="#websocket"><span class="dot"></span> WebSocket Events</a>
   <div class="nav-section">Features</div>
-  <a class="nav-item" href="#features"><span class="dot"></span> Quiz Builder</a>
-  <a class="nav-item" href="#features"><span class="dot"></span> Live Monitoring</a>
-  <a class="nav-item" href="#features"><span class="dot"></span> Confusion Detection</a>
-  <a class="nav-item" href="#features"><span class="dot"></span> Session Control</a>
-  <a class="nav-item" href="#features"><span class="dot"></span> Student Results</a>
-  <a class="nav-item" href="#features"><span class="dot"></span> AI Assistant</a>
+  <a class="nav-item" href="#f1"><span class="dot"></span> Auth &amp; Admin</a>
+  <a class="nav-item" href="#f2"><span class="dot"></span> Teacher Dashboard</a>
+  <a class="nav-item" href="#f3"><span class="dot"></span> Quiz Builder + AI Copilot</a>
+  <a class="nav-item" href="#f4"><span class="dot"></span> Join Code &amp; QR</a>
+  <a class="nav-item" href="#f5"><span class="dot"></span> Live Monitoring</a>
+  <a class="nav-item" href="#f6"><span class="dot"></span> Confusion Detection</a>
+  <a class="nav-item" href="#f7"><span class="dot"></span> Session Controller</a>
+  <a class="nav-item" href="#f8"><span class="dot"></span> Student Results</a>
+  <a class="nav-item" href="#f9"><span class="dot"></span> Interaction Log</a>
+  <a class="nav-item" href="#f10"><span class="dot"></span> AI per-Student</a>
+  <a class="nav-item" href="#f11"><span class="dot"></span> AI Assistant</a>
+  <a class="nav-item" href="#f12"><span class="dot"></span> Session History + AI</a>
+  <a class="nav-item" href="#f13"><span class="dot"></span> Cross-Session Compare</a>
+  <a class="nav-item" href="#f14"><span class="dot"></span> i18n &amp; Theme</a>
   <div class="nav-section">สรุป</div>
   <a class="nav-item" href="#matrix"><span class="dot"></span> Integration Matrix</a>
 </nav>
@@ -408,21 +469,59 @@
 
   <!-- HERO -->
   <div class="hero" id="overview">
-    <div class="hero-badge">📖 System Documentation</div>
+    <div class="hero-badge">📖 System Documentation · อัปเดต 11 มิ.ย. 2026</div>
     <h1>E-Learning <span>Quiz Platform</span></h1>
-    <p>Interactive Real-time Quiz Platform สำหรับห้องเรียนสด — ช่วยอาจารย์จัดสอบ ประเมินผล และตรวจจับความสับสนของนักเรียนแบบวินาทีต่อวินาที พร้อม AI Assistant วิเคราะห์ห้องเรียนทันที</p>
+    <p>Interactive Real-time Quiz Platform สำหรับห้องเรียนสด — อาจารย์สร้างข้อสอบ จัดสอบ ติดตามการตอบแบบวินาทีต่อวินาที ตรวจจับความสับสน (Confusion Detection) บันทึกพฤติกรรมระดับ Interaction และวิเคราะห์ผลด้วย AI (Local LLM ผ่าน Ollama) ทั้งระดับห้องเรียน รายบุคคล และข้ามรอบสอบ</p>
     <div class="tech-pills">
-      <span class="tech-pill fe">Next.js 15</span>
-      <span class="tech-pill fe">React + Zustand</span>
-      <span class="tech-pill fe">TailwindCSS</span>
-      <span class="tech-pill fe">i18n TH/EN/JP</span>
-      <span class="tech-pill be">Node.js + Express</span>
-      <span class="tech-pill be">Socket.io</span>
-      <span class="tech-pill db">MongoDB</span>
-      <span class="tech-pill db">Redis</span>
-      <span class="tech-pill ai">Ollama (Llama3/Gemma2)</span>
+      <span class="tech-pill fe">Next.js 16 (App Router)</span>
+      <span class="tech-pill fe">React 19 + Zustand 5</span>
+      <span class="tech-pill fe">TailwindCSS 4 + HeroUI 3</span>
+      <span class="tech-pill fe">Recharts · dnd-kit · QR</span>
+      <span class="tech-pill fe">i18n TH/EN/JA</span>
+      <span class="tech-pill be">Node.js + Express 5</span>
+      <span class="tech-pill be">Socket.IO 4.8</span>
+      <span class="tech-pill be">JWT + bcrypt</span>
+      <span class="tech-pill db">MongoDB (Mongoose 9)</span>
+      <span class="tech-pill db">Redis 5 + In-memory Fallback</span>
+      <span class="tech-pill ai">Ollama — qwen3:8b / auto-detect</span>
     </div>
   </div>
+
+  <!-- COMMUNICATION CHANNELS -->
+  <section class="section" style="margin-bottom:48px">
+    <div class="section-header">
+      <div class="section-icon">🏗️</div>
+      <div>
+        <div class="section-num">Section 1</div>
+        <h2>สถาปัตยกรรม — 4 ช่องทางการสื่อสาร</h2>
+      </div>
+    </div>
+    <div class="channel-grid">
+      <div class="channel-card">
+        <div class="ch-icon">🔗</div>
+        <h4>REST API <code>services/*.ts → /api/...</code></h4>
+        <p>CRUD ควิซ, Auth (JWT), Dashboard, ประวัติเซสชัน, Interaction Log — Frontend services เรียก Express Backend ผ่าน HTTP/JSON</p>
+      </div>
+      <div class="channel-card">
+        <div class="ch-icon">🔌</div>
+        <h4>WebSocket <code>Socket.IO</code></h4>
+        <p>เฉพาะห้องสอบสด — นักเรียนส่งคำตอบ → Server ตรวจเฉลย → บันทึก Redis → broadcast ห้อง <code>teacher:{sessionId}</code> แบบเรียลไทม์</p>
+      </div>
+      <div class="channel-card">
+        <div class="ch-icon">📨</div>
+        <h4>SSE <code>Server-Sent Events</code></h4>
+        <p>Backend สตรีมบทวิเคราะห์จาก Ollama กลับมาทีละ token — ใช้กับ AI Summary / AI per-Student / AI Cross-Session ของ Session History</p>
+      </div>
+      <div class="channel-card">
+        <div class="ch-icon">🤖</div>
+        <h4>Next.js API Routes <code>→ Ollama</code></h4>
+        <p>Frontend มี API ภายในของตัวเอง (<code>/api/chat</code>, <code>/api/analyze-quiz-log</code>) เรียก Ollama โดยตรง — ใช้กับ AI Assistant และวิเคราะห์ Log รายบุคคล</p>
+      </div>
+    </div>
+    <div class="callout">
+      <strong>Fault Tolerance:</strong> Server เปิดได้แม้ Redis ล่ม — <code style="font-family:'IBM Plex Mono',monospace;font-size:11px;">redisService</code> สลับไปใช้ in-memory <code style="font-family:'IBM Plex Mono',monospace;font-size:11px;">sessionManager</code> อัตโนมัติ และ Redis จะ warm-up แบบ background ตอน start · Server <strong>ตรวจคำตอบกับเฉลยจริงใน MongoDB เสมอ</strong> ไม่เชื่อ flag จาก client
+    </div>
+  </section>
 
   <!-- SCHEMA -->
   <section class="section" id="schema">
@@ -430,88 +529,129 @@
       <div class="section-icon">💾</div>
       <div>
         <div class="section-num">Section 2</div>
-        <h2>โครงสร้างข้อมูล</h2>
+        <h2>โครงสร้างข้อมูล (MongoDB + Redis)</h2>
       </div>
     </div>
 
     <div class="schema-grid">
       <!-- MongoDB Quiz -->
       <div class="card">
-        <h3>🍃 MongoDB — Quiz Model</h3>
-        <p style="margin-bottom:12px">เก็บโครงสร้างข้อสอบถาวร</p>
+        <h3>🍃 MongoDB — Quiz</h3>
+        <p style="margin-bottom:12px">โครงสร้างข้อสอบถาวร (คอลเลกชัน <code style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent2)">quizzes</code>)</p>
         <table class="schema-table">
           <tr><th>Field</th><th>Type</th><th>คำอธิบาย</th></tr>
-          <tr><td class="field-name">title</td><td class="field-type">String</td><td class="field-desc">หัวข้อควิซ</td></tr>
+          <tr><td class="field-name">title / description</td><td class="field-type">String</td><td class="field-desc">หัวข้อ + คำอธิบายควิซ</td></tr>
+          <tr><td class="field-name">subject / chapter</td><td class="field-type">String</td><td class="field-desc">วิชา / บทเรียน</td></tr>
           <tr><td class="field-name">difficulty</td><td class="field-type">Enum</td><td class="field-desc">easy / medium / hard</td></tr>
-          <tr><td class="field-name">accessCode</td><td class="field-type">String</td><td class="field-desc">รหัส 6 หลักสำหรับนักเรียน</td></tr>
           <tr><td class="field-name">status</td><td class="field-type">Enum</td><td class="field-desc">draft / published / archived</td></tr>
-          <tr><td class="field-name">duration</td><td class="field-type">Number</td><td class="field-desc">เวลาจำกัด (นาที)</td></tr>
-          <tr><td class="field-name">questions[]</td><td class="field-type">Array</td><td class="field-desc">รายการคำถามทั้งหมด</td></tr>
+          <tr><td class="field-name">accessCode</td><td class="field-type">String</td><td class="field-desc">Join Code 6 ตัว (unique, สร้างตอน publish)</td></tr>
+          <tr><td class="field-name">durationMinutes</td><td class="field-type">Number</td><td class="field-desc">1–300 นาที + hasTimeLimit</td></tr>
+          <tr><td class="field-name">showAnswersAfterQuiz</td><td class="field-type">Bool</td><td class="field-desc">เปิด/ปิดการแสดงเฉลยให้นักเรียน</td></tr>
+          <tr><td class="field-name">questions[]</td><td class="field-type">Array</td><td class="field-desc">embedded — text, type, order, imageUrl, choices[]</td></tr>
+          <tr><td class="field-name">emoji / gradient</td><td class="field-type">String</td><td class="field-desc">metadata การ์ด UI</td></tr>
         </table>
         <div style="margin-top:12px; background:var(--surface2); border-radius:8px; padding:12px; font-size:12px; color:var(--text-muted);">
           <strong style="color:var(--text)">Question fields:</strong>
           <div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:6px;">
-            <span class="redis-field">type: multiple-choice | true-false</span>
-            <span class="redis-field">imageUrl (optional)</span>
+            <span class="redis-field">type: multiple_choice | true_false</span>
+            <span class="redis-field">imageUrl (โจทย์ + ตัวเลือก)</span>
             <span class="redis-field">choices[].isCorrect</span>
           </div>
+        </div>
+      </div>
+
+      <!-- MongoDB Teacher -->
+      <div class="card">
+        <h3>🍃 MongoDB — Teacher</h3>
+        <p style="margin-bottom:12px">บัญชีอาจารย์/แอดมิน (คอลเลกชัน <code style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent2)">teachers</code>)</p>
+        <table class="schema-table">
+          <tr><th>Field</th><th>Type</th><th>คำอธิบาย</th></tr>
+          <tr><td class="field-name">name</td><td class="field-type">String</td><td class="field-desc">ชื่ออาจารย์</td></tr>
+          <tr><td class="field-name">email</td><td class="field-type">String</td><td class="field-desc">unique — ใช้ล็อกอิน</td></tr>
+          <tr><td class="field-name">passwordHash</td><td class="field-type">String</td><td class="field-desc">bcrypt cost 12 — ไม่ส่งออก JSON</td></tr>
+          <tr><td class="field-name">isActive</td><td class="field-type">Bool</td><td class="field-desc">ปิดใช้งาน = soft-delete</td></tr>
+          <tr><td class="field-name">role</td><td class="field-type">String</td><td class="field-desc">บทบาทผู้ใช้</td></tr>
+          <tr><td class="field-name">avatarUrl / department</td><td class="field-type">String</td><td class="field-desc">โปรไฟล์เสริม</td></tr>
+        </table>
+        <div class="callout" style="margin-top:14px; font-size:12px;">
+          มี method <strong>verifyPassword()</strong> และ static <strong>hashPassword()</strong> — ล็อกอินแล้วได้ JWT แนบ header ทุก request ผ่าน <code style="font-family:'IBM Plex Mono',monospace;font-size:11px;">requireTeacher</code> middleware
         </div>
       </div>
 
       <!-- MongoDB Result -->
       <div class="card">
         <h3>🍃 MongoDB — QuizSessionResult</h3>
-        <p style="margin-bottom:12px">เก็บประวัติผลสอบหลัง End Session</p>
+        <p style="margin-bottom:12px">Archive ผลสอบหลัง End Session (คอลเลกชัน <code style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent2)">quizsessionresults</code>)</p>
         <table class="schema-table">
           <tr><th>Field</th><th>Type</th><th>คำอธิบาย</th></tr>
-          <tr><td class="field-name">sessionId</td><td class="field-type">String</td><td class="field-desc">quiz-session-{accessCode}</td></tr>
-          <tr><td class="field-name">startedAt</td><td class="field-type">Date</td><td class="field-desc">เวลาเริ่มต้น</td></tr>
-          <tr><td class="field-name">endedAt</td><td class="field-type">Date</td><td class="field-desc">เวลาสิ้นสุด</td></tr>
-          <tr><td class="field-name">stats</td><td class="field-type">Object</td><td class="field-desc">คะแนนเฉลี่ย, จำนวนคน, %เสร็จ</td></tr>
-          <tr><td class="field-name">students[]</td><td class="field-type">Array</td><td class="field-desc">สรุปคะแนนรายคน</td></tr>
-          <tr><td class="field-name">answers[]</td><td class="field-type">Array</td><td class="field-desc">คำตอบทุกข้อของทุกคน</td></tr>
+          <tr><td class="field-name">sessionId</td><td class="field-type">String</td><td class="field-desc">quiz-session-{quizId}</td></tr>
+          <tr><td class="field-name">sessionLabel</td><td class="field-type">String</td><td class="field-desc">ชื่อรอบสอบ เช่น "ห้อง 1 - บทที่ 1"</td></tr>
+          <tr><td class="field-name">startedAt / endedAt</td><td class="field-type">Date</td><td class="field-desc">เวลาเริ่ม-จบสอบ</td></tr>
+          <tr><td class="field-name">stats</td><td class="field-type">Object</td><td class="field-desc">totalStudents, averageScore, completion%</td></tr>
+          <tr><td class="field-name">students[]</td><td class="field-type">Array</td><td class="field-desc">คะแนนรายคน (score, scorePercent, progress)</td></tr>
+          <tr><td class="field-name">answers[]</td><td class="field-type">Array</td><td class="field-desc">ทุกคำตอบ + confusionLevel + changeCount</td></tr>
+          <tr><td class="field-name">questionStats[]</td><td class="field-type">Array</td><td class="field-desc">pre-computed: correct%, avg time, confusion, การแจกแจงตัวเลือก — เรนเดอร์กราฟเร็ว</td></tr>
         </table>
+      </div>
+
+      <!-- MongoDB Interaction Log -->
+      <div class="card">
+        <h3>🍃 MongoDB — QuizInteractionLog</h3>
+        <p style="margin-bottom:12px">พฤติกรรมระดับเหตุการณ์ 1 คน/1 การสอบ — ออกแบบเป็น input ของ LLM (คอลเลกชัน <code style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent2)">quizinteractionlogs</code>)</p>
+        <table class="schema-table">
+          <tr><th>Field</th><th>Type</th><th>คำอธิบาย</th></tr>
+          <tr><td class="field-name">session_metadata</td><td class="field-type">Object</td><td class="field-desc">student, quiz, device_info, lang, start time</td></tr>
+          <tr><td class="field-name">answer_logs[]</td><td class="field-type">Array</td><td class="field-desc">ต่อข้อ: interactions[] + final_answer + is_correct + time_spent + is_confused</td></tr>
+          <tr><td class="field-name">interactions[].action</td><td class="field-type">Enum</td><td class="field-desc">view / select / change / deselect / heartbeat</td></tr>
+          <tr><td class="field-name">summary</td><td class="field-type">Object</td><td class="field-desc">total_score, completion_time, average_confusion_rate (0–1)</td></tr>
+        </table>
+        <div class="callout" style="margin-top:14px; font-size:12px;">
+          Server <strong>ตรวจคำตอบใหม่กับเฉลยจริงทุกข้อ</strong> ก่อนบันทึก — ไม่เชื่อ flag ที่ client ส่งมา
+        </div>
       </div>
     </div>
 
     <!-- Redis -->
     <div class="card" style="margin-top:0">
-      <h3>⚡ Redis — Live Session Cache (TTL: 24 ชั่วโมง)</h3>
-      <p style="margin-bottom:16px">เก็บสถานะห้องสอบสดแบบ Hash Map — รองรับ State Recovery เมื่อรีเฟรชหน้าจอ</p>
+      <h3>⚡ Redis — Live Session Cache (TTL 24 ชั่วโมง · ต่ออายุทุก activity)</h3>
+      <p style="margin-bottom:16px">สถานะห้องสอบสดแบบ Hash — รองรับ State Recovery เมื่อรีเฟรชหน้าจอ · จบสอบแล้ว <code style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent2)">deleteSession()</code> ล้างทั้งหมด · ถ้า Redis ล่มสลับไป in-memory fallback อัตโนมัติ</p>
       <div class="redis-keys">
         <div class="redis-key">
-          <div class="redis-key-name">quiz:{code}:session</div>
+          <div class="redis-key-name">quiz:{sessionId}:session</div>
           <div class="redis-key-content">
             <div class="redis-key-title">Session Meta</div>
             <div class="redis-key-fields">
-              <span class="redis-field">isPaused: bool</span>
-              <span class="redis-field">startedAt: timestamp</span>
-              <span class="redis-field">quizId: string</span>
-              <span class="redis-field">totalQuestions: number</span>
+              <span class="redis-field">quizId</span>
+              <span class="redis-field">isPaused / isLocked</span>
+              <span class="redis-field">isTeacherLed</span>
+              <span class="redis-field">currentQuestionIndex</span>
+              <span class="redis-field">timer / timerActive</span>
+              <span class="redis-field">startedAt</span>
+              <span class="redis-field">totalQuestions</span>
             </div>
           </div>
         </div>
         <div class="redis-key">
-          <div class="redis-key-name">quiz:{code}:students</div>
+          <div class="redis-key-name">quiz:{sessionId}:students</div>
           <div class="redis-key-content">
-            <div class="redis-key-title">Students List — studentId → JSON</div>
+            <div class="redis-key-title">Students — studentId → JSON</div>
             <div class="redis-key-fields">
-              <span class="redis-field">name, avatar</span>
-              <span class="redis-field">score (ล่าสุด)</span>
-              <span class="redis-field">progress %</span>
-              <span class="redis-field">isOnline: bool</span>
+              <span class="redis-field">name, avatar (DiceBear)</span>
+              <span class="redis-field">score / progress</span>
+              <span class="redis-field">isOnline</span>
+              <span class="redis-field">socketId, joinedAt</span>
             </div>
           </div>
         </div>
         <div class="redis-key">
-          <div class="redis-key-name">quiz:{code}:answers:{studentId}</div>
+          <div class="redis-key-name">quiz:{sessionId}:answers:{studentId}</div>
           <div class="redis-key-content">
             <div class="redis-key-title">Answers per Student — questionId → JSON</div>
             <div class="redis-key-fields">
-              <span class="redis-field">choiceId เลือก</span>
-              <span class="redis-field">isCorrect: bool</span>
-              <span class="redis-field">responseTime: sec</span>
-              <span class="redis-field">clickHistory[]</span>
+              <span class="redis-field">finalAnswer(Text)</span>
+              <span class="redis-field">isCorrect</span>
+              <span class="redis-field">responseTime</span>
+              <span class="redis-field">history[] (ทุกการเปลี่ยนคำตอบ)</span>
               <span class="redis-field">confusionLevel</span>
             </div>
           </div>
@@ -520,63 +660,106 @@
     </div>
   </section>
 
+  <!-- REST API -->
+  <section class="section" id="api">
+    <div class="section-header">
+      <div class="section-icon">🔌</div>
+      <div>
+        <div class="section-num">Section 3</div>
+        <h2>REST API Catalog</h2>
+      </div>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="api-table">
+        <tr><th style="width:46%">Endpoint</th><th style="width:12%">Auth</th><th>หน้าที่</th></tr>
+        <tr><td><span class="method m-post">POST</span><span class="api-path">/api/auth/login</span></td><td><span class="auth-badge auth-public">Public</span></td><td>ครูล็อกอิน → รับ JWT</td></tr>
+        <tr><td><span class="method m-get">GET</span><span class="api-path">/api/auth/me</span></td><td><span class="auth-badge auth-teacher">Teacher</span></td><td>ดึงโปรไฟล์ครูจาก token</td></tr>
+        <tr><td><span class="method m-post">POST</span><span class="api-path">/api/admin/login</span></td><td><span class="auth-badge auth-public">Public</span></td><td>แอดมินล็อกอิน</td></tr>
+        <tr><td><span class="method m-get">GET</span><span class="method m-post">POST</span><span class="method m-put">PUT</span><span class="method m-del">DEL</span><span class="api-path">/api/admin/teachers[/:id]</span></td><td><span class="auth-badge auth-admin">Admin</span></td><td>จัดการบัญชีอาจารย์ (DELETE = deactivate)</td></tr>
+        <tr><td><span class="method m-get">GET</span><span class="method m-post">POST</span><span class="method m-put">PUT</span><span class="method m-del">DEL</span><span class="api-path">/api/quizzes[/:id]</span></td><td><span class="auth-badge auth-teacher">Teacher</span></td><td>CRUD ควิซ</td></tr>
+        <tr><td><span class="method m-put">PATCH</span><span class="api-path">/api/quizzes/:id/status</span></td><td><span class="auth-badge auth-teacher">Teacher</span></td><td>เปลี่ยน draft / published / archived</td></tr>
+        <tr><td><span class="method m-post">POST</span><span class="api-path">/api/quizzes/:id/generate-code</span></td><td><span class="auth-badge auth-teacher">Teacher</span></td><td>สุ่ม Join Code 6 ตัวใหม่</td></tr>
+        <tr><td><span class="method m-post">POST</span><span class="method m-del">DEL</span><span class="api-path">/api/quizzes/images/...</span></td><td><span class="auth-badge auth-teacher">Teacher</span></td><td>อัปโหลด/ลบรูปประกอบ (Multer → /uploads)</td></tr>
+        <tr><td><span class="method m-get">GET</span><span class="api-path">/api/play/:code</span></td><td><span class="auth-badge auth-public">Public</span></td><td>นักเรียนดึงควิซจาก Join Code</td></tr>
+        <tr><td><span class="method m-get">GET</span><span class="api-path">/api/dashboard/stats</span></td><td><span class="auth-badge auth-public">—</span></td><td>สถิติแดชบอร์ดครู (ควิซ, attempts, Weekly Performance 8 สัปดาห์, Top Quizzes, Activity)</td></tr>
+        <tr><td><span class="method m-get">GET</span><span class="api-path">/api/monitoring/:sessionId[/stats]</span></td><td><span class="auth-badge auth-public">—</span></td><td>snapshot ห้องสอบสดจาก Redis (รับ accessCode หรือ sessionId เต็ม)</td></tr>
+        <tr><td><span class="method m-get">GET</span><span class="api-path">/api/monitoring/quiz/:quizId/sessions</span></td><td><span class="auth-badge auth-public">—</span></td><td>รายการเซสชันที่จบแล้วของควิซ</td></tr>
+        <tr><td><span class="method m-get">GET</span><span class="api-path">/api/monitoring/sessions/:sessionId/export</span></td><td><span class="auth-badge auth-public">—</span></td><td>Export CSV — รองรับทั้งเซสชันสด (Redis) และจบแล้ว (MongoDB)</td></tr>
+        <tr><td><span class="method m-post">POST</span><span class="method m-get">GET</span><span class="api-path">/api/quiz-logs[...]</span></td><td><span class="auth-badge auth-public">—</span></td><td>ส่ง/ดึง Interaction Log (server ตรวจเฉลยใหม่ก่อนเก็บ)</td></tr>
+        <tr><td><span class="method m-get">GET</span><span class="api-path">/api/session-history/all | /quiz/:quizId</span></td><td><span class="auth-badge auth-public">—</span></td><td>เซสชันย้อนหลังทั้งหมด / รายควิซ</td></tr>
+        <tr><td><span class="method m-get">GET</span><span class="api-path">/api/session-history/quiz/:quizId/aggregate</span></td><td><span class="auth-badge auth-public">—</span></td><td>สถิติเปรียบเทียบข้ามเซสชัน (per-question correct% / confusion)</td></tr>
+        <tr><td><span class="method m-get">GET</span><span class="method m-put">PATCH</span><span class="method m-del">DEL</span><span class="api-path">/api/session-history/:id[/label]</span></td><td><span class="auth-badge auth-public">—</span></td><td>รายละเอียดเต็ม / แก้ label / ลบประวัติเซสชัน</td></tr>
+        <tr><td><span class="method m-post">POST</span><span class="api-path">/api/session-history/:id/ai-summary</span></td><td><span class="auth-badge auth-public">—</span></td><td>🤖 สตรีม AI สรุประดับห้องเรียน (SSE · th/en/ja)</td></tr>
+        <tr><td><span class="method m-post">POST</span><span class="api-path">/api/session-history/:id/ai-student/:studentId</span></td><td><span class="auth-badge auth-public">—</span></td><td>🤖 สตรีม AI วิเคราะห์รายนักเรียน (SSE)</td></tr>
+        <tr><td><span class="method m-post">POST</span><span class="api-path">/api/session-history/quiz/:quizId/ai-cross-session</span></td><td><span class="auth-badge auth-public">—</span></td><td>🤖 สตรีม AI เปรียบเทียบข้ามห้อง/รอบสอบ (SSE)</td></tr>
+        <tr><td><span class="method m-get">GET</span><span class="api-path">/api/health</span></td><td><span class="auth-badge auth-public">Public</span></td><td>Health check</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>▲ Next.js API Routes (Frontend → Ollama โดยตรง)</h3>
+      <table class="api-table" style="margin-top:10px">
+        <tr><th style="width:40%">Path</th><th>หน้าที่</th></tr>
+        <tr><td><span class="method m-post">POST</span><span class="api-path">/api/chat</span></td><td>AI Assistant — auto-detect โมเดล Ollama ผ่าน <code style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent2)">/api/tags</code> (fallback gemma2:9b), รองรับบล็อก json_quiz_update สำหรับแก้ควิซอัตโนมัติ</td></tr>
+        <tr><td><span class="method m-post">POST</span><span class="api-path">/api/analyze-quiz-log</span></td><td>สร้าง prompt จาก Interaction Log → Ollama → คำแนะนำการเรียนรายบุคคล</td></tr>
+        <tr><td><span class="method m-get">GET</span><span class="method m-post">POST</span><span class="api-path">/api/quiz-logs[/[logId]]</span></td><td>proxy ไปยัง Backend</td></tr>
+      </table>
+    </div>
+  </section>
+
   <!-- WEBSOCKET -->
   <section class="section" id="websocket">
     <div class="section-header">
       <div class="section-icon">📡</div>
       <div>
-        <div class="section-num">Section 3</div>
-        <h2>WebSocket Events (Socket.io)</h2>
+        <div class="section-num">Section 4</div>
+        <h2>WebSocket Events (Socket.IO)</h2>
       </div>
     </div>
 
-    <div style="display:flex; gap:16px; margin-bottom:16px; flex-wrap:wrap;">
-      <div style="display:flex; align-items:center; gap:8px; font-size:12px;">
-        <div style="width:10px;height:10px;border-radius:2px;background:rgba(108,99,255,0.4)"></div>
-        <span style="color:var(--text-muted)">Client → Server</span>
-      </div>
-      <div style="display:flex; align-items:center; gap:8px; font-size:12px;">
-        <div style="width:10px;height:10px;border-radius:2px;background:rgba(0,212,170,0.3)"></div>
-        <span style="color:var(--text-muted)">Server → Client</span>
-      </div>
-      <div style="display:flex; align-items:center; gap:8px; font-size:12px;">
-        <div style="width:10px;height:10px;border-radius:2px;background:rgba(255,209,102,0.3)"></div>
-        <span style="color:var(--text-muted)">Server → Broadcast</span>
-      </div>
-    </div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">
+      ห้อง (Rooms): <code style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--accent2)">session:{id}</code> (ทุกคน) ·
+      <code style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--accent2)">teacher:{id}</code> (เฉพาะครู) ·
+      <code style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--accent2)">students:{id}</code>
+    </p>
 
     <div class="event-list">
       <div class="event-item">
         <div class="event-dir c2s"><span class="dir-label">Client → Server</span><span style="color:#a89cf7;font-size:12px;font-weight:700;">JOIN_QUIZ</span></div>
-        <div class="event-body"><div class="event-name">JOIN_QUIZ</div><div class="event-desc">ผู้ใช้เข้าห้องสอบ — ส่ง sessionId, quizId, studentId, name, avatar, role (student/teacher)</div></div>
+        <div class="event-body"><div class="event-name">join_quiz</div><div class="event-desc">นักเรียน/ครูเข้าห้อง — สร้าง session ใน Redis ถ้ายังไม่มี, เช็ก <code>isLocked</code> ก่อนรับนักเรียน · payload: sessionId, quizId, studentId, name, avatar, role</div></div>
       </div>
       <div class="event-item">
         <div class="event-dir s2c"><span class="dir-label">Server → Client</span><span style="color:var(--accent2);font-size:12px;font-weight:700;">SESSION_JOINED</span></div>
-        <div class="event-body"><div class="event-name">SESSION_JOINED</div><div class="event-desc">ส่งกลับเมื่อเชื่อมต่อสำเร็จ — <strong style="color:#a89cf7">ครู:</strong> รายชื่อนักเรียน + คำตอบ + สถิติ | <strong style="color:var(--accent2)">นักเรียน:</strong> ข้อมูลของตนเอง</div></div>
+        <div class="event-body"><div class="event-name">session_joined</div><div class="event-desc"><strong style="color:#a89cf7">ครู:</strong> students + answers + stats + quiz | <strong style="color:var(--accent2)">นักเรียน:</strong> ข้อมูลตนเอง + สถานะ teacher-led / timer</div></div>
       </div>
       <div class="event-item">
         <div class="event-dir s2c"><span class="dir-label">Server → Teacher</span><span style="color:var(--accent2);font-size:12px;font-weight:700;">STUDENT_JOINED</span></div>
-        <div class="event-body"><div class="event-name">STUDENT_JOINED</div><div class="event-desc">แจ้งเตือนครูเมื่อมีนักเรียนเข้าห้องใหม่ — พร้อมสถิติห้องล่าสุด</div></div>
+        <div class="event-body"><div class="event-name">student_joined / student_left</div><div class="event-desc">นักเรียนเข้า/หลุดการเชื่อมต่อ — disconnect = set <code>isOnline:false</code> ไม่ลบข้อมูล · พร้อมสถิติห้องล่าสุด</div></div>
       </div>
       <div class="event-item">
         <div class="event-dir c2s"><span class="dir-label">Client → Server</span><span style="color:#a89cf7;font-size:12px;font-weight:700;">SUBMIT_ANSWER</span></div>
-        <div class="event-body"><div class="event-name">SUBMIT_ANSWER</div><div class="event-desc">นักเรียนส่งคำตอบหรือเปลี่ยนตัวเลือก — ส่ง questionId, choiceId, choiceText, responseTime</div></div>
+        <div class="event-body"><div class="event-name">submit_answer</div><div class="event-desc">นักเรียนส่ง/เปลี่ยนคำตอบ — server ตรวจเฉลยจาก MongoDB, push history ลง Redis, คำนวณ confusion · ปฏิเสธถ้า session ถูก pause</div></div>
       </div>
       <div class="event-item">
         <div class="event-dir s2b"><span class="dir-label">Server → Broadcast</span><span style="color:var(--accent4);font-size:12px;font-weight:700;">ANSWER_UPDATE</span></div>
-        <div class="event-body"><div class="event-name">ANSWER_UPDATE</div><div class="event-desc">อัปเดตผลคำตอบ (รวม Confusion Level) ไปหน้าครู + ยืนยันกลับนักเรียน — พร้อมสถิติห้องล่าสุด</div></div>
+        <div class="event-body"><div class="event-name">answer_update</div><div class="event-desc">broadcast คำตอบใหม่ (รวม Confusion Level) + สถิติห้องล่าสุดไปหน้าครู / ack กลับนักเรียน</div></div>
       </div>
       <div class="event-item">
         <div class="event-dir c2s"><span class="dir-label">Client → Server</span><span style="color:#a89cf7;font-size:12px;font-weight:700;">CONTROL_SESSION</span></div>
-        <div class="event-body"><div class="event-name">CONTROL_SESSION</div><div class="event-desc">ครูควบคุมเซสชัน — action: <code style="background:var(--surface);padding:1px 6px;border-radius:3px;">pause</code> | <code style="background:var(--surface);padding:1px 6px;border-radius:3px;">resume</code> | <code style="background:var(--surface);padding:1px 6px;border-radius:3px;">end</code></div></div>
+        <div class="event-body"><div class="event-name">control_session</div><div class="event-desc">ครูสั่งควบคุมห้อง — action: <code>pause</code> <code>resume</code> <code>lock</code> <code>unlock</code> <code>teacher_led</code> <code>set_question_index</code> <code>set_timer</code> <code>reset_student</code> <code>regenerate_code</code> <code>end</code> (+sessionLabel)</div></div>
       </div>
       <div class="event-item">
         <div class="event-dir s2b"><span class="dir-label">Server → Broadcast</span><span style="color:var(--accent4);font-size:12px;font-weight:700;">SESSION_CONTROL</span></div>
-        <div class="event-body"><div class="event-name">SESSION_CONTROL</div><div class="event-desc">ส่งคำสั่งควบคุมจากครูไปล็อก/ปลดล็อกหน้าจอนักเรียนทุกคนพร้อมกัน</div></div>
+        <div class="event-body"><div class="event-name">session_control</div><div class="event-desc">กระจายคำสั่งครูไปทุกหน้าจอ — pause ล็อกหน้านักเรียน, end ล็อกจอ + จบสอบ ฯลฯ</div></div>
       </div>
       <div class="event-item">
-        <div class="event-dir s2c"><span class="dir-label">Server → Teacher</span><span style="color:var(--accent2);font-size:12px;font-weight:700;">STUDENT_LEFT</span></div>
-        <div class="event-body"><div class="event-name">STUDENT_LEFT</div><div class="event-desc">แจ้งครูเมื่อนักเรียนออกจากระบบหรือหลุดเน็ต — isOnline = false + สถิติล่าสุด</div></div>
+        <div class="event-dir c2s"><span class="dir-label">Client → Server</span><span style="color:#a89cf7;font-size:12px;font-weight:700;">GET_SESSION_STATE</span></div>
+        <div class="event-body"><div class="event-name">get_session_state → session_state</div><div class="event-desc">ครูรีเฟรชหน้า → ขอ snapshot เต็ม (students, answers, stats) จาก Redis เพื่อกู้คืนแดชบอร์ด — State Recovery</div></div>
+      </div>
+      <div class="event-item">
+        <div class="event-dir s2c"><span class="dir-label">Server → Client</span><span style="color:var(--red);font-size:12px;font-weight:700;">ERROR</span></div>
+        <div class="event-body"><div class="event-name">error</div><div class="event-desc">เช่น <code>ROOM_LOCKED</code> (ห้องถูกล็อก), "Session is paused" (ส่งคำตอบระหว่าง pause)</div></div>
       </div>
     </div>
   </section>
@@ -586,18 +769,66 @@
     <div class="section-header">
       <div class="section-icon">⚡</div>
       <div>
-        <div class="section-num">Section 4</div>
-        <h2>Features & Flow การทำงาน</h2>
+        <div class="section-num">Section 5</div>
+        <h2>Features &amp; Flow การทำงาน (14 ฟีเจอร์)</h2>
       </div>
     </div>
 
-    <!-- Feature 1 -->
-    <div class="feature-card">
+    <!-- F1 -->
+    <div class="feature-card" id="f1">
       <div class="feature-header" onclick="toggle(this)">
         <span class="feature-num">F1</span>
         <div>
-          <div class="feature-title">Quiz Builder — ระบบสร้างและจัดการข้อสอบ</div>
-          <div class="feature-sub">สร้างคำถาม Multiple Choice / True-False พร้อม Drag-and-Drop และ Preview Mode</div>
+          <div class="feature-title">Teacher Authentication &amp; Admin Management</div>
+          <div class="feature-sub">JWT + bcrypt · Super Admin จัดการบัญชีอาจารย์ (สร้าง/แก้ไข/ปิดใช้งาน)</div>
+        </div>
+        <span style="margin-left:auto;color:var(--text-muted);font-size:20px;">›</span>
+      </div>
+      <div class="feature-body">
+        <div class="info-row">
+          <div class="info-box">
+            <h4>🔐 กลไก</h4>
+            <p>ครูล็อกอินที่ <code>/teacher/login</code> → ตรวจ bcrypt hash → ออก <strong>JWT</strong> แนบ header ทุก request (<code>requireTeacher</code>) · แอดมินมีหน้า <code>/admin</code> สร้าง/แก้ไข/ปิดใช้งานบัญชี (soft-delete: <code>isActive=false</code>)</p>
+          </div>
+          <div class="info-box">
+            <h4>💡 Use Case</h4>
+            <p>ภาควิชาเพิ่มอาจารย์ใหม่ 3 ท่าน — แอดมินสร้างบัญชี อาจารย์ล็อกอินใช้ได้ทันที ภายหลังลาออกก็ปิดใช้งานโดยข้อมูลควิซเดิมยังอยู่ครบ</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- F2 -->
+    <div class="feature-card" id="f2">
+      <div class="feature-header" onclick="toggle(this)">
+        <span class="feature-num">F2</span>
+        <div>
+          <div class="feature-title">Teacher Dashboard &amp; Statistics</div>
+          <div class="feature-sub">ภาพรวมควิซ · Weekly Performance 8 สัปดาห์ · Top Quizzes · Activity Feed</div>
+        </div>
+        <span style="margin-left:auto;color:var(--text-muted);font-size:20px;">›</span>
+      </div>
+      <div class="feature-body">
+        <div class="info-row">
+          <div class="info-box">
+            <h4>📊 แสดงอะไร</h4>
+            <p>หน้า <code>/teacher</code>: จำนวนควิซ (draft/published/archived), ผู้เข้าสอบสะสม, คะแนนเฉลี่ยถ่วงน้ำหนักตามจำนวนนักเรียน, กราฟ Weekly Performance ย้อนหลัง 8 สัปดาห์ (Recharts), Top Performing Quizzes, Activity ล่าสุด — ทั้งหมด aggregate จาก MongoDB ใน <code>GET /api/dashboard/stats</code> ครั้งเดียว</p>
+          </div>
+          <div class="info-box">
+            <h4>💡 Use Case</h4>
+            <p>ต้นสัปดาห์ อาจารย์เห็นคะแนนเฉลี่ยตกจาก 72% เหลือ 61% และควิซ "บทที่ 4" completion ต่ำสุด — วางแผนทบทวนบทนั้นก่อนสอนต่อ</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- F3 -->
+    <div class="feature-card" id="f3">
+      <div class="feature-header" onclick="toggle(this)">
+        <span class="feature-num">F3</span>
+        <div>
+          <div class="feature-title">Quiz Builder + AI Quiz Copilot</div>
+          <div class="feature-sub">Multiple Choice / True-False · รูปประกอบ · Drag-and-Drop · AI ร่างข้อสอบทั้งชุด</div>
         </div>
         <span style="margin-left:auto;color:var(--text-muted);font-size:20px;">›</span>
       </div>
@@ -606,69 +837,88 @@
           <div class="info-box">
             <h4>📋 วิธีใช้งาน</h4>
             <ol class="step-list">
-              <li><span class="step-num">1</span>เข้า <code style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent2)">/quiz/create</code></li>
-              <li><span class="step-num">2</span>กรอกหัวข้อ หมวดหมู่ ความยาก แท็ก</li>
-              <li><span class="step-num">3</span>กด "เพิ่มคำถาม" เลือกประเภท</li>
-              <li><span class="step-num">4</span>กรอกโจทย์ ตัวเลือก ✔ เฉลย</li>
-              <li><span class="step-num">5</span>ลากสลับข้อ (Drag-and-Drop)</li>
-              <li><span class="step-num">6</span>Preview หรือ บันทึก → ได้ Join Code</li>
+              <li><span class="step-num">1</span>เข้า <code>/teacher/create-quiz</code></li>
+              <li><span class="step-num">2</span>กรอกหัวข้อ วิชา บท ความยาก เวลา แท็ก</li>
+              <li><span class="step-num">3</span>เพิ่มคำถาม + แนบรูป (โจทย์และตัวเลือก)</li>
+              <li><span class="step-num">4</span>ลากจัดลำดับข้อด้วย dnd-kit · Preview</li>
+              <li><span class="step-num">5</span>หรือสั่ง AI: "ออกข้อสอบ 5 ข้อเรื่อง Python"</li>
+              <li><span class="step-num">6</span>กด Apply เทข้อมูล AI ลงฟอร์ม → Publish</li>
             </ol>
           </div>
           <div class="info-box">
             <h4>💡 Use Case</h4>
-            <p>อาจารย์สร้างควิซ 5 ข้อเรื่อง "ตัวแปรใน Python" ใส่รูปภาพโค้ดที่ผิดไวยากรณ์ แล้วกด Publish รับ Join Code แจกนักเรียนท้ายคาบ</p>
+            <p>อาจารย์มีเวลา 10 นาทีก่อนเข้าสอน — สั่ง AI ร่างข้อสอบ 5 ข้อเรื่อง "ตัวแปรใน Python" ตรวจแก้เฉลย 1 ข้อ เพิ่มรูป แล้ว Publish รับ Join Code ทันเวลา</p>
+            <p style="margin-top:8px;font-size:12px;color:var(--text-muted)">AI ตอบกลับเป็นบล็อก <code>json_quiz_update</code> → Frontend parse แสดงการ์ดสรุป กดปุ่มเดียวเทลงฟอร์มทั้งชุด</p>
           </div>
         </div>
         <div class="flow-diagram">
           <h4>📊 Save Flow</h4>
           <div class="flow-steps">
-            <div class="flow-step">
-              <div class="flow-step-icon">👩‍🏫</div>
-              <div class="flow-step-box actor">ครู<br>Quiz Builder UI</div>
-              <div class="flow-label">กรอกข้อมูล / Drag</div>
-            </div>
+            <div class="flow-step"><div class="flow-step-icon">👩‍🏫</div><div class="flow-step-box actor">ครู<br>Quiz Builder UI</div><div class="flow-label">กรอก / Drag / สั่ง AI</div></div>
             <div class="flow-arrow">→</div>
-            <div class="flow-step">
-              <div class="flow-step-icon">🗄️</div>
-              <div class="flow-step-box server">Zustand Store</div>
-              <div class="flow-label">อัปเดต UI ทันที</div>
-            </div>
+            <div class="flow-step"><div class="flow-step-icon">🗄️</div><div class="flow-step-box server">Zustand Store<br>(useQuizBuilder)</div><div class="flow-label">อัปเดต UI ทันที</div></div>
             <div class="flow-arrow">→</div>
-            <div class="flow-step">
-              <div class="flow-step-icon">🌐</div>
-              <div class="flow-step-box server">Express Backend</div>
-              <div class="flow-label">POST /api/quizzes</div>
-            </div>
+            <div class="flow-step"><div class="flow-step-icon">🌐</div><div class="flow-step-box server">Express Backend</div><div class="flow-label">POST/PUT /api/quizzes (JWT)</div></div>
             <div class="flow-arrow">→</div>
-            <div class="flow-step">
-              <div class="flow-step-icon">🍃</div>
-              <div class="flow-step-box db">MongoDB</div>
-              <div class="flow-label">บันทึก Quiz Document</div>
-            </div>
+            <div class="flow-step"><div class="flow-step-icon">🍃</div><div class="flow-step-box db">MongoDB</div><div class="flow-label">บันทึก Quiz Document</div></div>
             <div class="flow-arrow">←</div>
-            <div class="flow-step">
-              <div class="flow-step-icon">✅</div>
-              <div class="flow-step-box actor">ครู ได้<br>Join Code</div>
-              <div class="flow-label">200 OK + แสดงปุ่มแชร์</div>
-            </div>
+            <div class="flow-step"><div class="flow-step-icon">✅</div><div class="flow-step-box actor">ครู ได้<br>Join Code + QR</div><div class="flow-label">แชร์ /play/{code}</div></div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Feature 2 -->
-    <div class="feature-card">
+    <!-- F4 -->
+    <div class="feature-card" id="f4">
       <div class="feature-header" onclick="toggle(this)">
-        <span class="feature-num">F2</span>
+        <span class="feature-num">F4</span>
         <div>
-          <div class="feature-title">Live Monitoring — Matrix Grid Dashboard</div>
-          <div class="feature-sub">ตารางแสดงผลคำตอบนักเรียนทุกคนแบบ Real-time ด้วยสีบอกสถานะ</div>
+          <div class="feature-title">Publish, Join Code &amp; Student Join Flow</div>
+          <div class="feature-sub">Access Code 6 ตัว + QR Code · นักเรียนเข้าสอบโดยไม่ต้องมีบัญชี</div>
+        </div>
+        <span style="margin-left:auto;color:var(--text-muted);font-size:20px;">›</span>
+      </div>
+      <div class="feature-body">
+        <div class="info-row">
+          <div class="info-box">
+            <h4>🎫 กลไก</h4>
+            <p>กด Publish → สุ่ม Access Code 6 ตัว (ตัดอักษรสับสนง่าย I, O, 0, 1 · unique ทั้งระบบ) + QR Code + ลิงก์ <code>/play/{code}</code> · นักเรียนกรอกชื่อใน StudentNameModal (avatar สุ่มจาก DiceBear) · ครู <code>regenerate_code</code> กลางคันได้เพื่อกันคนนอก</p>
+          </div>
+          <div class="info-box">
+            <h4>💡 Use Case</h4>
+            <p>ครูฉายสไลด์ QR Code — นักเรียน 40 คนสแกนเข้าภายใน 1 นาที ชื่อทยอยเด้งบนแดชบอร์ดครูแบบเรียลไทม์ ครบแล้วครูกด <strong>Lock</strong> ห้องกันคนเข้าเพิ่ม</p>
+          </div>
+        </div>
+        <div class="flow-diagram">
+          <h4>📊 Join Flow</h4>
+          <div class="flow-steps">
+            <div class="flow-step"><div class="flow-step-icon">👨‍🎓</div><div class="flow-step-box actor">นักเรียน<br>สแกน QR</div></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step"><div class="flow-step-icon">🌐</div><div class="flow-step-box server">GET /api/play/:code</div><div class="flow-label">ดึงโจทย์จาก MongoDB</div></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step"><div class="flow-step-icon">🔌</div><div class="flow-step-box server">Socket<br>join_quiz</div><div class="flow-label">เช็ก isLocked</div></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step"><div class="flow-step-icon">⚡</div><div class="flow-step-box db">Redis<br>upsert student</div></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step"><div class="flow-step-icon">👩‍🏫</div><div class="flow-step-box actor">ครูเห็นชื่อเด้ง<br>student_joined</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- F5 -->
+    <div class="feature-card" id="f5">
+      <div class="feature-header" onclick="toggle(this)">
+        <span class="feature-num">F5</span>
+        <div>
+          <div class="feature-title">Real-time Live Monitoring — Matrix Grid Dashboard</div>
+          <div class="feature-sub">เห็นทุกคำตอบสด · Leaderboard · Answer Popover · State Recovery</div>
         </div>
         <span style="margin-left:auto;color:var(--text-muted);font-size:20px;">›</span>
       </div>
       <div class="feature-body">
         <div class="matrix-demo">
-          <h4>🎨 Matrix Grid Preview (ตัวอย่างหน้าจอครู)</h4>
+          <h4>🎨 Matrix Grid Preview (หน้า /teacher/monitoring/[quizId])</h4>
           <table class="matrix-table">
             <tr>
               <th></th><th>Q1</th><th>Q2</th><th>Q3</th><th>Q4</th><th>Q5</th><th style="padding-left:16px">คะแนน</th><th>%</th>
@@ -702,30 +952,42 @@
             <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted)"><span style="display:inline-block;width:14px;height:14px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:3px;"></span>ยังไม่ถึง</div>
           </div>
         </div>
+        <div class="info-row" style="margin-top:16px">
+          <div class="info-box">
+            <h4>🧰 องค์ประกอบ</h4>
+            <p>• คลิกเซลล์เปิด <strong>Answer Popover</strong> ดูไทม์ไลน์ทุกการคลิกตอบ<br>• <strong>Live Leaderboard</strong> จัดอันดับสด<br>• <strong>Live Stats Panel</strong>: คะแนนเฉลี่ย, % ความคืบหน้า, ถูก/ตอบทั้งหมด<br>• <strong>State Recovery</strong> — รีเฟรชหน้าไม่เสียข้อมูล (snapshot จาก Redis)</p>
+          </div>
+          <div class="info-box">
+            <h4>💡 Use Case</h4>
+            <p>ระหว่างสอบ ครูเห็นข้อ 7 ทั้งคอลัมน์แดงเกินครึ่งห้อง — กด Pause อธิบายโจทย์เพิ่มหน้าชั้น แล้ว Resume ให้ทำต่อ โดยไม่ต้องรอตรวจหลังสอบ</p>
+          </div>
+        </div>
         <div class="flow-diagram" style="margin-top:12px">
-          <h4>📊 Answer Submission & Sync Flow</h4>
+          <h4>📊 Answer Submission &amp; Sync Flow</h4>
           <div class="flow-steps">
             <div class="flow-step"><div class="flow-step-icon">👨‍🎓</div><div class="flow-step-box actor">นักเรียน<br>คลิกตอบ</div></div>
             <div class="flow-arrow">→</div>
-            <div class="flow-step"><div class="flow-step-icon">🔌</div><div class="flow-step-box server">Socket<br>SUBMIT_ANSWER</div></div>
+            <div class="flow-step"><div class="flow-step-icon">🔌</div><div class="flow-step-box server">Socket<br>submit_answer</div></div>
             <div class="flow-arrow">→</div>
-            <div class="flow-step"><div class="flow-step-icon">⚡</div><div class="flow-step-box db">Redis<br>บันทึก+คำนวณ</div></div>
+            <div class="flow-step"><div class="flow-step-icon">🍃</div><div class="flow-step-box db">MongoDB<br>ตรวจเฉลยจริง</div><div class="flow-label">ไม่เชื่อ client</div></div>
             <div class="flow-arrow">→</div>
-            <div class="flow-step"><div class="flow-step-icon">📡</div><div class="flow-step-box server">Broadcast<br>ANSWER_UPDATE</div></div>
+            <div class="flow-step"><div class="flow-step-icon">⚡</div><div class="flow-step-box db">Redis<br>บันทึก + history</div><div class="flow-label">calcStats + confusion</div></div>
             <div class="flow-arrow">→</div>
-            <div class="flow-step"><div class="flow-step-icon">👩‍🏫</div><div class="flow-step-box actor">Matrix Grid<br>อัปเดตสีทันที</div></div>
+            <div class="flow-step"><div class="flow-step-icon">📡</div><div class="flow-step-box server">Broadcast<br>answer_update</div></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step"><div class="flow-step-icon">👩‍🏫</div><div class="flow-step-box actor">Matrix Grid<br>อัปเดตสีทันที</div><div class="flow-label">useMonitoringSocket + Zustand</div></div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Feature 3 -->
-    <div class="feature-card">
+    <!-- F6 -->
+    <div class="feature-card" id="f6">
       <div class="feature-header" onclick="toggle(this)">
-        <span class="feature-num">F3</span>
+        <span class="feature-num">F6</span>
         <div>
           <div class="feature-title">Confusion Detection Engine</div>
-          <div class="feature-sub">ประเมินความสับสนจากพฤติกรรมการคลิกและเวลาตอบ</div>
+          <div class="feature-sub">วัด "ความเข้าใจจริง" จากจำนวนครั้งที่เปลี่ยนคำตอบ + เวลาที่ใช้</div>
         </div>
         <span style="margin-left:auto;color:var(--text-muted);font-size:20px;">›</span>
       </div>
@@ -734,126 +996,173 @@
           <div class="confusion-card high">
             <div class="icon">🔴</div>
             <h4 style="color:var(--red)">High Confusion</h4>
-            <p>เปลี่ยนตัวเลือก ≥ 2 ครั้ง<br>หรือใช้เวลา > 60 วินาที</p>
+            <p>เปลี่ยนตัวเลือก ≥ 2 ครั้ง<br>หรือใช้เวลา &gt; 60 วินาที</p>
           </div>
           <div class="confusion-card low">
             <div class="icon">🟡</div>
             <h4 style="color:var(--yellow)">Low Confusion</h4>
-            <p>เปลี่ยนตัวเลือก ≥ 1 ครั้ง<br>หรือใช้เวลา > 30 วินาที</p>
+            <p>เปลี่ยนตัวเลือก ≥ 1 ครั้ง<br>หรือใช้เวลา &gt; 30 วินาที</p>
           </div>
           <div class="confusion-card none">
             <div class="icon">⚪</div>
             <h4 style="color:var(--green)">None</h4>
-            <p>ส่งในครั้งแรก<br>ใช้เวลา < 30 วินาที</p>
+            <p>ตอบครั้งเดียว<br>ใช้เวลา ≤ 30 วินาที</p>
           </div>
         </div>
         <div class="code-block" style="margin-top:16px">
 <span class="kw">function</span> <span class="fn">_calcConfusion</span>(history, responseTime) {<br>
 &nbsp;&nbsp;<span class="kw">const</span> changes = history.length - <span class="num">1</span>; <span class="cm">// นับครั้งที่กดเปลี่ยนตัวเลือก</span><br>
-&nbsp;&nbsp;<span class="kw">if</span> (changes >= <span class="num">2</span> || responseTime > <span class="num">60</span>) <span class="kw">return</span> <span class="str">"high"</span>;<br>
-&nbsp;&nbsp;<span class="kw">if</span> (changes >= <span class="num">1</span> || responseTime > <span class="num">30</span>) <span class="kw">return</span> <span class="str">"low"</span>;<br>
+&nbsp;&nbsp;<span class="kw">if</span> (changes &gt;= <span class="num">2</span> || responseTime &gt; <span class="num">60</span>) <span class="kw">return</span> <span class="str">"high"</span>;<br>
+&nbsp;&nbsp;<span class="kw">if</span> (changes &gt;= <span class="num">1</span> || responseTime &gt; <span class="num">30</span>) <span class="kw">return</span> <span class="str">"low"</span>;<br>
 &nbsp;&nbsp;<span class="kw">return</span> <span class="str">"none"</span>;<br>
 }
         </div>
         <div class="info-box" style="margin-top:12px">
           <h4>💡 Use Case</h4>
-          <p>นักเรียนตอบถูก (ขึ้นเขียว) แต่อาจารย์คลิกดู Popover พบว่า <strong style="color:var(--red)">High Confusion</strong> — กดเปลี่ยน 4 รอบ → รู้ทันทีว่า "เดาถูก" ไม่ได้เข้าใจจริง</p>
+          <p>นักเรียน A ตอบข้อ 3 "ถูก" (ขึ้นเขียว) แต่ badge ขึ้น <strong style="color:var(--red)">High Confusion</strong> — เปลี่ยนคำตอบ 4 รอบ → ครูรู้ว่าน่าจะ "เดาถูก" ไม่ได้เข้าใจจริง เรียกมาติวเพิ่มได้ ทั้งที่ระบบทั่วไปจะมองว่าผ่าน · ผลสะสมเป็น <code>confusionCount</code> รายข้อใน archive และ <code>average_confusion_rate</code> ใน Interaction Log ส่งให้ AI วิเคราะห์ต่อ</p>
         </div>
       </div>
     </div>
 
-    <!-- Feature 4 -->
-    <div class="feature-card">
+    <!-- F7 -->
+    <div class="feature-card" id="f7">
       <div class="feature-header" onclick="toggle(this)">
-        <span class="feature-num">F4</span>
+        <span class="feature-num">F7</span>
         <div>
-          <div class="feature-title">Session Controller — Pause / Resume / End</div>
-          <div class="feature-sub">ควบคุมห้องสอบสด + บันทึกผลถาวรลง MongoDB เมื่อจบ</div>
+          <div class="feature-title">Live Session Controller</div>
+          <div class="feature-sub">Pause / Lock / Teacher-led / Reset / Regenerate Code / End + Archive</div>
         </div>
         <span style="margin-left:auto;color:var(--text-muted);font-size:20px;">›</span>
       </div>
       <div class="feature-body">
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
-          <div style="background:rgba(255,209,102,0.08);border:1px solid rgba(255,209,102,0.2);border-radius:10px;padding:16px;text-align:center;">
-            <div style="font-size:24px;margin-bottom:8px;">⏸️</div>
-            <div style="font-weight:600;margin-bottom:4px;">Pause</div>
-            <div style="font-size:12px;color:var(--text-muted)">ล็อกหน้าจอนักเรียนทุกคนทันที ห้ามกดส่งคำตอบ</div>
-          </div>
-          <div style="background:rgba(6,214,160,0.08);border:1px solid rgba(6,214,160,0.2);border-radius:10px;padding:16px;text-align:center;">
-            <div style="font-size:24px;margin-bottom:8px;">▶️</div>
-            <div style="font-weight:600;margin-bottom:4px;">Resume</div>
-            <div style="font-size:12px;color:var(--text-muted)">ปลดล็อกให้ทำข้อสอบต่อได้ตามปกติ</div>
-          </div>
-          <div style="background:rgba(239,71,111,0.08);border:1px solid rgba(239,71,111,0.2);border-radius:10px;padding:16px;text-align:center;">
-            <div style="font-size:24px;margin-bottom:8px;">⏹️</div>
-            <div style="font-weight:600;margin-bottom:4px;">End Session</div>
-            <div style="font-size:12px;color:var(--text-muted)">ยุติ + ถ่ายโอน Redis → MongoDB + ล้างแคช</div>
-          </div>
+        <div class="action-grid">
+          <div class="action-card"><div class="a-icon">⏸️</div><div class="a-name">pause / resume</div><div class="a-desc">ล็อก/ปลดล็อกการส่งคำตอบทั้งห้อง — Backend ปฏิเสธ submit_answer ระหว่าง pause</div></div>
+          <div class="action-card"><div class="a-icon">🔒</div><div class="a-name">lock / unlock</div><div class="a-desc">ปิด/เปิดรับนักเรียนใหม่ — join จะได้ ROOM_LOCKED</div></div>
+          <div class="action-card"><div class="a-icon">🎯</div><div class="a-name">teacher_led + set_question_index + set_timer</div><div class="a-desc">โหมดครูนำ — ทุกจอเลื่อนไปข้อเดียวกันพร้อมตัวจับเวลาที่ครูคุม</div></div>
+          <div class="action-card"><div class="a-icon">🔄</div><div class="a-name">reset_student</div><div class="a-desc">ล้างคำตอบรายคน เช่น เครื่องค้าง ขอเริ่มใหม่</div></div>
+          <div class="action-card"><div class="a-icon">🎲</div><div class="a-name">regenerate_code</div><div class="a-desc">สุ่ม Join Code ใหม่กลางคัน กันคนนอกเข้า</div></div>
+          <div class="action-card"><div class="a-icon">⏹️</div><div class="a-name">end (+sessionLabel)</div><div class="a-desc">จบสอบ + Archive ผลลง MongoDB + ล้าง Redis + ล็อกจอนักเรียน</div></div>
         </div>
         <div class="flow-diagram">
           <h4>📊 Archiving Flow (End Session)</h4>
           <div class="flow-steps">
-            <div class="flow-step"><div class="flow-step-icon">👩‍🏫</div><div class="flow-step-box actor">ครูกด<br>End Session</div></div>
+            <div class="flow-step"><div class="flow-step-icon">👩‍🏫</div><div class="flow-step-box actor">ครูกด End<br>+ ตั้ง Label</div></div>
             <div class="flow-arrow">→</div>
-            <div class="flow-step"><div class="flow-step-icon">⚡</div><div class="flow-step-box db">Redis<br>ดึง Snapshot</div></div>
+            <div class="flow-step"><div class="flow-step-icon">⚡</div><div class="flow-step-box db">Redis<br>ดึง Snapshot เต็ม</div></div>
             <div class="flow-arrow">→</div>
-            <div class="flow-step"><div class="flow-step-icon">🍃</div><div class="flow-step-box db">MongoDB<br>บันทึกถาวร</div></div>
+            <div class="flow-step"><div class="flow-step-icon">🧮</div><div class="flow-step-box server">คำนวณ<br>questionStats</div><div class="flow-label">correct%, avg time, confusion, choice distribution</div></div>
             <div class="flow-arrow">→</div>
-            <div class="flow-step"><div class="flow-step-icon">🗑️</div><div class="flow-step-box server">Redis<br>Clear Memory</div></div>
+            <div class="flow-step"><div class="flow-step-icon">🍃</div><div class="flow-step-box db">MongoDB<br>QuizSessionResult</div><div class="flow-label">บันทึกถาวร</div></div>
             <div class="flow-arrow">→</div>
-            <div class="flow-step"><div class="flow-step-icon">📡</div><div class="flow-step-box server">Broadcast<br>SESSION_CONTROL</div><div class="flow-label">ล็อกจอนักเรียน</div></div>
+            <div class="flow-step"><div class="flow-step-icon">🗑️</div><div class="flow-step-box server">Redis<br>deleteSession()</div></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step"><div class="flow-step-icon">📡</div><div class="flow-step-box server">Broadcast<br>session_control(end)</div><div class="flow-label">ล็อกจอนักเรียน</div></div>
           </div>
+        </div>
+        <div class="info-box" style="margin-top:12px">
+          <h4>💡 Use Case</h4>
+          <p>สอบเก็บคะแนนแบบ "ครูนำ" — เปิด Teacher-led เดินทีละข้อ ข้อละ 30 วินาที ทุกคนเห็นข้อเดียวกันพร้อมกัน หมดเวลาแล้วกด End ตั้ง label "ห้อง 2 - Midterm" ให้ค้นย้อนหลังง่าย</p>
         </div>
       </div>
     </div>
 
-    <!-- Feature 5 -->
-    <div class="feature-card">
+    <!-- F8 -->
+    <div class="feature-card" id="f8">
       <div class="feature-header" onclick="toggle(this)">
-        <span class="feature-num">F5</span>
+        <span class="feature-num">F8</span>
         <div>
-          <div class="feature-title">Student Result Screen & Detailed Review</div>
-          <div class="feature-sub">หน้าสรุปผลนักเรียนทันทีหลังส่งคำตอบข้อสุดท้าย</div>
+          <div class="feature-title">Student Result Screen &amp; Answer Review</div>
+          <div class="feature-sub">สรุปผลทันทีหลังข้อสุดท้าย — ScoreCard + เฉลยรายข้อ (ถ้าครูเปิด)</div>
         </div>
         <span style="margin-left:auto;color:var(--text-muted);font-size:20px;">›</span>
       </div>
       <div class="feature-body">
         <div class="info-row">
           <div class="info-box">
-            <h4>🃏 Result Score Card แสดง</h4>
-            <p>• คะแนน % ที่ได้<br>• จำนวนถูก / ผิด / ไม่ได้ตอบ<br>• เวลาเฉลี่ยต่อข้อ<br>• ความก้าวหน้าโดยรวม</p>
+            <h4>🃏 ResultScoreCard</h4>
+            <p>• คะแนน % ที่ได้<br>• จำนวนถูก / ผิด<br>• เวลาเฉลี่ยต่อข้อ</p>
           </div>
           <div class="info-box">
-            <h4>📝 Answer Review List แสดง</h4>
-            <p>• รายการข้อสอบทั้งหมดเรียงข้อ<br>• บอกถูก / ผิด + เฉลยที่ถูกต้อง<br>• เวลาตอบจริงรายข้อ</p>
+            <h4>📝 AnswerReviewList</h4>
+            <p>• ไล่ดูเฉลยรายข้อ + คำตอบที่เลือก<br>• แสดงเฉพาะเมื่อครูเปิด <code>showAnswersAfterQuiz</code><br>• พร้อมกันนั้น <code>useQuizInteractionLog</code> ส่ง Log ทั้งชุดขึ้น <code>POST /api/quiz-logs</code></p>
           </div>
         </div>
-        <div class="flow-diagram">
-          <h4>📊 Result Generation Flow</h4>
-          <div class="flow-steps">
-            <div class="flow-step"><div class="flow-step-icon">👨‍🎓</div><div class="flow-step-box actor">ส่งคำตอบ<br>ข้อสุดท้าย</div></div>
-            <div class="flow-arrow">→</div>
-            <div class="flow-step"><div class="flow-step-icon">⚡</div><div class="flow-step-box db">Redis<br>คำนวณคะแนน</div><div class="flow-label">~0.1 วินาที</div></div>
-            <div class="flow-arrow">→</div>
-            <div class="flow-step"><div class="flow-step-icon">📦</div><div class="flow-step-box server">ส่งผล +<br>เฉลยทั้งหมด</div></div>
-            <div class="flow-arrow">→</div>
-            <div class="flow-step"><div class="flow-step-icon">🖥️</div><div class="flow-step-box actor">Result View<br>render ทันที</div><div class="flow-label">ScoreCard + Review</div></div>
-          </div>
-        </div>
-        <div class="info-box" style="margin-top:12px">
+        <div class="info-box">
           <h4>💡 Use Case</h4>
-          <p>นักเรียนทำ 10 ข้อเสร็จ กดส่ง → ระบบขึ้น 80% (ถูก 8, ผิด 2) พร้อมเปิดดูรายการเฉลยว่าตนเองผิดข้อไหนและคำตอบที่ถูกต้องคืออะไร</p>
+          <p>นักเรียนทำเสร็จเห็นทันทีว่าได้ 80% ผิดข้อ 4 กับข้อ 9 — เปิดดูเฉลยและรู้ว่าตัวเองสับสนเรื่อง scope ของตัวแปร ก่อนออกจากห้องเรียน</p>
         </div>
       </div>
     </div>
 
-    <!-- Feature 6 -->
-    <div class="feature-card">
+    <!-- F9 -->
+    <div class="feature-card" id="f9">
       <div class="feature-header" onclick="toggle(this)">
-        <span class="feature-num">F6</span>
+        <span class="feature-num">F9</span>
+        <div>
+          <div class="feature-title">Quiz Interaction Log System</div>
+          <div class="feature-sub">บันทึกทุกเหตุการณ์: view · select · change · deselect · heartbeat (on/off-task)</div>
+        </div>
+        <span style="margin-left:auto;color:var(--text-muted);font-size:20px;">›</span>
+      </div>
+      <div class="feature-body">
+        <div class="info-row">
+          <div class="info-box">
+            <h4>📼 บันทึกอะไร</h4>
+            <p>hook <code>useQuizInteractionLog</code> เก็บต่อข้อ: <code>view</code> (เปิดโจทย์), <code>select</code> (เลือกครั้งแรก), <code>change</code> (from→to), <code>deselect</code>, <code>heartbeat</code> (on_task/off_task เป็นระยะ) + timestamp + เวลาต่อข้อ — ส่งเสร็จรวมเป็น JSON ก้อนเดียว (metadata + answer_logs + summary)</p>
+          </div>
+          <div class="info-box">
+            <h4>💡 Use Case</h4>
+            <p>ครูสงสัยว่าทำไมนักเรียน B ใช้เวลาข้อ 5 เกือบ 3 นาที — เปิด Log เห็น heartbeat <code>off_task</code> ต่อเนื่อง (สลับแท็บ/วางมือถือ) ไม่ใช่เพราะโจทย์ยาก</p>
+          </div>
+        </div>
+        <div class="flow-diagram">
+          <h4>📊 Log Flow</h4>
+          <div class="flow-steps">
+            <div class="flow-step"><div class="flow-step-icon">👨‍🎓</div><div class="flow-step-box actor">ทุก interaction<br>ระหว่างสอบ</div><div class="flow-label">เก็บ in-memory ฝั่ง client</div></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step"><div class="flow-step-icon">📤</div><div class="flow-step-box server">POST /api/quiz-logs</div><div class="flow-label">หลังส่งข้อสอบ</div></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step"><div class="flow-step-icon">✅</div><div class="flow-step-box server">Server re-validate<br>ทุกข้อกับเฉลยจริง</div></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step"><div class="flow-step-icon">🍃</div><div class="flow-step-box db">MongoDB<br>quizinteractionlogs</div></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step"><div class="flow-step-icon">🤖</div><div class="flow-step-box actor">input ของ<br>AI รายบุคคล</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- F10 -->
+    <div class="feature-card" id="f10">
+      <div class="feature-header" onclick="toggle(this)">
+        <span class="feature-num">F10</span>
+        <div>
+          <div class="feature-title">Personalized AI Analysis per Student</div>
+          <div class="feature-sub">LLM วิเคราะห์ Interaction Log → คำแนะนำการเรียนรายบุคคล (TH/EN/JA)</div>
+        </div>
+        <span style="margin-left:auto;color:var(--text-muted);font-size:20px;">›</span>
+      </div>
+      <div class="feature-body">
+        <div class="info-row">
+          <div class="info-box">
+            <h4>🧠 กลไก</h4>
+            <p>นำ Interaction Log มาสร้าง prompt โครงสร้าง (คะแนน, เวลา, confusion rate, flag "ตอบเร็วผิดปกติ/ลังเล" รายข้อ) → <code>POST /api/analyze-quiz-log</code> → Ollama → ตอบ 5 ส่วน: Overall Assessment / Strengths / Weak Areas / Study Recommendations / Encouragement</p>
+          </div>
+          <div class="info-box">
+            <h4>💡 Use Case</h4>
+            <p>หลังสอบ AI ชี้ว่านักเรียน C ผิดเฉพาะข้อ "loop ซ้อน" และทุกข้อนั้นเปลี่ยนคำตอบ &gt; 2 รอบ พร้อมแนะนำแบบฝึกเฉพาะเรื่อง — ครูส่งสรุปให้นักเรียนไปทบทวน</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- F11 -->
+    <div class="feature-card" id="f11">
+      <div class="feature-header" onclick="toggle(this)">
+        <span class="feature-num">F11</span>
         <div>
           <div class="feature-title">AI Assistant + UI Inspection Mode</div>
-          <div class="feature-sub">Chatbot วิเคราะห์ข้อมูลห้องเรียนผ่าน Local Ollama LLM พร้อม Context Picker</div>
+          <div class="feature-sub">แชทลอยทั้งระบบ · คลิกเลือก Component บนจอเป็น Context · สั่งแก้ควิซได้</div>
         </div>
         <span style="margin-left:auto;color:var(--text-muted);font-size:20px;">›</span>
       </div>
@@ -862,29 +1171,25 @@
           <h4 style="font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:10px;">🎯 UI Inspection Mode — ขั้นตอน</h4>
           <ol class="step-list">
             <li><span class="step-num">1</span>คลิกปุ่ม Sparkle ✨ มุมขวาล่างเปิด AI Chat</li>
-            <li><span class="step-num">2</span>กดปุ่ม 🎯 Target เพื่อเข้า Inspection Mode</li>
-            <li><span class="step-num">3</span>เลื่อนเมาส์ → คอมโพเนนต์รองรับจะมีกรอบประสีม่วง</li>
-            <li><span class="step-num">4</span>คลิกเลือก (เช่น การ์ดคะแนนของนักเรียน Protae)</li>
-            <li><span class="step-num">5</span>ข้อมูล Context Badge (สีม่วง) จะปรากฏเหนือช่องแชท</li>
+            <li><span class="step-num">2</span>กดปุ่ม 🎯 Target เข้า Inspection Mode</li>
+            <li><span class="step-num">3</span>hover แล้ว component ที่รองรับ (ติด attribute <code style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent2)">data-ai-context-type/name/data</code>) จะขึ้นกรอบม่วง</li>
+            <li><span class="step-num">4</span>คลิกเลือก เช่น การ์ดคะแนนของนักเรียน</li>
+            <li><span class="step-num">5</span>Context Badge ปรากฏเหนือช่องแชท (ดึง JSON จาก DOM)</li>
             <li><span class="step-num">6</span>พิมพ์คำถาม → AI วิเคราะห์ตามบริบทที่เลือกทันที</li>
           </ol>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+        <div class="info-row">
           <div class="info-box">
-            <h4>👤 วิเคราะห์นักเรียน</h4>
-            <p style="font-size:12px;">ส่ง detailedAnswers — ประวัติตอบรายวินาที สถิติความมั่นใจ และครั้งที่เปลี่ยนคำตอบ</p>
+            <h4>⚙️ ความสามารถ</h4>
+            <p>• auto-detect โมเดล Ollama ในเครื่องผ่าน <code>/api/tags</code> (fallback gemma2:9b) — ไม่ต้องตั้งค่า<br>• สั่งสร้าง/แก้ควิซผ่านบล็อก <code>json_quiz_update</code> → ปุ่ม Apply เทลง Quiz Builder<br>• ตอบตามภาษา UI ที่เลือก (TH/EN/JA)</p>
           </div>
           <div class="info-box">
-            <h4>📋 วิเคราะห์ควิซ</h4>
-            <p style="font-size:12px;">ส่งชื่อ คำอธิบาย ระดับความยาก รหัสห้อง และสถิติคำถาม</p>
-          </div>
-          <div class="info-box">
-            <h4>📊 วิเคราะห์ห้องสอบ</h4>
-            <p style="font-size:12px;">ส่งภาพรวมจำนวนคนเข้าสอบและการตั้งค่าตัวกรองขณะนั้น</p>
+            <h4>💡 Use Case</h4>
+            <p>ครูเห็น Protae คะแนนต่ำ สับสนสูง → 🎯 คลิกการ์ด Protae → ถาม "ช่วยออกแบบโจทย์ฝึกหัดสำหรับเด็กคนนี้" → AI อ่าน Context สร้างโจทย์เจาะจุดอ่อนทันที</p>
           </div>
         </div>
         <div class="flow-diagram">
-          <h4>📊 AI Context & Query Flow</h4>
+          <h4>📊 AI Context &amp; Query Flow</h4>
           <div class="flow-steps">
             <div class="flow-step"><div class="flow-step-icon">👩‍🏫</div><div class="flow-step-box actor">คลิก 🎯<br>เลือก Component</div></div>
             <div class="flow-arrow">→</div>
@@ -892,14 +1197,96 @@
             <div class="flow-arrow">→</div>
             <div class="flow-step"><div class="flow-step-icon">💬</div><div class="flow-step-box server">Next.js API<br>/api/chat</div><div class="flow-label">ประกอบ System Prompt</div></div>
             <div class="flow-arrow">→</div>
-            <div class="flow-step"><div class="flow-step-icon">🤖</div><div class="flow-step-box db">Ollama<br>Llama3/Gemma2</div><div class="flow-label">ประมวลผล</div></div>
+            <div class="flow-step"><div class="flow-step-icon">🤖</div><div class="flow-step-box db">Ollama<br>(auto-detect model)</div><div class="flow-label">สตรีมคำตอบ</div></div>
             <div class="flow-arrow">→</div>
-            <div class="flow-step"><div class="flow-step-icon">💡</div><div class="flow-step-box actor">คำตอบภาษาไทย<br>แม่นยำตาม Context</div></div>
+            <div class="flow-step"><div class="flow-step-icon">💡</div><div class="flow-step-box actor">คำตอบตรงบริบท<br>ตามภาษาผู้ใช้</div></div>
           </div>
         </div>
-        <div class="info-box" style="margin-top:12px">
-          <h4>💡 Use Case</h4>
-          <p>อาจารย์เห็น Protae คะแนนต่ำ สับสนสูง → คลิกเลือกการ์ด Protae → ถาม AI: <em>"ช่วยออกแบบโจทย์ฝึกหัดสำหรับเด็กคนนี้"</em> → AI อ่าน Context สร้างโจทย์เรื่องกฎการตั้งชื่อตัวแปรเจาะตรงจุดอ่อนทันที</p>
+      </div>
+    </div>
+
+    <!-- F12 -->
+    <div class="feature-card" id="f12">
+      <div class="feature-header" onclick="toggle(this)">
+        <span class="feature-num">F12</span>
+        <div>
+          <div class="feature-title">Session History, Analytics &amp; AI Insights</div>
+          <div class="feature-sub">ประวัติรอบสอบ · กราฟวิเคราะห์ · AI Summary สตรีมแบบ SSE · Export CSV</div>
+        </div>
+        <span style="margin-left:auto;color:var(--text-muted);font-size:20px;">›</span>
+      </div>
+      <div class="feature-body">
+        <div class="info-row">
+          <div class="info-box">
+            <h4>📈 หน้า /teacher/quizzes/[quizId]/history</h4>
+            <p>• รายการเซสชันย้อนหลัง — ตั้ง/แก้ <code>sessionLabel</code>, ลบเซสชันได้<br>• รายเซสชัน: Score Distribution, Question Breakdown (correct% รายข้อ), Confusion Heatmap, ตารางคะแนนรายคน<br>• <strong>AI Summary Panel</strong> สตรีมทีละ token: ภาพรวม, 3 ข้อยากสุด+เหตุผล, 3 ข้อที่ทำได้ดี, คำแนะนำการสอน 3–5 ข้อ, กลยุทธ์คาบถัดไป<br>• AI รายนักเรียนในเซสชัน + Export CSV</p>
+          </div>
+          <div class="info-box">
+            <h4>💡 Use Case</h4>
+            <p>จบเทอม ครูเปิดประวัติ "Quiz บทที่ 3" 4 รอบสอบ กด AI Summary รอบล่าสุด — ได้รายงานภาษาไทยว่าทั้งห้องอ่อนเรื่อง pointer พร้อมข้อเสนอวิธีสอนใหม่ แนบรายงานผลการสอนได้ทันที</p>
+          </div>
+        </div>
+        <div class="flow-diagram">
+          <h4>📊 AI Summary (SSE) Flow</h4>
+          <div class="flow-steps">
+            <div class="flow-step"><div class="flow-step-icon">👩‍🏫</div><div class="flow-step-box actor">กด AI Summary<br>เลือกภาษา th/en/ja</div></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step"><div class="flow-step-icon">🌐</div><div class="flow-step-box server">POST .../ai-summary</div></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step"><div class="flow-step-icon">🍃</div><div class="flow-step-box db">MongoDB<br>questionStats + scores</div><div class="flow-label">build prompt</div></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step"><div class="flow-step-icon">🤖</div><div class="flow-step-box db">Ollama<br>qwen3:8b (default)</div><div class="flow-label">/api/generate stream</div></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step"><div class="flow-step-icon">📨</div><div class="flow-step-box server">SSE<br>token-by-token</div><div class="flow-label">พิมพ์สดบน UI</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- F13 -->
+    <div class="feature-card" id="f13">
+      <div class="feature-header" onclick="toggle(this)">
+        <span class="feature-num">F13</span>
+        <div>
+          <div class="feature-title">Cross-Session Comparison &amp; AI Trends</div>
+          <div class="feature-sub">เปรียบเทียบทุกห้อง/รอบสอบของควิซเดียวกัน + AI วิเคราะห์แนวโน้ม</div>
+        </div>
+        <span style="margin-left:auto;color:var(--text-muted);font-size:20px;">›</span>
+      </div>
+      <div class="feature-body">
+        <div class="info-row">
+          <div class="info-box">
+            <h4>📊 หน้า history/compare</h4>
+            <p>• กราฟแนวโน้มคะแนนเฉลี่ยต่อรอบ<br>• ตาราง per-question correct% เทียบทุกห้อง<br>• confusion สะสมรายข้อ<br>• ปุ่ม <strong>AI Cross-Session</strong> — LLM วิเคราะห์ว่าแนวโน้มดีขึ้น/แย่ลง คอนเซปต์ไหน "ยากสากล" ทุกห้อง</p>
+          </div>
+          <div class="info-box">
+            <h4>💡 Use Case</h4>
+            <p>ครูสอน 3 ห้องด้วยควิซเดียวกัน — พบว่าห้อง 2 คะแนนต่ำกว่าอย่างมีนัย และ AI ชี้ว่าข้อ recursion ผิดมากทุกห้อง (avg 31%) → ปัญหาอยู่ที่เนื้อหา/วิธีสอน ไม่ใช่ตัวห้องเรียน</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- F14 -->
+    <div class="feature-card" id="f14">
+      <div class="feature-header" onclick="toggle(this)">
+        <span class="feature-num">F14</span>
+        <div>
+          <div class="feature-title">Multilingual (TH/EN/JA) &amp; Dark/Light Theme</div>
+          <div class="feature-sub">i18n ถึงระดับ AI — รายงาน AI ออกมาเป็นภาษาเดียวกับ UI ของผู้ใช้</div>
+        </div>
+        <span style="margin-left:auto;color:var(--text-muted);font-size:20px;">›</span>
+      </div>
+      <div class="feature-body">
+        <div class="info-row">
+          <div class="info-box">
+            <h4>🌐 กลไก</h4>
+            <p>ทุกหน้าจอรองรับ 3 ภาษาผ่าน i18n Context + LanguageSwitcher · สลับธีมด้วย next-themes · ภาษาที่เลือกถูกส่งต่อไปถึง <strong>AI ทุกตัว</strong> (prompt บังคับให้ตอบภาษานั้น)</p>
+          </div>
+          <div class="info-box">
+            <h4>💡 Use Case</h4>
+            <p>ใช้งานในแล็บที่ญี่ปุ่น — อาจารย์ญี่ปุ่นใช้ UI ภาษา JA ได้รายงาน AI เป็นภาษาญี่ปุ่น ขณะที่นักศึกษาแลกเปลี่ยนใช้ EN ในเครื่องตนเองพร้อมกัน</p>
+          </div>
         </div>
       </div>
     </div>
@@ -910,59 +1297,88 @@
     <div class="section-header">
       <div class="section-icon">🏁</div>
       <div>
-        <div class="section-num">Section 5</div>
+        <div class="section-num">Section 6</div>
         <h2>System Integration Matrix</h2>
       </div>
     </div>
     <div class="card" style="padding:0;overflow:hidden">
       <table class="int-table">
         <tr>
-          <th>Feature</th><th>Route</th><th>Database</th><th>Redis</th><th>WebSocket</th><th>AI Context</th>
+          <th>เหตุการณ์</th><th>Frontend</th><th>ช่องทาง</th><th>เก็บที่</th><th>AI</th>
         </tr>
         <tr>
-          <td><strong>สร้าง/แก้ไขควิซ</strong></td>
-          <td><span class="route-code">/quiz/create</span></td>
-          <td><span class="int-tag tag-mongo">Quiz</span></td>
-          <td><span class="tag-none">—</span></td>
-          <td><span class="tag-none">—</span></td>
-          <td><span class="int-tag tag-ai">ข้อมูลควิซ</span></td>
+          <td><strong>สร้าง/แก้ควิซ</strong></td>
+          <td><span class="route-code">/teacher/create-quiz</span></td>
+          <td><span class="int-tag tag-ws">REST + JWT</span></td>
+          <td><span class="int-tag tag-mongo">quizzes</span></td>
+          <td><span class="int-tag tag-ai">Copilot /api/chat</span></td>
         </tr>
         <tr>
-          <td><strong>การสอบ / Play</strong></td>
+          <td><strong>นักเรียนเข้าห้อง</strong></td>
           <td><span class="route-code">/play/[code]</span></td>
-          <td><span class="int-tag tag-mongo">Quiz (อ่าน)</span></td>
-          <td><span class="int-tag tag-redis">answers (เขียน)</span></td>
-          <td><span class="int-tag tag-ws">SUBMIT → UPDATE</span></td>
-          <td><span class="int-tag tag-ai">คำตอบรายข้อ</span></td>
-        </tr>
-        <tr>
-          <td><strong>Confusion Detection</strong></td>
-          <td><span class="route-code">/teacher/monitoring</span></td>
+          <td><span class="int-tag tag-ws">REST + Socket join_quiz</span></td>
+          <td><span class="int-tag tag-redis">Redis (live)</span></td>
           <td><span class="tag-none">—</span></td>
-          <td><span class="int-tag tag-redis">answers (วิเคราะห์)</span></td>
-          <td><span class="int-tag tag-ws">ANSWER_UPDATE</span></td>
-          <td><span class="int-tag tag-ai">click history</span></td>
         </tr>
         <tr>
-          <td><strong>สรุปผล / End</strong></td>
-          <td><span class="route-code">/play/[code] (Result)</span></td>
-          <td><span class="int-tag tag-mongo">SessionResult</span></td>
-          <td><span class="int-tag tag-redis">answers (สรุป)</span></td>
-          <td><span class="int-tag tag-ws">SESSION_CONTROL</span></td>
-          <td><span class="int-tag tag-ai">คะแนน / จุดอ่อน</span></td>
-        </tr>
-        <tr>
-          <td><strong>Teacher Dashboard</strong></td>
-          <td><span class="route-code">/teacher/monitoring</span></td>
+          <td><strong>ตอบคำถามสด</strong></td>
+          <td><span class="route-code">/play/[code]</span></td>
+          <td><span class="int-tag tag-ws">Socket submit_answer</span></td>
+          <td><span class="int-tag tag-redis">Redis (history + confusion)</span><span class="int-tag tag-mongo">ตรวจเฉลยจาก quizzes</span></td>
           <td><span class="tag-none">—</span></td>
-          <td><span class="int-tag tag-redis">students</span><span class="int-tag tag-redis">answers</span></td>
-          <td><span class="int-tag tag-ws">STUDENT_JOINED</span><span class="int-tag tag-ws">ANSWER_UPDATE</span></td>
-          <td><span class="int-tag tag-ai">สถิติห้อง</span></td>
+        </tr>
+        <tr>
+          <td><strong>คุมสอบ</strong></td>
+          <td><span class="route-code">/teacher/monitoring/[quizId]</span></td>
+          <td><span class="int-tag tag-ws">Socket control_session</span></td>
+          <td><span class="int-tag tag-redis">Redis meta</span></td>
+          <td><span class="tag-none">—</span></td>
+        </tr>
+        <tr>
+          <td><strong>จบสอบ (End)</strong></td>
+          <td><span class="route-code">/teacher/monitoring/[quizId]</span></td>
+          <td><span class="int-tag tag-ws">Socket end</span></td>
+          <td><span class="int-tag tag-mongo">quizsessionresults</span><span class="int-tag tag-redis">ล้าง Redis</span></td>
+          <td><span class="tag-none">—</span></td>
+        </tr>
+        <tr>
+          <td><strong>ส่ง Interaction Log</strong></td>
+          <td><span class="route-code">useQuizInteractionLog</span></td>
+          <td><span class="int-tag tag-ws">REST (re-validate)</span></td>
+          <td><span class="int-tag tag-mongo">quizinteractionlogs</span></td>
+          <td><span class="int-tag tag-ai">input AI รายบุคคล</span></td>
+        </tr>
+        <tr>
+          <td><strong>รายงานย้อนหลัง</strong></td>
+          <td><span class="route-code">/teacher/quizzes/[id]/history</span></td>
+          <td><span class="int-tag tag-ws">REST + SSE</span></td>
+          <td><span class="int-tag tag-mongo">quizsessionresults</span></td>
+          <td><span class="int-tag tag-ai">Summary / per-student / cross-session</span></td>
+        </tr>
+        <tr>
+          <td><strong>แดชบอร์ดครู</strong></td>
+          <td><span class="route-code">/teacher</span></td>
+          <td><span class="int-tag tag-ws">REST</span></td>
+          <td><span class="int-tag tag-mongo">aggregate</span></td>
+          <td><span class="tag-none">—</span></td>
         </tr>
       </table>
     </div>
+
+    <div class="card" style="margin-top:16px">
+      <h3>✨ จุดเด่นของระบบ</h3>
+      <div class="channel-grid" style="margin-top:14px;margin-bottom:0">
+        <div class="channel-card"><div class="ch-icon">⚡</div><h4>Real-time ครบวงจร</h4><p>เห็นทุกคลิกของนักเรียนสด ๆ ผ่าน Socket.IO + Redis พร้อมกู้คืนสถานะเมื่อรีเฟรช</p></div>
+        <div class="channel-card"><div class="ch-icon">🧠</div><h4>Confusion Detection</h4><p>วัด "ความเข้าใจจริง" ไม่ใช่แค่ถูก/ผิด จากพฤติกรรมเปลี่ยนคำตอบและเวลา</p></div>
+        <div class="channel-card"><div class="ch-icon">🔒</div><h4>AI ทำงานบนเครื่อง (Local LLM)</h4><p>ข้อมูลนักเรียนไม่ออกนอกเครื่อง/แล็บ — Ollama หลายโมเดล สตรีมแบบ SSE</p></div>
+        <div class="channel-card"><div class="ch-icon">📊</div><h4>วิเคราะห์ 3 ระดับ</h4><p>รายบุคคล (Interaction Log) → รายห้อง (Session Summary) → ข้ามรอบสอบ (Cross-Session)</p></div>
+        <div class="channel-card"><div class="ch-icon">🛡️</div><h4>Resilient Architecture</h4><p>Redis ล่มก็สอบต่อได้ (in-memory fallback) · Server ตรวจเฉลยเองเสมอ ไม่เชื่อ client</p></div>
+        <div class="channel-card"><div class="ch-icon">🌐</div><h4>Multilingual ถึงระดับ AI</h4><p>TH/EN/JA ทั้ง UI และรายงาน AI ทุกตัว</p></div>
+      </div>
+    </div>
+
     <div style="margin-top:20px;font-size:12px;color:var(--text-muted);text-align:center;padding:16px 0;border-top:1px solid var(--border)">
-      เอกสารจัดทำสำหรับโปรเจกต์ E-Learning Platform &nbsp;·&nbsp; ปรับปรุงล่าสุด: 29 พฤษภาคม 2026
+      เอกสารจัดทำสำหรับโปรเจกต์ E-Learning Platform &nbsp;·&nbsp; อ้างอิงจากโค้ดจริงใน backend/ และ frontend/ &nbsp;·&nbsp; ปรับปรุงล่าสุด: 11 มิถุนายน 2026
     </div>
   </section>
 
@@ -977,14 +1393,21 @@
     arrow.style.transition = 'transform 0.2s';
   }
 
-  // Smooth scroll for nav
+  // Smooth scroll + auto-open feature cards from nav
   document.querySelectorAll('a.nav-item').forEach(a => {
     a.addEventListener('click', e => {
       e.preventDefault();
       document.querySelectorAll('a.nav-item').forEach(x => x.classList.remove('active'));
       a.classList.add('active');
       const target = document.querySelector(a.getAttribute('href'));
-      if (target) target.scrollIntoView({ behavior: 'smooth' });
+      if (target) {
+        // ถ้าเป็น feature card ให้เปิด body อัตโนมัติ
+        const featureBody = target.querySelector?.('.feature-body');
+        if (featureBody && !featureBody.classList.contains('open')) {
+          target.querySelector('.feature-header')?.click();
+        }
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
     });
   });
 

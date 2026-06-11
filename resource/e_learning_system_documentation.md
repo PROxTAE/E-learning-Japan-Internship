@@ -1,484 +1,335 @@
 # 📖 เอกสารรายละเอียดระบบ E-Learning Quiz Platform & System Specification
 
-เอกสารนี้รวบรวมรายละเอียดสถาปัตยกรรม ฟีเจอร์ทั้งหมด วิธีการใช้งาน ตัวอย่างการนำไปใช้งาน (Use Cases) และ Flow การทำงานของระบบทั้งฝั่งหน้าบ้าน (**Frontend**) และหลังบ้าน (**Backend**) เพื่อใช้เป็นคู่มืออ้างอิงของโปรเจกต์อย่างละเอียดทุกแง่มุม
+> **อัปเดตล่าสุด:** 11 มิถุนายน 2026 — อ้างอิงจากโค้ดจริงใน `backend/` และ `frontend/` ณ ปัจจุบัน
+
+เอกสารนี้รวบรวมสถาปัตยกรรม ฟีเจอร์ทั้งหมด วิธีการใช้งาน ตัวอย่าง Use Case และ Flow การไหลของข้อมูลของระบบ ทั้งฝั่ง **Frontend**, **Backend**, **Database/Cache** และ **AI Engine**
 
 ---
 
 ## 🛠️ 1. ภาพรวมระบบ & เทคโนโลยีที่ใช้ (System Overview & Tech Stack)
 
-ระบบนี้คือ **Interactive Real-time Quiz Platform** สำหรับใช้งานในห้องเรียนแบบสด (Live Classroom) เพื่อช่วยให้อาจารย์สามารถจัดสอบ ประเมินความเข้าใจของนักเรียนได้แบบวินาทีต่อวินาที พร้อมตรวจจับความสับสนในการตอบคำถาม และมีระบบ **AI Assistant** ที่ช่วยวิเคราะห์ข้อมูลห้องเรียนได้ทันที
+ระบบนี้คือ **Interactive Real-time Quiz Platform** สำหรับห้องเรียนสด (Live Classroom) ช่วยให้อาจารย์สร้างข้อสอบ จัดสอบ ติดตามการตอบของนักเรียนแบบวินาทีต่อวินาที ตรวจจับความสับสน (Confusion Detection) บันทึกพฤติกรรมการทำข้อสอบระดับ Interaction และวิเคราะห์ผลด้วย **AI (Local LLM ผ่าน Ollama)** ทั้งระดับห้องเรียน รายบุคคล และข้ามเซสชัน
 
-### Tech Stack
-*   **Frontend:** Next.js 15 (App Router), React, TailwindCSS, HeroUI, Zustand (State Management), Framer Motion (Animations), i18n Context (TH/EN/JP)
-*   **Backend:** Node.js, Express, Socket.io (WebSocket Communication)
-*   **Database & Cache:**
-    *   **MongoDB:** เก็บข้อมูลถาวร (Persistent Data) เช่น ข้อมูลควิซ คำถาม เฉลย และประวัติการสอบที่เสร็จสิ้นแล้ว
-    *   **Redis:** เก็บสถานะห้องสอบสด (Real-time Live Session Cache) เช่น สถานะนักเรียน คะแนนปัจจุบัน และประวัติการคลิกตอบรายข้อ เพื่อรองรับการกู้คืนสถานะ (State Recovery) เมื่อมีการรีเฟรชหน้าจอ
-*   **AI Engine:** Local Ollama Integration (รองรับ Llama 3, Gemma 2, Qwen 2.5) พร้อมระบบ UI Inspection Mode
+### Tech Stack (ตามโค้ดปัจจุบัน)
 
----
+| Layer | เทคโนโลยี |
+|---|---|
+| **Frontend** | Next.js 16 (App Router), React 19, TypeScript, TailwindCSS 4, HeroUI 3, Zustand 5 (State), Framer Motion, Recharts (กราฟ), dnd-kit (Drag & Drop), qrcode (QR Join Code), react-markdown, socket.io-client, i18n Context (TH/EN/JA), next-themes (Dark/Light) |
+| **Backend** | Node.js, Express 5, Socket.IO 4.8, JWT (jsonwebtoken) + bcryptjs (Auth), Multer (อัปโหลดรูป), Mongoose 9 |
+| **Database** | **MongoDB** — ข้อมูลถาวร: ควิซ, ครู, ผลสอบที่จบแล้ว (QuizSessionResult), Interaction Log |
+| **Cache** | **Redis 5** — สถานะห้องสอบสด (นักเรียนออนไลน์, คำตอบรายข้อ, ประวัติการเปลี่ยนคำตอบ, สถิติ) พร้อม TTL และระบบ **In-memory Fallback** อัตโนมัติหาก Redis ล่ม |
+| **AI Engine** | **Ollama (Local LLM)** — ฝั่ง Backend ใช้ `qwen3:8b` (ค่า default, ตั้งผ่าน `OLLAMA_MODEL`) สตรีมผลแบบ SSE; ฝั่ง Frontend API Routes ตรวจจับโมเดลที่ติดตั้งอัตโนมัติผ่าน `/api/tags` (fallback `gemma2:9b`) |
 
-## 💾 2. โครงสร้างข้อมูล (Database & Cache Schema)
+### บทบาทผู้ใช้ (Roles)
 
-### 2.1 MongoDB Schemas (เก็บข้อมูลถาวร)
-
-#### **1. Quiz Model (`Quiz.model.js`)**
-เก็บโครงสร้างของตัวข้อสอบ ประกอบด้วย:
-*   `title` (String): หัวข้อควิซ
-*   `description` (String): รายละเอียดควิซ
-*   `difficulty` (String): ระดับความยาก (`easy` | `medium` | `hard`)
-*   `categoryName` (String): หมวดหมู่
-*   `duration` (Number): เวลาจำกัดของควิซ (นาที)
-*   `accessCode` (String): รหัสห้องสอบ 6 หลักสำหรับแชร์ให้นักเรียน
-*   `status` (String): สถานะของควิซ (`draft` | `published` | `archived`)
-*   `tags` (Array of Strings): แท็กที่เกี่ยวข้อง
-*   `emoji` (String): อีโมจิประจำควิซ
-*   `gradient` (String): สีพื้นหลังของการ์ดควิซ
-*   `questions` (Array): รายการคำถาม
-    *   `number` (Number): ลำดับข้อ
-    *   `title` (String): โจทย์คำถาม
-    *   `type` (String): ประเภทคำถาม (`multiple-choice` | `true-false`)
-    *   `imageUrl` (String): รูปภาพประกอบคำถาม (ถ้ามี)
-    *   `choices` (Array):
-        *   `text` (String): ข้อความตัวเลือก
-        *   `isCorrect` (Boolean): เฉลยว่าเป็นข้อที่ถูกต้องหรือไม่
-        *   `imageUrl` (String): รูปภาพประกอบตัวเลือก (ถ้ามี)
-
-#### **2. QuizSessionResult Model (`QuizSessionResult.model.js`)**
-เก็บประวัติผลการสอบเมื่ออาจารย์สั่ง "สิ้นสุดห้องเรียน" (End Session) เพื่อนำไปใช้ออกรายงานย้อนหลัง:
-*   `sessionId` (String): ไอดีเซสชันห้องเรียน (`quiz-session-{accessCode}`)
-*   `quizId` (ObjectId): ไอดีของควิซใน MongoDB
-*   `startedAt` (Date): เวลาเริ่มต้น
-*   `endedAt` (Date): เวลาสิ้นสุด
-*   `stats` (Object): สรุปผลรวมของห้องเรียน (จำนวนนักเรียนทั้งหมด, คะแนนเฉลี่ย, อัตราการทำเสร็จ %)
-*   `students` (Array): ข้อมูลสรุปของนักเรียนแต่ละคน (ชื่อ, คะแนนดิบที่ได้, เวลาเข้าร่วม)
-*   `answers` (Array): รายละเอียดคำตอบทุกข้อของนักเรียนทุกคนเพื่อนำไปใช้วิเคราะห์ต่อ
-
-#### **3. QuizInteractionLog Model (`QuizInteractionLog.model.js`)**
-เก็บประวัติพฤติกรรมการมีปฏิสัมพันธ์แบบละเอียดระดับวินาที (Interaction-Level Log) ของผู้เรียนแต่ละคนในระหว่างการทำควิซเพื่อส่งไปให้ AI ประเมิน:
-*   `session_metadata` (Object):
-    *   `student_id` (String): ไอดีนักเรียน
-    *   `student_name` (String): ชื่อนักเรียน
-    *   `quiz_id` (String): ไอดีควิซ
-    *   `quiz_title` (String): หัวข้อควิซ
-    *   `device_info` (String): ข้อมูลอุปกรณ์และเบราว์เซอร์ของผู้เรียน (ดึงจาก userAgent)
-    *   `start_timestamp` (Date): เวลาเริ่มต้นทำควิซ
-    *   `lang` (String): ภาษาที่นักเรียนเลือกใช้ (`en` | `th` | `ja`)
-*   `answer_logs` (Array): บันทึกคำตอบและประวัติการตอบรายข้อ:
-    *   `question_index` (Number): ลำดับข้อคำถาม
-    *   `question_id` (String): ไอดีคำถาม
-    *   `question_text` (String): โจทย์คำถาม
-    *   `question_type` (String): ประเภทคำถาม (`single` | `multiple`)
-    *   `difficulty` (String): ระดับความยาก
-    *   `tags` (Array of Strings): แท็กเนื้อหาที่เกี่ยวข้อง
-    *   `interactions` (Array): ลำดับพฤติกรรมการตอบแบบ Real-time:
-        *   `action` (String): พฤติกรรมที่ทำ (`view` | `select` | `change` | `deselect` | `heartbeat`)
-        *   `timestamp` (Date): เวลาของแอ็กชันนั้นๆ
-        *   `option_id` (String): ตัวเลือกที่คลิกเลือก/ยกเลิก
-        *   `option_text` (String): ข้อความของตัวเลือกนั้น
-        *   `from_option_id` (String): ตัวเลือกเดิม (ใช้เฉพาะแอ็กชัน `change`)
-        *   `status` (String): ระดับความสนใจในการทำสอบ (ใช้เฉพาะแอ็กชัน `heartbeat`: `on_task` | `off_task`)
-    *   `final_answer` (Array of Strings): คำตอบสุดท้ายที่นักเรียนส่ง
-    *   `correct_answers` (Array of Strings): เฉลยคำตอบที่ถูกต้อง
-    *   `is_correct` (Boolean): นักเรียนตอบถูกหรือไม่
-    *   `time_spent_seconds` (Number): เวลาที่ใช้จริงในข้อนั้น (วินาที)
-    *   `is_confused` (Boolean): ประเมินความสับสนของนักเรียนในข้อนั้น
-*   `summary` (Object):
-    *   `total_score` (Number): คะแนนรวมที่ทำได้
-    *   `full_score` (Number): คะแนนเต็มควิซ
-    *   `completion_time_seconds` (Number): เวลารวมที่ใช้สอบทั้งหมด (วินาที)
-    *   `average_confusion_rate` (Number): อัตราความสับสนเฉลี่ยในควิซนี้ (0.0 - 1.0)
+* **Super Admin** — ล็อกอินผ่าน `/api/admin/login` จัดการบัญชีอาจารย์ (สร้าง/แก้ไข/ปิดใช้งาน)
+* **Teacher (อาจารย์)** — ล็อกอินด้วย JWT สร้าง/จัดการควิซ คุมสอบสด ดูประวัติและรายงาน AI
+* **Student (นักเรียน)** — ไม่ต้องสมัครสมาชิก เข้าห้องสอบด้วย **Join Code 6 หลัก** หรือ QR Code แล้วกรอกชื่อ
 
 ---
 
-### 2.2 Redis Keys Schema (เก็บสถานะ Real-time)
+## 🏗️ 2. สถาปัตยกรรมและการไหลของข้อมูล (Architecture & Data Flow)
 
-ระบบเก็บข้อมูลของ Live Session ไว้ใน Redis ด้วย Hash Map โดยตั้งค่า TTL (Time to Live) ไว้ที่ 24 ชั่วโมงเพื่อความปลอดภัย:
-1.  **Session Meta Hash:** `quiz:{accessCode}:session`  
-    *   เก็บคีย์: `isPaused` (true/false), `startedAt` (timestamp), `quizId` (string), `totalQuestions` (number)
-2.  **Students List Hash:** `quiz:{accessCode}:students`  
-    *   คีย์ย่อย: `studentId` -> ค่า: ข้อมูลประวัตินักเรียนในรูปแบบ JSON (ชื่อ, รูป, คะแนนล่าสุด, ความก้าวหน้า %, สถานะออนไลน์/ออฟไลน์)
-3.  **Answers Hash:** `quiz:{accessCode}:answers:{studentId}`  
-    *   คีย์ย่อย: `questionId` -> ค่า: ข้อมูลผลการตอบข้อนั้นๆ ในรูปแบบ JSON (ข้อที่เลือกตอบ, ถูก/ผิด, เวลาที่ใช้ทำ, ประวัติการคลิกเปลี่ยนตัวเลือก, ระดับความสับสน)
+ระบบสื่อสารกัน 4 ช่องทางหลัก:
 
----
+1. **REST API (HTTP/JSON)** — Frontend services (`services/*.ts`) เรียก Express Backend (`/api/...`) สำหรับ CRUD ควิซ, Auth, Dashboard, ประวัติเซสชัน, Interaction Log
+2. **WebSocket (Socket.IO)** — ใช้เฉพาะ "ห้องสอบสด": นักเรียนส่งคำตอบ → Server บันทึกลง Redis → broadcast ไปยังห้องของครู (`teacher:{sessionId}`) แบบเรียลไทม์
+3. **SSE (Server-Sent Events)** — Backend สตรีมข้อความวิเคราะห์จาก Ollama กลับมาทีละ token (AI Summary ของ Session History)
+4. **Next.js API Routes → Ollama** — Frontend มี API ภายในของตัวเอง (`app/api/chat`, `app/api/analyze-quiz-log`) ที่เรียก Ollama โดยตรง สำหรับ AI Assistant และการวิเคราะห์ Log รายบุคคล
 
-## 📡 3. เอกสารเหตุการณ์ WebSocket (Socket.io Event Catalog)
+```
+                ┌────────────────────── REST (CRUD/Auth/History) ─────────────────────┐
+                │                                                                      ▼
+┌──────────────┐    Socket.IO (live answers/control)    ┌──────────────┐   Mongoose   ┌─────────┐
+│   Frontend   │ ◄────────────────────────────────────► │   Backend    │ ◄──────────► │ MongoDB │
+│  (Next.js)   │                                        │ (Express +   │              └─────────┘
+│              │ ◄───────────── SSE (AI tokens) ─────── │  Socket.IO)  │   Redis client ┌───────┐
+└──────┬───────┘                                        └──────┬───────┘ ◄────────────► │ Redis │
+       │  Next.js API Routes (chat / analyze-quiz-log)         │  HTTP /api/generate    └───────┘
+       └──────────────────────► ┌────────┐ ◄──────────────────┘
+                                │ Ollama │  (Local LLM: qwen3:8b ฯลฯ)
+                                └────────┘
+```
 
-การรับส่งข้อมูลแบบ Real-time ระหว่างผู้เรียน ผู้สอน และเซิร์ฟเวอร์หลังบ้าน ทำงานผ่านเหตุการณ์ (Events) ดังต่อไปนี้:
+### หลักการแบ่งหน้าที่เก็บข้อมูล
 
-| ทิศทาง | ชื่อเหตุการณ์ (Event Name) | คำอธิบาย | พารามิเตอร์หลัก (Payload) |
-| :--- | :--- | :--- | :--- |
-| **Client ➔ Server** | `JOIN_QUIZ` | ส่งเมื่อผู้ใช้เข้าสู่หน้าห้องสอบเพื่อเชื่อมต่อ Socket | `sessionId`, `quizId`, `studentId`, `name`, `avatar`, `role` (`student`/`teacher`) |
-| **Server ➔ Client** | `SESSION_JOINED` | ส่งกลับไปหาผู้ใช้ที่เชื่อมต่อสำเร็จเพื่อบอกสถานะห้อง | **ครู:** รายการนักเรียนทั้งหมด, คำตอบทั้งหมด, สถิติห้อง, ตัวควิซ <br>**นักเรียน:** ข้อมูลของตนเองที่บันทึก |
-| **Server ➔ Teacher**| `STUDENT_JOINED` | แจ้งเตือนครูเมื่อมีนักเรียนคนใหม่กดเข้าห้อง | ข้อมูล `student` ที่เพิ่งเข้า, สถิติห้องรวมล่าสุด `stats` |
-| **Client ➔ Server** | `SUBMIT_ANSWER` | นักเรียนส่งคำตอบในข้อนั้นๆ หรือเมื่อมีการเปลี่ยนตัวเลือก | `sessionId`, `studentId`, `questionId`, `choiceId`, `choiceText`, `responseTime`, `quizId` |
-| **Server ➔ Broadcast**| `ANSWER_UPDATE` | อัปเดตผลการตอบไปให้หน้าจอครู และส่งยืนยันกลับไปให้นักเรียน | ข้อมูลผลคำตอบ `answer` (รวมระดับความสับสน), สถิติห้องล่าสุด `stats` |
-| **Client ➔ Server** | `GET_SESSION_STATE` | ส่งจากครูเมื่อมีการรีเฟรชหน้าจอ เพื่อขอข้อมูลเซสชันล่าสุดจาก Redis | `sessionId`, `quizId` |
-| **Server ➔ Teacher**| `SESSION_STATE` | ส่งข้อมูลสรุปห้องกลับไปให้ครูหลังกู้คืนสถานะจาก Redis สำเร็จ | Snapshot สถานะห้องทั้งหมด (Students, Answers, Stats) |
-| **Client ➔ Server** | `CONTROL_SESSION` | ครูควบคุมเซสชัน เช่น หยุดสอบชั่วคราว, ทำต่อ หรือจบการสอบ | `sessionId`, `action` (`pause` \| `resume` \| `end`) |
-| **Server ➔ Broadcast**| `SESSION_CONTROL` | ส่งคำสั่งควบคุมห้องสอบจากครูไปหาล็อกหน้าจอนักเรียนทุกคน | `action` (`pause` \| `resume` \| `end`) |
-| **Server ➔ Teacher**| `STUDENT_LEFT` | แจ้งเตือนครูเมื่อมีนักเรียนออกจากระบบหรือหลุดจากเครือข่าย | ข้อมูล `student` (สถานะ `isOnline = false`), สถิติห้องล่าสุด `stats` |
+| ข้อมูล | ที่เก็บ | เหตุผล |
+|---|---|---|
+| ควิซ คำถาม เฉลย รูปภาพ | MongoDB (`quizzes`) + โฟลเดอร์ `/uploads` | ข้อมูลถาวร แก้ไขผ่าน CRUD |
+| บัญชีครู/แอดมิน | MongoDB (`teachers`) | รหัสผ่าน hash ด้วย bcrypt (cost 12) |
+| สถานะห้องสอบสด (ใครออนไลน์ ตอบอะไร เปลี่ยนคำตอบกี่ครั้ง) | **Redis** (Hash ต่อ session + TTL) | เร็ว รองรับ State Recovery เมื่อรีเฟรชหน้า, ล้างทิ้งเมื่อจบสอบ |
+| ผลสอบที่จบแล้ว (สถิติ, คะแนนรายคน, questionStats) | MongoDB (`quizsessionresults`) | ย้ายจาก Redis → MongoDB ตอนครูกด End Session |
+| Interaction Log ระดับเหตุการณ์ (view/select/change/heartbeat) | MongoDB (`quizinteractionlogs`) | ใช้เป็น input ให้ LLM วิเคราะห์รายบุคคล |
 
----
-
-## ⚡ 4. เจาะลึกฟีเจอร์เด่น & โฟลว์ระบบ (Core Features & Detailed Flows)
-
----
-
-### Feature 1: Quiz Builder (ระบบสร้างและจัดการข้อสอบ)
-
-*   **รายละเอียดฟีเจอร์:**  
-    ระบบสร้างแบบทดสอบสไตล์ Google Forms ที่เปิดให้อาจารย์สร้างคำถามหลายตัวเลือก (Multiple Choice) หรือคำถามถูก/ผิด (True/False) ได้อย่างอิสระ สามารถกำหนดรายละเอียดต่างๆ ของควิซได้แก่:
-    *   ระดับความยาก (Difficulty Level)
-    *   เวลาทำข้อสอบ (Time Limit) จำกัดเวลาของควิซรวม หรือเวลาในการตอบแต่ละข้อ
-    *   ตัวเลือกการแสดงผลเฉลย (Show Answers) ว่าจะแสดงคำตอบ/เฉลยทันทีหลังนักเรียนตอบข้อนั้นเสร็จ หรือไม่แสดงเลย
-    *   อัปเดตข้อมูลแบบเรียลไทม์ผ่าน Zustand Store หน้าแก้ไขรองรับการลากเพื่อจัดลำดับข้อสอบใหม่ (Drag-and-Drop) พร้อมกับระบบพรีวิวข้อสอบเพื่อตรวจสอบหน้าจอก่อนจัดสอบจริง
-    *   **AI Quiz Copilot Integration:** ผู้สอนสามารถแชทคุยกับ AI Assistant เพื่อสั่งให้สร้างข้อสอบหรือแก้ไขปรับปรุงคำถามได้ในพริบตา โดย AI จะสร้างโครงสร้าง JSON พิเศษ (`json_quiz_update`) และแสดงผลออกมาเป็นสรุปแบบประเมิน (`QuizUpdateSummary`) ซึ่งสามารถขยายดูคำถามและคำตอบทั้งหมด และกดปุ่มนำเข้าข้อมูลเพื่อโหลดลง Zustand Store อัปเดตฟิลด์ต่างๆ ในหน้าสร้างข้อสอบแบบ Real-time โดยไม่ต้องพิมพ์เอง
-*   **วิธีการใช้งาน:**
-    1.  อาจารย์เข้าไปที่หน้า `/teacher/create-quiz`
-    2.  กรอกรายละเอียดหัวข้อควิซ หมวดหมู่ ความยาก และแท็กด้านซ้ายมือ หรือพิมพ์แชทสั่งงาน AI Assistant (ปุ่มขวาล่าง) เช่น *"ช่วยออกข้อสอบ 3 ข้อเรื่องพื้นฐานของ REST API เป็นภาษาไทย"*
-    3.  หากใช้งาน AI Assistant หน้าจอจะแสดงการ์ดสรุปข้อสอบพร้อมปุ่ม **"นำข้อมูลไปใช้ในหน้าสร้างข้อสอบ"** ให้กดปุ่มดังกล่าว ข้อมูลทั้งหมดจะถูกกรอกให้โดยอัตโนมัติ
-    4.  กำหนดเพิ่มเติมเวลาจำกัด (Time Limit) และรูปแบบการเปิดเผยเฉลยคำตอบ (Show Answers Option)
-    5.  กดปุ่ม **"เพิ่มคำถาม"** หรือปรับแต่งโจทย์คำถามและตัวเลือกคำตอบ พร้อมติ๊กเลือกปุ่มเช็คด้านหลังตัวเลือกที่เป็นคำตอบที่ถูกต้อง
-    6.  (Optional) ลากสลับข้อคำถามเพื่อจัดลำดับใหม่
-    7.  กดปุ่ม **"พรีวิว"** (Preview Mode) เพื่อทดลองกดตอบสไตล์นักเรียน หรือกด **"บันทึก"** เพื่อส่งขึ้นฐานข้อมูล
-*   **ตัวอย่าง Use Case:**  
-    อาจารย์ต้องการสร้างควิซสั้น 5 ข้อเรื่อง "ตัวแปรในภาษา Python" เพื่อทดสอบนักศึกษาท้ายคาบเรียน จึงเข้ามาที่หน้าสร้างข้อสอบและสั่ง AI Assistant ให้ออกโจทย์คำถามพร้อมสุ่มชอยส์ให้สำเร็จภายใน 10 วินาที จากนั้นอาจารย์ตรวจทานความถูกต้องแล้วกดยืนยันเพื่อนำข้อมูลเข้าหน้าเขียนข้อสอบและกดเผยแพร่เพื่อรับ Join Code
-*   **ระบบ Flow การบันทึกข้อมูล (Save Flow):**
-    ```mermaid
-    sequenceDiagram
-        autonumber
-        actor Teacher as ครู (Quiz Builder UI)
-        participant Store as Zustand Store
-        participant Route as Frontend API Client
-        participant Backend as Express Backend
-        participant DB as MongoDB
-
-        Teacher->>Store: กรอกโจทย์/เพิ่มชอยส์/Drag สลับข้อ
-        Store-->>Teacher: อัปเดต UI แบบ Interactive ทันที
-        Teacher->>Route: กดปุ่ม "บันทึกควิซ" (Save)
-        Route->>Backend: POST/PUT /api/quizzes (JSON Payload)
-        Backend->>DB: ตรวจสอบความถูกต้อง & บันทึกเอกสารควิซลง MongoDB
-        DB-->>Backend: ส่งสถานะบันทึกสำเร็จ
-        Backend-->>Route: ส่งผลลัพธ์กลับ 200 OK (รวม ID และ Join Code)
-        Route-->>Teacher: แสดงการแจ้งเตือน "บันทึกข้อมูลสำเร็จ" และโชว์ปุ่มแชร์
-    ```
+> **Fault Tolerance:** Server เปิดได้แม้ Redis ล่ม — `redisService` จะสลับไปใช้ `sessionManager` (in-memory Map) อัตโนมัติ และ Redis จะ warm-up แบบ background ตอน start server
 
 ---
 
-### Feature 2: Real-time Live Monitoring & Matrix Grid (ระบบคุมสอบสด)
+## 💾 3. โครงสร้างข้อมูล (Database & Cache Schema)
 
-*   **รายละเอียดฟีเจอร์:**  
-    แดชบอร์ดหน้าจอสำหรับการคุมสอบสดของอาจารย์ แสดงผลเครื่องมือติดตามแบบละเอียด:
-    *   **ตาราง Matrix Grid:**
-        *   **แกนตั้ง:** รายชื่อนักเรียนพร้อมแถบ Progress บ่งบอกว่าทำไปกี่เปอร์เซ็นต์แล้ว และคะแนนสอบปัจจุบัน
-        *   **แกนนอน:** เลขข้อสอบ (Q1, Q2, Q3...) พร้อมไฟสีแสดงระดับความยากง่ายของข้อนั้นๆ
-        *   **จุดตัด (Cell):** แสดงผลคำตอบของนักเรียนคนนั้นในข้อนั้นๆ แบบเรียลไทม์ โดยใช้สีบอกสถานะ (🟩 สีเขียว: ตอบถูก, 🟥 สีแดง: ตอบผิด, 🟨 สีเหลือง: กำลังทำ/เลือกค้างอยู่, ⬜ สีเทา: ยังทำไม่ถึง)
-    *   **ระบบลีดเดอร์บอร์ดแบบเรียลไทม์ (Live Leaderboard):** แถบจัดอันดับนักเรียนในห้องสอบสดแบบ Real-time เรียงลำดับตามคะแนนความก้าวหน้า ความเร็ว และความถูกต้อง เพื่อกระตุ้นความกระตือรือร้นในการตอบคำถาม
-*   **วิธีการใช้งาน:**
-    1.  อาจารย์นำรหัส Join Code (เช่น `UCYCEB`) ไปแจกให้นักเรียนในห้องเรียน
-    2.  อาจารย์กดเปิดห้องสอบ แดชบอร์ดจะแสดงรายชื่อนักเรียนที่ทยอยกดรหัสล็อกอินเข้ามาทันที
-    3.  เมื่อนักเรียนเริ่มทำและกดส่งคำตอบ สีของบล็อกใน Matrix Grid และอันดับบน Leaderboard จะอัปเดตสลับกันตามสถานะจริงโดยอัตโนมัติ
-*   **ตัวอย่าง Use Case:**  
-    ในระหว่างการสอบท้ายคาบ อาจารย์เปิดจอบนโปรเจคเตอร์แสดงหน้านี้ไว้ เพื่อกระตุ้นให้เด็กๆ แข่งกันทำคะแนนขึ้นสู่หน้า Leaderboard และอาจารย์ยังสังเกตภาพรวมการตอบได้จาก Matrix Grid ว่าคำถามข้อใดที่นักเรียนตอบผิดมากที่สุด
-*   **ระบบ Flow การตอบและอัปเดตตาราง (Answer Submission & Sync Flow):**
-    ```mermaid
-    sequenceDiagram
-        autonumber
-        actor Student as นักเรียน (Play UI)
-        participant SocketS as Student Socket
-        participant Server as Node.js Backend
-        participant Redis as Redis Cache
-        participant SocketT as Teacher Socket
-        actor Teacher as ครู (Monitoring UI)
+### 3.1 MongoDB Collections
 
-        Student->>SocketS: คลิกเลือกคำตอบ (ส่งข้อความ SUBMIT_ANSWER)
-        SocketS->>Server: ยิง WebSocket Event: SUBMIT_ANSWER
-        Server->>Redis: บันทึกข้อมูลคำตอบรายข้อลง Hash Map
-        Server->>Redis: คำนวณคะแนนรวมและ % Progress ของนักเรียนใหม่
-        Server->>Redis: อัปเดตค่าสถิติเฉลี่ยรวมของห้องสอบ (calcStats)
-        Redis-->>Server: ส่งผลการคำนวณและสถิติล่าสุดกลับมา
-        Server->>SocketT: บรอดแคสต์เหตุการณ์ ANSWER_UPDATE ไปยังห้องของครู
-        SocketT-->>Teacher: อัปเดตสีของบล็อกในตาราง Matrix Grid และความก้าวหน้าทันที
-        Server->>SocketS: ส่งเหตุการณ์ ANSWER_UPDATE ยืนยันกลับไปที่เด็กว่าบันทึกสำเร็จ
-    ```
+#### **1) Quiz (`Quiz.model.js`)** — คอลเลกชัน `quizzes`
+* `title`, `description`, `category`, `tags[]`, `subject` (วิชา), `chapter` (บท)
+* `difficulty`: `easy | medium | hard`
+* `durationMinutes` (1–300), `hasTimeLimit`, `showAnswersAfterQuiz`
+* `status`: `draft | published | archived`
+* `accessCode`: รหัสเข้าห้อง 6 ตัวอักษร (unique + sparse index, สร้างเมื่อ publish)
+* `questions[]` (embedded): `text`, `type` (`multiple_choice | true_false`), `order`, `imageUrl`, `choices[]` (`text`, `isCorrect`, `imageUrl`)
+* `emoji`, `gradient`: metadata สำหรับการ์ด UI
+* `createdBy`, `timestamps` — มี `toJSON` transform แปลง `_id` → `id` ทุกระดับ (quiz/question/choice)
 
----
+#### **2) Teacher (`Teacher.model.js`)** — คอลเลกชัน `teachers`
+* `name`, `email` (unique), `passwordHash` (bcrypt, ไม่ส่งออก JSON), `isActive`, `role`, `avatarUrl`, `department`
+* methods: `verifyPassword()`, statics: `hashPassword()`
 
-### Feature 3: Confusion Detection Engine (ระบบประเมินความสับสนในการตอบ)
+#### **3) QuizSessionResult (`QuizSessionResult.model.js`)** — คอลเลกชัน `quizsessionresults` (Archive ผลสอบ)
+* `sessionId`, `quizId` (ref Quiz), `teacherId`, `sessionLabel` (ครูตั้งชื่อรอบสอบ เช่น "ห้อง 1 - บทที่ 1"), `startedAt`, `endedAt`
+* `stats`: `totalStudents`, `averageScore`, `completionPercentage`, `correctAnswers`, `totalAnswers`
+* `students[]`: `studentId`, `name`, `score`, `scorePercent`, `progress`, `joinedAt`
+* `answers[]`: `studentId`, `questionId`, `choiceId/Text`, `isCorrect`, `responseTime`, `confusionLevel`, `changeCount`, `submittedAt`
+* `questionStats[]` (pre-computed สำหรับเรนเดอร์กราฟเร็ว): `correctPercent`, `avgResponseTime`, `confusionCount`, การแจกแจงตัวเลือก `choices[]`
 
-*   **รายละเอียดฟีเจอร์:**  
-    ฟีเจอร์อัจฉริยะที่คอยจับตาพฤติกรรมการกดตอบของนักเรียน เพื่อประเมินความมั่นใจหรือความสับสนในการตอบข้อนั้นๆ โดยใช้เกณฑ์วัดผลคำนวณหลังบ้านผ่านฟังก์ชัน `_calcConfusion` จากข้อมูล 2 ส่วน:
-    1.  **จำนวนครั้งที่เปลี่ยนคำตอบ (Answer Changes):** นักเรียนกดย้ายตัวเลือกคำตอบกี่ครั้งในข้อนั้นๆ ก่อนกดส่ง
-    2.  **เวลาที่ใช้ทำ (Response Time):** นักเรียนใช้เวลาไปกี่วินาทีในข้อสอบข้อนี้
-    
-    **เกณฑ์การคำนวณระดับความสับสน (Confusion Level):**
-    *   🔴 **High (สับสนสูง):** มีการกดสลับตัวเลือก $\ge 2$ ครั้ง หรือ ใช้เวลาตอบนาน $> 60$ วินาที
-    *   🟡 **Low (สับสนต่ำ):** มีการกดสลับตัวเลือก $\ge 1$ ครั้ง หรือ ใช้เวลาตอบนาน $> 30$ วินาที
-    *   ⚪ **None (ไม่สับสนเลย):** ส่งตอบในครั้งแรกอย่างรวดเร็ว และใช้เวลาน้อยกว่า 30 วินาที
-*   **วิธีการใช้งาน:**
-    *   ทำงานอัตโนมัติเบื้องหลังเมื่อนักเรียนเล่นเกมข้อสอบ
-    *   ในฝั่งอาจารย์ เมื่อคลิกที่บล็อกคำตอบใน Matrix Grid จะมีหน้าต่าง **Answer Popover** แสดงประวัติไทม์ไลน์การคลิกตอบของนักเรียนรายวินาที พร้อมสรุปค่า Confusion Level ออกมาเป็นสถานะสีบอกให้ทราบอย่างชัดเจน
-*   **ตัวอย่าง Use Case:**  
-    นักเรียนทำโจทย์ข้อ 3 ถูก (ระบบขึ้นสีเขียว) แต่อาจารย์คลิกดูพบว่านักเรียนมีสถานะ **High Confusion** เนื่องจากกดเปลี่ยนตัวเลือกสลับไปมา 4 รอบก่อนกดส่ง อาจารย์จึงทราบว่านักเรียนคนนี้อาจจะเดาถูกเฉยๆ ไม่ได้เข้าใจเนื้อหาจริงๆ
-*   **โค้ดตรรกะการประเมิน (Logic Flow):**
-    ```javascript
-    function _calcConfusion(history, responseTime) {
-      const changes = history.length - 1; // นับจำนวนครั้งที่กดเปลี่ยนตัวเลือก
-      if (changes >= 2 || responseTime > 60) return "high";
-      if (changes >= 1 || responseTime > 30) return "low";
-      return "none";
-    }
-    ```
+#### **4) QuizInteractionLog (`QuizInteractionLog.model.js`)** — คอลเลกชัน `quizinteractionlogs`
+บันทึกพฤติกรรมระดับเหตุการณ์ของนักเรียน 1 คน ต่อ 1 การทำควิซ (ออกแบบมาเพื่อให้ LLM วิเคราะห์):
+* `session_metadata`: `student_id`, `student_name`, `quiz_id`, `quiz_title`, `device_info`, `start_timestamp`, `lang`
+* `answer_logs[]` ต่อข้อ: `interactions[]` (`action`: `view | select | change | deselect | heartbeat` + timestamp + option), `final_answer[]`, `correct_answers[]`, `is_correct`, `time_spent_seconds`, `is_confused`
+* `summary`: `total_score`, `full_score`, `completion_time_seconds`, `average_confusion_rate` (0.0–1.0)
+
+> ฝั่ง Server จะ **ตรวจคำตอบใหม่กับเฉลยจริงใน MongoDB เสมอ** (ไม่เชื่อ flag จาก client) ก่อนบันทึก
+
+### 3.2 Redis Keys (สถานะห้องสอบสด — `redisService.js`)
+
+> `sessionId` ของห้องสอบมีรูปแบบ `quiz-session-{quizId}` (REST monitoring รองรับส่ง accessCode 6 ตัวแล้ว resolve ให้อัตโนมัติ)
+
+| Key | ชนิด | เก็บอะไร |
+|---|---|---|
+| `quiz:{sessionId}:session` | Hash | `quizId`, `isPaused`, `isLocked`, `isTeacherLed`, `currentQuestionIndex`, `timer`, `timerActive`, `startedAt`, `totalQuestions` |
+| `quiz:{sessionId}:students` | Hash (studentId → JSON) | ต่อคน: `studentId`, `name`, `avatar` (DiceBear auto), `isOnline`, `score`, `progress`, `socketId`, `joinedAt` |
+| `quiz:{sessionId}:answers:{studentId}` | Hash (questionId → JSON) | ต่อข้อ: `state`, `finalAnswer(Text)`, `isCorrect`, `responseTime`, `history[]` (ทุกการเปลี่ยนคำตอบ), `confusionLevel`, `updatedAt` |
+
+ทุก key มี **TTL 24 ชั่วโมง** (ต่ออายุทุกครั้งที่มี activity) — จบสอบแล้ว `deleteSession()` ล้างทั้งหมดทันที
 
 ---
 
-### Feature 4: Live Room Session Controller (ระบบควบคุมสถานะห้องสอบ)
+## 🔌 4. แคตตาล็อก REST API (Express Routes)
 
-*   **รายละเอียดฟีเจอร์:**  
-    ปุ่มแผงควบคุมหลักสำหรับครูในการสั่งงานสถานะของห้องเรียนสด มี 3 คำสั่งหลัก:
-    1.  **Pause (หยุดชั่วคราว):** ล็อกหน้าจอผู้เรียนทุกคนทันที ห้ามกดส่งหรือเปลี่ยนคำตอบใดๆ จนกว่าจะกดปลดล็อก
-    2.  **Resume (ทำต่อ):** ปลดล็อกหน้าจอผู้เรียนให้ทำข้อสอบต่อได้ตามปกติ
-    3.  **End (สิ้นสุดการสอบ):** สั่งยุติห้องสอบโดยสมบูรณ์ ล็อกหน้าจอนักเรียน ถ่ายโอนข้อมูลเซสชันสดทั้งหมดจาก Redis ลงระบบฐานข้อมูลหลัก MongoDB เพื่อบันทึกถาวร จากนั้นทำการล้างข้อมูลแคชชั่วคราวออกจาก Redis
-*   **วิธีการใช้งาน:**
-    *   อาจารย์ใช้ปุ่มควบคุมด้านบนของหน้า Monitoring Dashboard (`Pause` | `Resume` | `End Session`)
-*   **ตัวอย่าง Use Case:**  
-    ในระหว่างการทำข้อสอบ อาจารย์ต้องการอธิบายเนื้อหาเพิ่มเติมเพิ่มเติมในห้องเรียน จึงกดปุ่ม **Pause** เพื่อดึงความสนใจของนักศึกษาให้มองมาที่กระดานดำโดยที่นักศึกษาทำข้อสอบต่อไม่ได้ จากนั้นพอกด **Resume** เพื่อให้นักศึกษาทำข้อสอบต่อจนเสร็จคาบ แล้วกด **End Session** เพื่อสรุปผลบันทึกคะแนนเก็บ
-*   **ระบบ Flow การถ่ายโอนข้อมูลตอนจบเซสชัน (Archiving Flow):**
-    ```mermaid
-    sequenceDiagram
-        autonumber
-        actor Teacher as ครู (Monitoring UI)
-        participant Server as Node.js Backend
-        participant Redis as Redis Cache
-        participant DB as MongoDB
-        participant SocketS as Student Socket
+| Method & Path | Auth | หน้าที่ |
+|---|---|---|
+| `POST /api/auth/login` | — | ครูล็อกอิน → รับ JWT |
+| `GET /api/auth/me` | Teacher | ดึงโปรไฟล์ครูจาก token |
+| `POST /api/admin/login` | — | แอดมินล็อกอิน |
+| `GET/POST /api/admin/teachers`, `PUT/DELETE /api/admin/teachers/:id` | Admin | จัดการบัญชีอาจารย์ (DELETE = deactivate) |
+| `GET/POST /api/quizzes`, `GET/PUT/DELETE /api/quizzes/:id` | Teacher | CRUD ควิซ |
+| `PATCH /api/quizzes/:id/status` | Teacher | เปลี่ยนสถานะ draft/published/archived |
+| `POST /api/quizzes/:id/generate-code` | Teacher | สุ่ม Join Code 6 ตัวใหม่ |
+| `POST /api/quizzes/images/upload`, `DELETE /api/quizzes/images/:filename` | Teacher | อัปโหลด/ลบรูปประกอบ (Multer → `/uploads`) |
+| `GET /api/play/:code` | — (Public) | นักเรียนดึงควิซจาก Join Code |
+| `GET /api/dashboard/stats` | — | สถิติแดชบอร์ดครู (จำนวนควิซ, attempts, คะแนนเฉลี่ยถ่วงน้ำหนัก, Weekly Performance 8 สัปดาห์, Top Quizzes, Activity ล่าสุด) |
+| `GET /api/monitoring/:sessionId`, `GET /api/monitoring/:sessionId/stats` | — | snapshot สถานะห้องสอบสดจาก Redis (รองรับทั้ง accessCode และ sessionId เต็ม) |
+| `GET /api/monitoring/quiz/:quizId/sessions` | — | รายการเซสชันที่จบแล้วของควิซ |
+| `GET /api/monitoring/sessions/:sessionId/export` | — | **Export CSV** ผลสอบ — รองรับทั้งเซสชันสด (Redis) และเซสชันที่จบแล้ว (MongoDB) |
+| `POST /api/quiz-logs` | — | นักเรียนส่ง Interaction Log ทั้งชุดหลังทำเสร็จ (server ตรวจเฉลยใหม่) |
+| `GET /api/quiz-logs`, `GET /api/quiz-logs/:logId`, `GET /api/quiz-logs/student/:studentId/quiz/:quizId` | — | ครู/ระบบดึง Log มาดูหรือส่งให้ AI |
+| `GET /api/session-history/all` | — | ทุกเซสชันที่จบแล้ว (ทุกควิซ) |
+| `GET /api/session-history/quiz/:quizId` | — | เซสชันย้อนหลังของควิซ |
+| `GET /api/session-history/quiz/:quizId/aggregate` | — | สถิติเปรียบเทียบข้ามเซสชัน (per-question correct% / confusion trend) |
+| `GET /api/session-history/:id`, `PATCH /api/session-history/:id/label`, `DELETE /api/session-history/:id` | — | รายละเอียดเต็ม / แก้ชื่อ label รอบสอบ / ลบประวัติเซสชัน |
+| `POST /api/session-history/:id/ai-summary` | — | 🤖 สตรีม AI สรุประดับห้องเรียน (SSE, เลือกภาษา th/en/ja) |
+| `POST /api/session-history/:id/ai-student/:studentId` | — | 🤖 สตรีม AI วิเคราะห์รายนักเรียน (SSE) |
+| `POST /api/session-history/quiz/:quizId/ai-cross-session` | — | 🤖 สตรีม AI เปรียบเทียบข้ามห้อง/รอบสอบ (SSE) |
+| `GET /api/health` | — | Health check (สถานะ server + socket.io) |
 
-        Teacher->>Server: ส่งเหตุการณ์ CONTROL_SESSION (action: "end")
-        Server->>Redis: ดึงข้อมูลสรุป Session State ทั้งหมด (Snapshot)
-        Redis-->>Server: ส่งผลการจัดกลุ่มรายชื่อนักเรียนและคำตอบทั้งหมดกลับมา
-        Server->>DB: บันทึกข้อมูลสรุปลง คอลเลกชัน QuizSessionResult
-        DB-->>Server: บันทึกสำเร็จ
-        Server->>Redis: ลบข้อมูลของเซสชันนี้ออกจาก Redis (Clear Memory)
-        Server->>SocketS: ส่งเหตุการณ์ SESSION_CONTROL (action: "end") ไปบล็อกจอนักเรียน
-        Server-->>Teacher: ปิดหน้าคุมสอบ และส่งผลประเมินสรุปสถิติรอบสุดท้ายขึ้นโชว์
-    ```
+### Next.js API Routes (Frontend → Ollama โดยตรง)
 
----
-
-### Feature 5: Student Result Screen & Detailed Review (ระบบตรวจข้อสอบผู้เรียน)
-
-*   **รายละเอียดฟีเจอร์:**  
-    หน้าจอสรุปผลคะแนนสำหรับนักเรียนทันทีหลังจากส่งคำตอบข้อสุดท้ายเสร็จสิ้น ประกอบด้วย:
-    *   **การ์ดคะแนนสรุป (Result Score Card):** แสดงคะแนนเปอร์เซ็นต์ที่ได้, จำนวนข้อที่ตอบถูก/ผิด/ไม่ได้ตอบ, เวลาเฉลี่ยที่ใช้ทำต่อข้อ และความก้าวหน้า
-    *   **รายการทบทวนคำตอบ (Answer Review List):** รายการข้อสอบทั้งหมดเรียงลำดับข้อ พร้อมบอกว่าข้อนั้นๆ ตอบ ถูก หรือ ผิด และเฉลยชอยส์ที่ถูกต้องพร้อมแสดงเวลาตอบคำถามจริงในแต่ละข้อของนักเรียน
-*   **วิธีการใช้งาน:**
-    *   ทำงานอัตโนมัติเมื่อผู้เรียนทำข้อสอบถึงข้อสุดท้ายและกดส่งคำตอบสุดท้าย ตัวแอป Next.js จะเปลี่ยนวิวจากหน้าเล่นข้อสอบเข้าสู่หน้าจอสรุปผลลัพธ์นี้ทันที
-*   **ตัวอย่าง Use Case:**  
-    นักเรียนทำข้อสอบ 10 ข้อเสร็จสิ้น กดส่งคำตอบระบบจะคำนวณคะแนนเสร็จภายใน 0.1 วินาที หน้าจอจะโชว์ว่าตนเองได้ 80% (ตอบถูก 8 ข้อ ผิด 2 ข้อ) และเปิดดูรายการเฉลยเพื่อดูว่าตนเองวิเคราะห์ข้อไหนผิดไปพร้อมแนวทางคำตอบที่ถูก
-*   **ระบบ Flow การสรุปผลลัพธ์คำตอบ (Result Generation Flow):**
-    ```mermaid
-    sequenceDiagram
-        autonumber
-        actor Student as นักเรียน (Play UI)
-        participant API as Local API / Socket
-        participant Redis as Redis / DB
-        participant UI as Result View (Frontend)
-
-        Student->>API: ส่งคำตอบข้อสุดท้ายสำเร็จ (SUBMIT_ANSWER)
-        API->>Redis: บันทึกคำตอบข้อสุดท้ายและคำนวณคะแนนสุดท้ายของนักเรียน
-        Redis-->>API: สรุปคะแนน % ของนักเรียนคนนี้กลับมา
-        API-->>Student: ตอบกลับยืนยันการจบข้อสอบและส่งข้อมูลคำตอบเฉลยทั้งหมด
-        Student->>UI: เปลี่ยนโหมดการแสดงผลเป็น ResultScreen
-        UI->>UI: นำประวัติการตอบและผลประเมินมาเรนเดอร์ ScoreCard และประวัติรีวิว
-        UI-->>Student: นักเรียนเห็นคะแนนเฉลี่ย, อัตราความเร็ว และรายการวิจารณ์คำตอบย้อนหลัง
-    ```
+| Path | หน้าที่ |
+|---|---|
+| `POST /api/chat` | AI Assistant แชทช่วยครู (auto-detect โมเดล Ollama, system prompt รองรับ `json_quiz_update` สำหรับแก้ควิซอัตโนมัติ) |
+| `POST /api/analyze-quiz-log` | สร้าง prompt จาก Interaction Log → Ollama → คำแนะนำการเรียนรายบุคคล |
+| `GET/POST /api/quiz-logs`, `/api/quiz-logs/[logId]` | proxy ไปยัง Backend |
 
 ---
 
-### Feature 6: AI Assistant with UI Inspection Mode (ระบบวิเคราะห์ AI อัจฉริยะ)
+## 📡 5. แคตตาล็อกเหตุการณ์ WebSocket (Socket.IO Event Catalog)
 
-*   **รายละเอียดฟีเจอร์:**  
-    วิดเจ็ตแชทบอทลอยตัวที่อยู่บนหน้าจอเว็บ ทำงานร่วมกับโมเดลภาษาขนาดใหญ่ในเครื่อง (Local Ollama LLM) มีความสามารถหลักๆ ดังนี้:
-    *   **UI Inspection Mode:** มีปุ่ม 🎯 (Target Tool) เพื่อให้อาจารย์คลิกเลือกคอมโพเนนต์ใดก็ได้บนหน้าเว็บ (เช่น การ์ดสถิติเฉลี่ย, บล็อกคะแนนนักเรียนรายคน) เพื่อดึงข้อมูล Metadata หลังบ้านผ่านแอตทริบิวต์ `data-ai-context-*` มาแนบเป็น Context ในการถามบอท
-    *   **Real-time Streaming Response:** การโต้ตอบผ่าน Chatbot รองรับระบบ Streaming ผ่าน Server-Sent Events (SSE) `/api/chat` ทำให้บอทสามารถสตรีมตัวอักษรตอบกลับแบบเรียลไทม์อย่างไหลลื่น ไม่ต้องรอโหลดคำตอบทั้งหมดเสร็จ
-    *   **AI Quiz Copilot:** สามารถช่วยสร้างหรือแก้ไขแบบทดสอบได้โดยตรงตามความต้องการของผู้สอน จากนั้นจะมีปุ่มลัดเพื่อนำแบบทดสอบที่ AI สร้างกรอกลงในฟอร์มสร้างควิซของระบบได้ทันที
-*   **ตรรกะเบื้องหลัง Context Mapping:**
-    *   **วิเคราะห์นักเรียน:** ส่งข้อมูลประวัติคำตอบอย่างละเอียดรายวินาที (`detailedAnswers`) รวมถึงสถิติความมั่นใจและการเปลี่ยนข้อคำตอบ
-    *   **วิเคราะห์ควิซ:** ส่งชื่อควิซ คำอธิบาย ระดับความยาก รหัสเข้าห้อง และสถิติจำนวนคำถาม
-    *   **วิเคราะห์ตารางคุมสอบ:** ส่งข้อมูลภาพรวมจำนวนคนเข้าสอบ และการตั้งค่าตัวกรองในขณะนั้น
-    *   **วิเคราะห์รายงานย้อนหลัง (Session Detail):** ส่งรายละเอียดคะแนนของนักเรียนทั้งห้อง สถิติตอบคำถามรายข้อ (Heatmap & Distribution) และรายงานเจาะลึกของเด็กรายคน เพื่อทำรายงานสรุป
-*   **วิธีการใช้งาน:**
-    1.  คลิกปุ่มแชท AI ลอยตัว (ปุ่มรูป Sparkle มุมขวาล่าง)
-    2.  กดปุ่ม **🎯 (Target)** บนมุมขวาของแผงแชท เพื่อเริ่มโหมดตรวจสอบ
-    3.  เลื่อนเมาส์ไปบนหน้าเว็บ คอมโพเนนต์ที่รองรับจะมีกรอบเส้นประสีม่วงแสดงตัวขึ้นมา ให้ทำการคลิกเลือก (เช่น คลิกที่ชื่องาน หรือคลิกที่การ์ดคะแนนของนักเรียนคนหนึ่ง) หรือคลิกเลือกตรวจสอบข้อมูลทั้งหน้าเว็บได้
-    4.  ข้อมูลตัวเลือกจะเปลี่ยนเป็นป้ายข้อความสีม่วง (Context Badge) แนบอยู่เหนือกองข้อความแชท
-    5.  พิมพ์คำถามที่ต้องการถาม เช่น *"นักเรียนคนนี้ไม่เข้าใจหัวข้อไหน และฉันควรจะอธิบายอย่างไรให้เข้าใจง่ายขึ้น"* หรือ *"วิเคราะห์สถิติควิซนี้ให้หน่อย"*
-    6.  AI จะทำการดึงข้อมูลโครงสร้าง JSON ในแอตทริบิวต์มาประมวลผลร่วมกับ System Prompt เพื่อให้คำตอบที่สตรีมกลับมาแบบเรียลไทม์และถูกต้องตรงประเด็นตามบริบทที่เลือกทันที
-*   **ตัวอย่าง Use Case:**  
-    อาจารย์สังเกตเห็นการ์ดของนักเรียนชื่อ "Protae" ขึ้นสถานะคะแนนน้อยและมีความสับสนสูงในการสอบ จึงเปิดแชท AI และกดยิงคลิกเลือกที่การ์ดนักเรียนคนนี้ จากนั้นพิมพ์ถามบอทว่า *"ช่วยออกแบบโจทย์ฝึกหัดเพิ่มเติมเพื่อให้เด็กคนนี้เข้าใจหัวข้อที่เขาทำผิดบ่อยที"* AI จะอ่านประวัติการตอบที่แนบไปใน Context และเจาะจงสร้างข้อสอบเรื่องกฎการตั้งชื่อตัวแปรที่ Protae ทำผิดให้ทันที
-*   **ระบบ Flow การสืบค้นบริบทและการส่งคำถามไปยัง AI (AI Context & Query Flow):**
-    ```mermaid
-    sequenceDiagram
-        autonumber
-        actor Teacher as ครู (AI Chat UI)
-        participant Client as Context Selector (Frontend Hook)
-        participant UI as Chat Widget (AIAssistant)
-        participant Route as Next.js API (/api/chat)
-        participant Ollama as Local Ollama Server
+ห้อง (Rooms): `session:{id}` (ทุกคน), `teacher:{id}` (เฉพาะครู), `students:{id}`
 
-        Teacher->>Client: เปิดโหมดตรวจสอบ 🎯 และคลิกเลือกคอมโพเนนต์
-        Client-->>UI: ดึงข้อมูลแอตทริบิวต์ data-ai-context-data ออกมา (JSON)
-        UI->>Teacher: แสดงป้าย Context Badge บนช่องแชทสำเร็จ
-        Teacher->>UI: พิมพ์ข้อความคำถาม และกดส่งแชท
-        UI->>Route: ยิง POST ขอแชท (แนบคำถามล่าสุด, ประวัติแชทเก่า, และข้อมูล JSON Context)
-        Route->>Route: ตรวจสอบภาษาและประกอบ System Prompt ให้ตรงกับความต้องการ
-        Route->>Ollama: POST /api/chat (ส่ง Payload ไปประมวลผลร่วมกับโมเดล Llama3/Gemma2)
-        Ollama-->>Route: ประมวลผลคำตอบภาษาไทยคืนกลับมา
-        Route-->>UI: คืนคำตอบ JSON (Message Response & Model Name)
-        UI-->>Teacher: แสดงคำตอบวิเคราะห์ข้อมูลที่ถูกต้องแม่นยำภาษาไทยในแชทบล็อก
-    ```
+| ทิศทาง | Event | หน้าที่ | Payload สำคัญ |
+|---|---|---|---|
+| Client → Server | `join_quiz` | นักเรียน/ครูเข้าห้องสอบ — สร้าง session ใน Redis ถ้ายังไม่มี; เช็ก `isLocked` ก่อนรับนักเรียน | `sessionId`, `quizId`, `studentId`, `name`, `avatar`, `role` |
+| Client → Server | `submit_answer` | นักเรียนส่ง/เปลี่ยนคำตอบ — server ตรวจเฉลยจาก MongoDB, บันทึก history ลง Redis, คำนวณ confusion | `questionId`, `choiceId`, `choiceText`, `responseTime` |
+| Client → Server | `control_session` | ครูสั่งควบคุมห้อง | `action`: `pause`, `resume`, `lock`, `unlock`, `teacher_led`, `set_question_index`, `set_timer`, `reset_student`, `regenerate_code`, `end` (+`sessionLabel`) |
+| Client → Server | `get_session_state` | ครูรีเฟรชหน้า → ขอ snapshot เต็มเพื่อกู้คืนแดชบอร์ด | `sessionId` |
+| Server → Client | `session_joined` | ตอบรับการ join (ครูได้ students+answers+stats+quiz, นักเรียนได้สถานะ teacher-led/timer) | — |
+| Server → Client | `session_state` | snapshot เต็มตอบ `get_session_state` หรือหลัง `reset_student` | students, answers, stats |
+| Server → Teacher | `student_joined` / `student_left` | นักเรียนเข้า/หลุดการเชื่อมต่อ (disconnect = set offline ไม่ลบข้อมูล) | `student`, `stats` |
+| Server → Teacher + Student | `answer_update` | broadcast คำตอบใหม่ + สถิติห้องล่าสุดให้ครู / ack กลับให้นักเรียน | `answer`, `stats` |
+| Server → ทั้งห้อง | `session_control` | กระจายคำสั่งครูไปทุกหน้าจอ (pause จะล็อกหน้านักเรียน ฯลฯ) | `action` + payload |
+| Server → Client | `error` | เช่น `ROOM_LOCKED`, "Session is paused" | `message` |
 
 ---
 
-### Feature 7: Student Quiz Interaction Log System (ระบบบันทึกและวิเคราะห์พฤติกรรมการสอบระดับวินาที)
-
-*   **รายละเอียดฟีเจอร์:**  
-    ระบบติดตามพฤติกรรม (Telemetry) การทำข้อสอบของผู้เรียนอย่างละเอียดในแบบวินาทีต่อวินาที (Interaction-Level) โดยใช้ React Hook ในการติดตามทุกๆ เหตุการณ์ที่เกิดขึ้นในหน้าเล่นควิซ ได้แก่:
-    1.  **การดูคำถาม (View Action):** บันทึกเวลาที่เปลี่ยนไปดูโจทย์แต่ละข้อ
-    2.  **การเลือก/เปลี่ยนคำตอบ (Select & Change Actions):** บันทึกการเลือกตัวเลือก และประวัติการสลับสับเปลี่ยนตัวเลือกก่อนยืนยันส่งข้อสอบ
-    3.  **การเฝ้าระวังความใส่ใจ (Heartbeat Action):** ใช้ Page Visibility API ติดตามสถานะโฟกัสของหน้าจอ หากผู้เรียนสลับแท็บ ย่อเบราว์เซอร์ หรือเปิดแอปพลิเคชันอื่น ระบบจะบันทึกสถานะเป็น `off_task` ทันทีเพื่อตรวจจับความเสียสมาธิหรือพฤติกรรมการค้นหาข้อมูลในเน็ต
-*   **ข้อดี:**
-    *   ช่วยให้วิเคราะห์ได้ลึกกว่าคะแนนสอบดิบ (เช่น ทราบว่าข้อสอบที่ตอบถูกมาจากการเดาที่มีความลังเลสลับคำตอบไปมา หรือตอบได้ด้วยความเข้าใจและมั่นใจ)
-    *   ระบุจุดบกพร่องและระดับความใส่ใจในการทำควิซของผู้เรียนได้ทันทีผ่านระบบ Visibility Check
-*   **ตัวอย่าง Use Case:**  
-    นักเรียนทำข้อสอบได้คะแนนเต็ม แต่อาจารย์พบว่ามีล็อก `off_task` เป็นจำนวนมากในระหว่างที่ทำคำถามยากๆ จึงอาจเป็นหลักฐานบ่งบอกว่านักเรียนมีพฤติกรรมสลับแท็บไปค้นหาข้อมูลเพื่อทุจริต หรือสลับไปเล่นเกมในระหว่างเรียน
-*   **ระบบ Flow การบันทึกและประมวลผล (Interaction Telemetry Flow):**
-    ```mermaid
-    sequenceDiagram
-        autonumber
-        actor Student as นักเรียน (Play UI)
-        participant Hook as useQuizInteractionLog Hook
-        participant Visibility as Page Visibility API
-        participant API as Next.js API Proxy (/api/quiz-logs)
-        participant Backend as Express Backend + MongoDB
-
-        Student->>Hook: เข้าหน้าควิซ / ทำข้อสอบ / เปลี่ยนหน้า
-        Visibility->>Hook: ตรวจจับการสลับแท็บ/ย่อหน้าต่าง (on_task / off_task)
-        Hook->>Hook: เก็บประวัติเรียงลำดับลง Memory State ของหน้าบ้าน
-        Student->>Hook: ทำควิซถึงข้อสุดท้ายและกด "ส่งข้อสอบ" (Finish)
-        Hook->>API: ส่ง JSON Payload ทั้งหมดของ Interaction Log
-        API->>Backend: Forward คำขอ POST /api/quiz-logs ไปหลังบ้าน
-        Backend->>Backend: บันทึกข้อมูลลงฐานข้อมูล MongoDB ถาวร
-        Backend-->>Student: คืนค่ารหัส ID ล็อกที่ส่งสำเร็จเพื่อเชื่อมไปที่หน้าสรุปคะแนน
-    ```
+## ⚡ 6. เจาะลึกฟีเจอร์ & โฟลว์ระบบ (Features, Data Flow & Use Cases)
 
 ---
 
-### Feature 8: Personalized AI Quiz Analysis & Recommendation (ระบบสรุปผลสอบและแนะแนวรายบุคคลด้วย AI)
+### Feature 1: Teacher Authentication & Admin Management (ระบบยืนยันตัวตนและจัดการบัญชี)
 
-*   **รายละเอียดฟีเจอร์:**  
-    ที่หน้าจอสรุปผลลัพธ์ของนักเรียน หลังจากทำควิซเสร็จสิ้นและระบบหลังบ้านจัดเก็บประวัติระดับวินาทีเรียบร้อยแล้ว นักเรียนสามารถกดปุ่ม **"วิเคราะห์ด้วย AI" (Analyse with AI)** เพื่อให้ Local LLM (ผ่าน Ollama API) ทำการประมวลผลข้อมูล Interaction Log ทั้งหมด:
-    - สรุปจุดแข็งและจุดอ่อนของหัวข้อเรียนจากแท็กที่ผู้เรียนตอบได้ดี
-    - เจาะลึกคำถามข้อที่ผู้เรียนมีความสับสน (เช่น ใช้เวลานานเกินไป หรือเปลี่ยนคำตอบบ่อย)
-    - ให้คำแนะนำและแหล่งเรียนรู้เพิ่มเติมแบบเฉพาะบุคคล (Personalized Learning Recommendation) ตามหัวข้อเนื้อหาที่บกพร่อง
-*   **ข้อดี:**
-    *   ลดภาระครูผู้สอนในการตรวจประเมินข้อสอบแบบละเอียดเพื่อเตรียมคำแนะนำให้เด็กรายคน
-    *   ให้ผู้เรียนทราบจุดอ่อนของตนเองได้แบบเรียลไทม์ พร้อมแนวทางทบทวนบทเรียนได้ทันทีหลังสอบเสร็จ
-*   **ตัวอย่าง Use Case:**  
-    หลังนักศึกษาตอบคำถามเรื่อง "REST API" ผิดและใช้เวลานานถึง 80 วินาที เมื่อกดวิเคราะห์ AI ระบบจะชี้จุดอ่อนทันทีว่า *"คุณตอบผิดและมีความสับสนสูงในเรื่อง HTTP Methods แนะนำให้ทบทวนความแตกต่างระหว่าง POST, PUT และ PATCH พร้อมแหล่งทบทวน..."*
-*   **ระบบ Flow การวิเคราะห์ผลลัพธ์ (Personalized AI Recommendation Flow):**
-    ```mermaid
-    sequenceDiagram
-        autonumber
-        actor Student as นักเรียน (Result Screen UI)
-        participant API as Next.js API (/api/analyze-quiz-log)
-        participant Backend as Express Backend / MongoDB
-        participant LLM as Local Ollama Server
-        participant UI as AI Recommendation Panel
-
-        Student->>API: กดปุ่ม "วิเคราะห์ด้วย AI" (ส่ง logId)
-        API->>Backend: ขอข้อมูล Interaction Log จากฐานข้อมูล MongoDB
-        Backend-->>API: คืนค่าเอกสาร JSON Log เต็มรูปแบบ
-        API->>API: แปลงข้อมูลเป็นชุด Prompt สำหรับวิเคราะห์
-        API->>LLM: ส่ง Prompt และ Context ข้อมูลประวัติการทำควิซ
-        LLM->>LLM: ประมวลผลสร้างข้อเสนอแนะและสรุปบทเรียนเฉพาะบุคคล
-        LLM-->>API: คืนคำแนะนำในรูปแบบ Markdown
-        API-->>Student: ส่งกลับข้อความประเมินและเฉลยแนะนำ AI
-        Student->>UI: เรนเดอร์ข้อความ Markdown บนแถบการประเมินแบบสวยงาม
-    ```
+* **รายละเอียด:** อาจารย์ล็อกอินที่ `/teacher/login` ด้วย email/password → Backend ตรวจกับ `passwordHash` (bcrypt) → ออก **JWT** ให้ Frontend เก็บและแนบใน header ทุก request (`requireTeacher` middleware) ส่วน Super Admin มีหน้าจอ `/admin` สำหรับสร้าง/แก้ไข/ปิดใช้งาน (soft-delete) บัญชีอาจารย์
+* **การส่งข้อมูล:** Frontend (`authApi.ts`, `adminApi.ts`) → REST → Express → MongoDB (`teachers`)
+* **Use Case:** ภาควิชาเพิ่มอาจารย์ใหม่ 3 ท่าน — แอดมินล็อกอินเข้า `/admin` กดสร้างบัญชี กรอกชื่อ-อีเมล-รหัสผ่าน อาจารย์ใหม่ล็อกอินใช้งานได้ทันที ภายหลังอาจารย์ลาออก แอดมินกดปิดใช้งาน (`isActive = false`) โดยข้อมูลควิซเดิมยังอยู่ครบ
 
 ---
 
-### Feature 9: Global Multilingual Support (TH/EN/JA) & Dark/Light Mode Switcher (ระบบหลายภาษาและเปลี่ยนธีมสมบูรณ์)
+### Feature 2: Teacher Dashboard & Statistics (แดชบอร์ดภาพรวมของอาจารย์)
 
-*   **รายละเอียดฟีเจอร์:**  
-    ระบบรองรับการแสดงผลหลากหลายภาษาอย่างสมบูรณ์แบบ (ไทย อังกฤษ และญี่ปุ่น) ผ่าน Custom React Context Provider และรองรับการเลือกปรับแต่งหน้าจอตามความชอบของผู้เรียน (ธีมสว่าง Light Mode หรือโหมดถนอมสายตา Dark Mode):
-    - สวิตช์สลับภาษาและปุ่มเปลี่ยนธีมติดตั้งและแสดงผลครอบคลุมทุกจุดตั้งแต่หน้าแลนดิ้งเพจแรก, หน้าโหลดควิซ, หน้าเจอข้อผิดพลาด, หน้าเล่นสอบสด และหน้าสรุปผลสอบทบทวนเฉลย
-    - ในส่วนของวิจารณ์คำตอบ AI (AI Recommendation Panel) และระบบทบทวนเฉลย จะปรับสไตล์และภาษาตามที่ผู้เล่นเลือก ณ ขณะนั้นโดยอัตโนมัติ เพื่อรองรับความเท่าเทียมในการใช้งานภาษา
-*   **ข้อดี:**
-    *   รองรับห้องเรียนที่มีความหลากหลายทางเชื้อชาติ (เช่น ห้องเรียนนานาชาติ หรือหลักสูตรแลกเปลี่ยน)
-    *   เพิ่มประสิทธิภาพการเข้าถึง (Accessibility) และมอบความสบายตาแก่สายตาผู้เล่น
-*   **ตัวอย่าง Use Case:**  
-    ในโรงเรียนที่มีนักเรียนแลกเปลี่ยนชาวญี่ปุ่นและอเมริกัน ครูผู้สอนสามารถปล่อย Join Code รหัสเดียว แต่นักเรียนชาวไทยสามารถปรับแอปเป็นภาษาไทย นักเรียนชาวญี่ปุ่นเปลี่ยนเป็นภาษาญี่ปุ่น และนักเรียนอเมริกันใช้ภาษาอังกฤษ ทำให้สามารถทำควิซชุดเดียวกันพร้อมกันในห้องเรียนได้อย่างราบรื่น
+* **รายละเอียด:** หน้า `/teacher` แสดงภาพรวม: จำนวนควิซ (แยก draft/published/archived), จำนวนผู้เข้าสอบสะสม, คะแนนเฉลี่ยถ่วงน้ำหนักตามจำนวนนักเรียน, กราฟ **Weekly Performance ย้อนหลัง 8 สัปดาห์** (Recharts), Top Performing Quizzes และ Activity Feed ล่าสุด
+* **การส่งข้อมูล:** `dashboardApi.ts` → `GET /api/dashboard/stats` → Backend aggregate จาก `quizzes` + `quizsessionresults` ใน MongoDB → JSON ก้อนเดียวกลับมาเรนเดอร์
+* **Use Case:** ต้นสัปดาห์ อาจารย์เปิดแดชบอร์ดเห็นว่าคะแนนเฉลี่ยสัปดาห์ที่แล้วตก จาก 72% เหลือ 61% และควิซ "บทที่ 4" มี completion ต่ำสุด จึงวางแผนทบทวนบทนั้นก่อนสอนต่อ
 
 ---
 
-### Feature 10: Class Session History & Analytical Dashboard (ระบบบันทึกและวิเคราะห์ประวัติคลาสเรียนย้อนหลัง)
+### Feature 3: Quiz Builder + AI Quiz Copilot (ระบบสร้างข้อสอบ)
 
-*   **รายละเอียดฟีเจอร์:**  
-    คลังจัดเก็บผลสัมฤทธิ์ของแต่ละคลาสเรียนย้อนหลังของควิซนั้นๆ สำหรับอาจารย์ผู้สอน ซึ่งสามารถเรียกดูผ่านหน้าประวัติและวิเคราะห์ผลลัพธ์ของเซสชันที่เสร็จสิ้นไปแล้วได้อย่างครอบคลุม:
-    *   **Dashboard สถิติ:** แสดงข้อมูลผู้เข้าสอบทั้งหมด, คะแนนเฉลี่ยของห้องเรียน, อัตราความก้าวหน้า (Completion Rate), และระยะเวลาในการทำสอบ
-    *   **Score Distribution:** กราฟจำลองการกระจายตัวของคะแนนเด็กในห้องเรียน
-    *   **Answer & Confusion Heatmap:** แผนภูมิความร้อนวิเคราะห์ว่านักเรียนตอบถูก/ผิดอย่างไร และมีระดับความสับสนในจุดใดบ้างของแต่ละคำถาม
-    *   **Student Drill-down & Individual AI Insights:** สามารถคลิกดูการตอบย้อนหลังรายคน และส่งข้อมูลพฤติกรรมการตอบระดับวินาทีไปให้ Local LLM (Ollama) เพื่อสตรีมวิเคราะห์จุดอ่อนจุดแข็งของเด็กคนนั้นๆ ออกมาเป็นคำแนะนำส่วนบุคคล
-    *   **CSV Report Export:** ฟังก์ชันดาวน์โหลดรายงานผลสัมฤทธิ์ของคลาสเรียนทั้งหมดออกมาในรูปแบบไฟล์ CSV เพื่อนำไปใช้งานด้านประเมินผลการเรียน
-    *   **Inspect Mode Context Integration:** หน้าแดชบอร์ดสรุปประวัตินี้รองรับระบบ AI Target Selector 🎯 ช่วยส่งออกสถิติ ข้อมูล Heatmap หรือรายงานผลรายบุคคล ให้บอท AI นำไปวิเคราะห์ต่อยอดแบบรายข้อหรือรายบุคคลได้ทันที
-    *   **Session Management (Delete Session):** สนับสนุนปุ่มลบประวัติเซสชันสำหรับอาจารย์ผู้สอนในหน้าประวัติย้อนหลัง ผ่านหน้ายืนยัน `SessionDeleteModal` ช่วยให้ผู้สอนสามารถบริหารจัดการและเก็บเฉพาะเซสชันที่เป็นทางการได้
-*   **วิธีการใช้งาน:**
-    1. อาจารย์เข้าสู่หน้าคลังควิซ แล้วเลือกควิซที่ต้องการ จากนั้นกดเข้าดูประวัติย้อนหลัง (History) หรือเข้าหน้าประวัติเซสชันทั้งหมดผ่านลิงก์บนแถบเมนูด้านซ้าย
-    2. หน้าจอจะแสดงรายการเซสชันทั้งหมดที่เคยเปิดสอบ สามารถเลือกแต่ละเซสชันเพื่อเข้าไปดูวิเคราะห์ผลลัพธ์เชิงลึก กราฟสถิติ แผนภูมิความร้อน และใช้งาน AI สรุปข้อมูล
-    3. อาจารย์สามารถใช้ AI Target Tool 🎯 ชี้และเลือกตรวจทานองค์ประกอบในหน้ารายงานนี้ เพื่อขอรับการวิเคราะห์ประเมินแบบสตรีมมิ่งจากแชทบอท
-    4. อาจารย์สามารถกดปุ่ม **"Export CSV"** เพื่อโหลดรายงานผลการทำข้อสอบที่มีรายละเอียดของคะแนนและคำตอบนักเรียนทั้งหมดได้ทันที
-    5. อาจารย์สามารถกดปุ่มลบ (ถังขยะ) บนหัวข้อเซสชันเพื่อลบประวัติห้องสอบนั้นออกถาวรได้
-*   **ตัวอย่าง Use Case:**  
-    อาจารย์วิชาคณิตศาสตร์ต้องการประเมินผลหลังการสอบเก็บคะแนน จึงเปิดดูประวัติเซสชันของเมื่อวานนี้เพื่อศึกษาแผนภูมิความร้อนและส่งข้อมูลนักเรียนที่คะแนนต่ำกว่าเกณฑ์ให้ AI สรุปจุดบกพร่อง พร้อมส่งออกไฟล์ CSV ไปทำคะแนนรายงานในระบบโรงเรียน และทำการลบเซสชันทดสอบระบบ (Test Session) ก่อนหน้าทิ้งไป
+* **รายละเอียด:** หน้า `/teacher/create-quiz` สร้างข้อสอบ Multiple Choice / True-False กำหนดวิชา บท ความยาก เวลา แท็ก การแสดงเฉลย แนบรูปประกอบทั้งระดับคำถามและตัวเลือก (อัปโหลดผ่าน Multer) ลากจัดลำดับข้อด้วย dnd-kit มีโหมด Preview และจัดการ state ทั้งหมดผ่าน Zustand (`useQuizBuilder`)
+  **AI Quiz Copilot:** ปุ่ม AI Assistant ให้แชทสั่งงาน เช่น "ออกข้อสอบ 5 ข้อเรื่อง Python" — AI ตอบกลับด้วยบล็อก ```json_quiz_update``` ที่ Frontend parse แล้วแสดงการ์ดสรุป กดปุ่มเดียวเพื่อเทข้อมูลทั้งชุดลงฟอร์มอัตโนมัติ
+* **การส่งข้อมูล:**
+  * บันทึกควิซ: Zustand Store → `quizApi.ts` → `POST/PUT /api/quizzes` (JWT) → MongoDB
+  * รูปภาพ: `POST /api/quizzes/images/upload` (multipart) → เก็บไฟล์ใน `backend/uploads` → เสิร์ฟผ่าน `/uploads/...`
+  * AI: หน้าเว็บ → `POST /api/chat` (Next.js route) → Ollama `/api/chat` → ตอบ JSON → เทเข้า Store
+* **Use Case:** อาจารย์มีเวลา 10 นาทีก่อนเข้าสอน พิมพ์สั่ง AI ให้ร่างข้อสอบ 5 ข้อเรื่อง "ตัวแปรใน Python" ตรวจแก้เฉลย 1 ข้อ เพิ่มรูปประกอบ แล้วกด Publish รับ Join Code ไปแปะหน้าห้องได้ทันเวลา
 
 ---
 
-### Feature 11: Cross-Session Analysis & Curriculum Trends (ระบบแดชบอร์ดเปรียบเทียบข้ามเซสชันและการวิเคราะห์แนวโน้มวิชาเรียนด้วย AI)
+### Feature 4: Publish, Join Code & Student Join Flow (การเผยแพร่และการเข้าห้องสอบ)
 
-*   **รายละเอียดฟีเจอร์:**  
-    แดชบอร์ดพิเศษสำหรับอาจารย์ในการวิเคราะห์เปรียบเทียบแนวโน้มผลสัมฤทธิ์การสอบข้ามรุ่นหรือข้ามห้องเรียน (Cross-Session Comparison):
-    *   **Cross-Session Trends Chart & Table:** กราฟแสดงการเปรียบเทียบระดับคะแนนเฉลี่ย อัตราความก้าวหน้า และจำนวนผู้เรียนในแต่ละเซสชันที่ทดสอบด้วยควิซชุดเดียวกัน
-    *   **AI Cross-Session Curriculum Analysis:** สั่งงานให้ Local LLM ประมวลผลข้อมูลเชิงสถิติเปรียบเทียบของทุกเซสชัน เพื่อวิเคราะห์ทิศทางและให้ข้อเสนอแนะในการปรับปรุงหลักสูตรการสอน
-*   **วิธีการใช้งาน:**
-    1. อาจารย์เข้าไปที่หน้าประวัติเซสชันย้อนหลังของควิซหนึ่งๆ
-    2. กดปุ่ม **"Compare Sessions"** ด้านบน (ปุ่มจะเปิดใช้งานหากมีอย่างน้อย 2 เซสชัน)
-    3. อาจารย์สามารถวิเคราะห์ข้อมูลแนวโน้มเปรียบเทียบผ่านแท็บ Chart, Table หรือกดปุ่มสั่งงาน AI ให้ประมวลผลข้อเสนอแนะในการปรับปรุงการสอน
-*   **ตัวอย่าง Use Case:**  
-    อาจารย์ต้องการเปรียบเทียบผลการทำข้อสอบปลายภาคระหว่างวิชาเรียนห้อง A และห้อง B เพื่อดูว่าวิธีการสอนห้องใดได้ผลดีกว่ากัน และสั่งให้ AI วิเคราะห์ภาพรวมเพื่อแนะนำแนวทางเสริมเนื้อหาที่ผู้เรียนส่วนใหญ่ในทุกห้องยังมีปัญหาเหมือนกัน
+* **รายละเอียด:** เมื่อกด Publish ระบบสุ่ม **Access Code 6 ตัวอักษร** (ตัดอักษรที่สับสนง่าย เช่น I, O, 0, 1 ออก, unique ทั้งระบบ) พร้อม **QR Code** และลิงก์ `/play/{code}` ให้แชร์ นักเรียนเปิดลิงก์ → กรอกชื่อใน `StudentNameModal` (avatar สุ่มจาก DiceBear) → เข้าห้องสอบโดยไม่ต้องมีบัญชี ครูสามารถ `regenerate_code` กลางคันเพื่อกันคนนอกได้
+* **การส่งข้อมูล:** นักเรียน → `GET /api/play/:code` (ดึงโจทย์จาก MongoDB) → เปิด Socket `join_quiz` → Redis สร้าง/อัปเดต session → broadcast `student_joined` ให้ครู
+* **Use Case:** ครูฉายสไลด์ที่มี QR Code นักเรียน 40 คนสแกนเข้าผ่านมือถือภายใน 1 นาที ชื่อทยอยเด้งขึ้นบนแดชบอร์ดครูแบบเรียลไทม์ เมื่อครบแล้วครูกด **Lock** ห้องเพื่อไม่ให้คนเข้าเพิ่ม
 
 ---
 
-## 🏁 5. สรุปความสัมพันธ์ของข้อมูลการใช้งาน (System Integration Matrix)
+### Feature 5: Real-time Live Monitoring & Matrix Grid (ระบบคุมสอบสด)
 
-เพื่อความเข้าใจในการเชื่อมโยงกันของระบบ ข้อมูลนี้แสดงความเชื่อมโยงกันระหว่าง **บทบาทผู้ใช้งาน (Roles)**, **ช่องทางการเข้าถึง (Routes)**, **การทำงานด้านข้อมูล (Data Storage)** และ **รูปแบบเรียลไทม์ (Real-time Flow)** ของแต่ละส่วนงานหลัก:
-
-| หัวข้อฟีเจอร์ | หน้าจอหลัก (Route) | ฐานข้อมูลหลัก (Database) | ข้อมูลแคช (Redis Cache) | รูปแบบ Real-time (WebSocket) | แหล่งบริบท AI (AI Context) |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **สร้างและแก้ไขควิซ** | `/teacher/create-quiz` | MongoDB (`Quiz`) | - | - | ข้อมูลควิซ (หัวข้อ, คำอธิบาย, ชอยส์) และ Prompt สั่งสร้าง/แก้ไข |
-| **การสอบและทำข้อสอบ** | `/play/[code]` | MongoDB (`Quiz` - อ่าน) | Redis (`answers` - บันทึก) | `SUBMIT_ANSWER` ➔ `ANSWER_UPDATE` | ข้อมูลข้อสอบรายข้อที่นักเรียนตอบ |
-| **การประเมินความสับสน** | `/teacher/monitoring/[id]` | - | Redis (`answers` - วิเคราะห์) | อัปเดตผ่าน `ANSWER_UPDATE` สดๆ | ประวัติการกดชอยส์ย้อนหลังของนักเรียน |
-| **การสรุปและตรวจข้อสอบ**| `/play/[code]` (Result) | MongoDB (`QuizSessionResult`) | Redis (`answers` - สรุป) | `SESSION_CONTROL` (เมื่อกดจบเกม) | ผลสรุปคะแนนเฉลี่ย, จุดอ่อน-จุดแข็ง |
-| **กระดานวิเคราะห์ครู** | `/teacher/monitoring/[id]` | - | Redis (`students`, `answers`) | `STUDENT_JOINED`, `ANSWER_UPDATE` | ข้อมูลห้องเรียน สถิติเฉลี่ย รายชื่อเด็กทั้งหมด |
-| **บันทึกพฤติกรรมข้อสอบ** | `/play/[code]` | MongoDB (`QuizInteractionLog`) | - | - | ข้อมูลความสนใจ (Heartbeat), ประวัติสลับชอยส์ |
-| **วิเคราะห์ผลข้อสอบ AI** | `/play/[code]` (Result) | MongoDB (`QuizInteractionLog` - อ่าน) | - | - | ประวัติปฏิสัมพันธ์ระดับวินาที เพื่อแนะแนวบทเรียน |
-| **สลับภาษา/เปลี่ยนธีม** | ครอบคลุมทุกหน้าจอหลัก | - | - | - | ปรับภาษาและธีมของ UI รวมถึง Prompt วิเคราะห์ AI |
-| **ประวัติคลาสเรียนและการวิเคราะห์** | `/teacher` และ `/teacher/quizzes/[quizId]/history` และ `/[sessionId]` | MongoDB (`QuizSessionResult`) | - | - | ข้อมูลสรุปประวัติผลสัมฤทธิ์และสถิติรายบุคคล / ห้องสอบ |
-| **เปรียบเทียบข้ามเซสชัน & AI** | `/teacher/quizzes/[quizId]/history/compare` | MongoDB (`QuizSessionResult`) | - | - | สถิติแนวโน้มเปรียบเทียบผลลัพธ์ข้ามเซสชัน |
+* **รายละเอียด:** หน้า `/teacher/monitoring/[quizId]` คือศูนย์บัญชาการสด:
+  * **Matrix Grid** — แถว = นักเรียน (พร้อม progress และคะแนน), คอลัมน์ = ข้อสอบ, เซลล์ = สถานะคำตอบ (🟩 ถูก / 🟥 ผิด / 🟨 กำลังทำ / ⬜ ยังไม่ถึง) คลิกเซลล์เปิด **Answer Popover** ดูไทม์ไลน์การคลิกตอบทุกครั้ง
+  * **Live Leaderboard** จัดอันดับสด, **Live Stats Panel** (คะแนนเฉลี่ย, % ความคืบหน้า, จำนวนถูก/ตอบทั้งหมด), **Visual Analytics + Answer Timeline Chart**
+  * **State Recovery** — ครูรีเฟรชหน้าได้โดยไม่เสียข้อมูล (`get_session_state` ดึง snapshot จาก Redis กลับมาเต็ม)
+* **การส่งข้อมูล:** นักเรียนกดตอบ → `submit_answer` → Backend ตรวจเฉลยจาก MongoDB → บันทึก + push history ลง Redis → `calcStats` → broadcast `answer_update` ไปห้อง `teacher:{sessionId}` → `useMonitoringSocket` + `monitoringStore` (Zustand) อัปเดต UI ทันที
+* **Use Case:** ระหว่างสอบ ครูเห็นจาก Grid ว่าข้อ 7 ทั้งคอลัมน์แดงเกินครึ่งห้อง จึงกด Pause อธิบายโจทย์เพิ่มหน้าชั้น แล้ว Resume ให้ทำต่อ — โดยไม่ต้องรอตรวจหลังสอบ
 
 ---
-เอกสารจัดทำขึ้นสำหรับโปรเจกต์ E-Learning Platform  
-*ปรับปรุงข้อมูลล่าสุด: 10 มิถุนายน 2026*
+
+### Feature 6: Confusion Detection Engine (ระบบตรวจจับความสับสน)
+
+* **รายละเอียด:** ทุกคำตอบจะถูกคำนวณระดับความสับสนอัตโนมัติจาก (1) จำนวนครั้งที่เปลี่ยนคำตอบ (history) และ (2) เวลาที่ใช้:
+
+  ```javascript
+  function _calcConfusion(history, responseTime) {
+    const changes = history.length - 1;
+    if (changes >= 2 || responseTime > 60) return "high";
+    if (changes >= 1 || responseTime > 30) return "low";
+    return "none";
+  }
+  ```
+
+  ผลแสดงเป็น **Confusion Badge** ใน Grid/Popover, สะสมเป็น `confusionCount` ราย question ใน archive และเป็น `is_confused` / `average_confusion_rate` ใน Interaction Log ซึ่งถูกส่งให้ AI ใช้วิเคราะห์ต่อ
+* **Use Case:** นักเรียน A ตอบข้อ 3 "ถูก" แต่ badge ขึ้น High Confusion (เปลี่ยนคำตอบ 4 รอบ) — ครูรู้ว่าน่าจะเดาถูก ไม่ได้เข้าใจจริง จึงเรียกมาติวเพิ่ม ทั้งที่ระบบทั่วไปจะมองว่านักเรียนคนนี้ผ่าน
+
+---
+
+### Feature 7: Live Session Controller (แผงควบคุมห้องสอบ)
+
+* **รายละเอียด:** ครูส่ง `control_session` ได้หลาย action:
+  * `pause` / `resume` — ล็อก/ปลดล็อกการส่งคำตอบทั้งห้อง (Backend ปฏิเสธ `submit_answer` ระหว่าง pause)
+  * `lock` / `unlock` — ปิด/เปิดรับนักเรียนใหม่ (join จะได้ `ROOM_LOCKED`)
+  * `teacher_led` + `set_question_index` + `set_timer` — **โหมดครูนำ (Teacher-paced)**: ทุกจอของนักเรียนเลื่อนไปข้อเดียวกันพร้อมตัวจับเวลาที่ครูควบคุม
+  * `reset_student` — ล้างคำตอบของนักเรียนรายคน (เช่น เครื่องค้าง ขอเริ่มใหม่)
+  * `regenerate_code` — สุ่ม Join Code ใหม่กลางคัน
+  * `end` (+ `sessionLabel`) — จบสอบและ Archive
+* **Flow ตอนจบเซสชัน (Archiving):** `end` → Backend ดึง snapshot เต็มจาก Redis → คำนวณคะแนนรายคน (`scorePercent`, `progress`), สถิติรวม และ `questionStats` รายข้อ (correct%, avg time, confusion, การแจกแจงตัวเลือก) → บันทึกเป็นเอกสาร `QuizSessionResult` ใน MongoDB → ลบ session ออกจาก Redis → broadcast `session_control(end)` ล็อกจอนักเรียน
+* **Use Case:** สอบเก็บคะแนนแบบ "ครูนำ" — ครูเปิด Teacher-led กดเดินทีละข้อ ข้อละ 30 วินาที นักเรียนทุกคนเห็นข้อเดียวกันพร้อมกัน หมดเวลาแล้วครูกด End พร้อมตั้ง label "ห้อง 2 - Midterm" เพื่อให้ค้นหาย้อนหลังง่าย
+
+---
+
+### Feature 8: Student Result Screen (หน้าสรุปผลของนักเรียน)
+
+* **รายละเอียด:** จบข้อสุดท้ายแล้ว Frontend เปลี่ยนวิวเป็น `StudentResultScreen`: **ResultScoreCard** (คะแนน %, ถูก/ผิด, เวลาเฉลี่ยต่อข้อ) และ **AnswerReviewList** ไล่ดูเฉลยรายข้อ (แสดงเฉพาะเมื่อครูเปิด `showAnswersAfterQuiz`)
+* **การส่งข้อมูล:** ใช้ข้อมูลคำตอบที่สะสมใน state ฝั่ง client + ack จาก socket; พร้อมกันนั้น `useQuizInteractionLog` จะส่ง Log ทั้งชุดขึ้น `POST /api/quiz-logs`
+* **Use Case:** นักเรียนทำเสร็จเห็นทันทีว่าได้ 80% ผิดข้อ 4 กับข้อ 9 เปิดดูเฉลยและรู้ว่าตัวเองสับสนเรื่อง scope ของตัวแปร ก่อนออกจากห้องเรียน
+
+---
+
+### Feature 9: Quiz Interaction Log System (บันทึกพฤติกรรมการสอบระดับเหตุการณ์)
+
+* **รายละเอียด:** ระหว่างทำข้อสอบ hook `useQuizInteractionLog` บันทึกทุกเหตุการณ์ต่อข้อ: `view` (เปิดดูโจทย์), `select` (เลือกครั้งแรก), `change` (เปลี่ยนคำตอบ — เก็บ from→to), `deselect`, `heartbeat` (สถานะ on_task/off_task เป็นระยะ) พร้อม timestamp และเวลาที่ใช้ต่อข้อ เมื่อส่งข้อสอบ ระบบรวมเป็น JSON ก้อนเดียว (`session_metadata` + `answer_logs` + `summary`) ส่งขึ้น Backend ซึ่ง **ตรวจคำตอบใหม่กับเฉลยจริงทุกข้อ** ก่อนเก็บลง `quizinteractionlogs`
+* **การส่งข้อมูล:** Client (in-memory log) → `POST /api/quiz-logs` → MongoDB → ครูเรียกดูผ่าน `GET /api/quiz-logs/...` หรือส่งต่อให้ AI
+* **Use Case:** ครูสงสัยว่าทำไมนักเรียน B ใช้เวลาข้อ 5 ไปเกือบ 3 นาที — เปิด Log เห็นว่ามี heartbeat `off_task` ต่อเนื่อง (สลับแท็บหรือวางมือถือ) ไม่ใช่เพราะโจทย์ยาก
+
+---
+
+### Feature 10: Personalized AI Analysis per Student (AI วิเคราะห์และแนะแนวรายบุคคล)
+
+* **รายละเอียด:** นำ Interaction Log มาสร้าง prompt โครงสร้าง (คะแนน, เวลา, confusion rate, สรุปรายข้อพร้อม flag "ตอบเร็วผิดปกติ/ลังเล") ส่งให้ Ollama วิเคราะห์ ตอบเป็น 5 ส่วน: Overall Assessment / Strengths / Weak Areas / Study Recommendations / Encouragement — เลือกภาษาได้ (TH/EN/JA)
+* **การส่งข้อมูล:** UI → `POST /api/analyze-quiz-log` (Next.js route) → ดึง log จาก Backend (ถ้าส่ง `logId`) → build prompt → Ollama `/api/generate` → ผลกลับมาเรนเดอร์เป็น Markdown
+* **Use Case:** หลังสอบ ครูกดวิเคราะห์นักเรียนรายคน AI ชี้ว่านักเรียน C ผิดเฉพาะข้อที่เกี่ยวกับ "loop ซ้อน" และทุกข้อนั้นมีการเปลี่ยนคำตอบมากกว่า 2 รอบ พร้อมแนะนำแบบฝึกเฉพาะเรื่อง — ครูส่งสรุปนี้ให้นักเรียนไปทบทวน
+
+---
+
+### Feature 11: AI Assistant (ผู้ช่วย AI ในแอป)
+
+* **รายละเอียด:** `AIAssistant.tsx` คือแชทลอยที่ใช้ได้ทั้งระบบ — ถามตอบทั่วไป ช่วยวิเคราะห์ข้อมูลในหน้าที่เปิดอยู่ และสั่งสร้าง/แก้ไขควิซผ่านบล็อก `json_quiz_update` ระบบ auto-detect โมเดล Ollama ที่ติดตั้งในเครื่อง (`/api/tags`) โดยไม่ต้องตั้งค่า
+  **🎯 UI Inspection Mode** (`useContextSelector`): กดปุ่ม Target ในแชทแล้วคลิกเลือก component บนหน้าจอ (การ์ดนักเรียน, การ์ดควิซ ฯลฯ ที่ติด attribute `data-ai-context-type/name/data`) — ระบบไฮไลต์กรอบม่วงตอน hover, ดึง JSON context จาก DOM มาแปะเป็น Context Badge เหนือช่องแชท ทำให้ AI ตอบเจาะจงกับข้อมูลชิ้นนั้นได้
+* **การส่งข้อมูล:** UI (messages + context จาก DOM + lang) → `POST /api/chat` → Ollama → คำตอบ (ถ้ามี json_quiz_update → ปุ่ม Apply เทลง Quiz Builder)
+* **Use Case:** ครูเห็นนักเรียนคนหนึ่งคะแนนต่ำและ confusion สูง — กด 🎯 คลิกการ์ดของนักเรียนคนนั้น แล้วถาม AI ว่า "ช่วยออกแบบโจทย์ฝึกหัดสำหรับเด็กคนนี้" AI อ่านประวัติคำตอบจาก context แล้วสร้างโจทย์เจาะจุดอ่อนให้ทันที
+
+---
+
+### Feature 12: Session History, Analytics & AI Insights (ประวัติการสอบและรายงานวิเคราะห์)
+
+* **รายละเอียด:** หน้า `/teacher/quizzes/[quizId]/history` แสดงเซสชันย้อนหลังทั้งหมด (ตั้ง/แก้ `sessionLabel` และลบเซสชันที่ไม่ต้องการได้) คลิกเข้ารายเซสชันเพื่อดู:
+  * กราฟ **Score Distribution**, **Question Breakdown** (correct% รายข้อ), **Confusion Heatmap**, ตารางคะแนนรายคน
+  * **AI Summary Panel** — สตรีมบทวิเคราะห์ระดับห้องเรียนจาก Ollama แบบ SSE (พิมพ์ทีละ token): สรุปภาพรวม, 3 ข้อที่ยากสุดพร้อมเหตุผล, 3 ข้อที่ทำได้ดี, คำแนะนำการสอน 3–5 ข้อ, กลยุทธ์คาบถัดไป — เลือกภาษา TH/EN/JA
+  * **AI รายนักเรียน** ในเซสชันนั้น และ **Export CSV** รายเซสชัน
+* **การส่งข้อมูล:** `sessionHistoryApi.ts` → REST → MongoDB (`quizsessionresults`); AI = Backend build prompt จากข้อมูลเซสชัน → Ollama → SSE → UI
+* **Use Case:** จบเทอม ครูเปิดประวัติ "Quiz บทที่ 3" 4 รอบสอบ กด AI Summary ของรอบล่าสุด ได้รายงานภาษาไทยว่าทั้งห้องอ่อนเรื่อง pointer พร้อมข้อเสนอวิธีสอนใหม่ นำไปแนบรายงานผลการสอนได้ทันที
+
+---
+
+### Feature 13: Cross-Session Comparison & AI Trends (เปรียบเทียบข้ามรอบสอบ)
+
+* **รายละเอียด:** หน้า `history/compare` รวมทุกเซสชันของควิซเดียวกัน: กราฟแนวโน้มคะแนนเฉลี่ยต่อรอบ, ตาราง per-question correct% เทียบทุกห้อง, confusion สะสม และปุ่ม **AI Cross-Session** ให้ LLM วิเคราะห์ว่าแนวโน้มดีขึ้น/แย่ลง คอนเซปต์ไหน "ยากสากล" ทุกห้อง
+* **การส่งข้อมูล:** `GET /api/session-history/quiz/:quizId/aggregate` (MongoDB aggregate ในแอป) + `POST .../ai-cross-session` (SSE จาก Ollama)
+* **Use Case:** ครูสอน 3 ห้องด้วยควิซเดียวกัน พบจากกราฟว่าห้อง 2 คะแนนต่ำกว่าอย่างมีนัย และ AI ชี้ว่าข้อเรื่อง recursion ผิดมากทุกห้อง (avg 31%) — สรุปได้ว่าปัญหาอยู่ที่เนื้อหา/วิธีสอน ไม่ใช่ตัวห้องเรียน
+
+---
+
+### Feature 14: Multilingual (TH/EN/JA) & Dark/Light Theme
+
+* **รายละเอียด:** ทุกหน้าจอรองรับ 3 ภาษาผ่าน i18n Context + `LanguageSwitcher` และสลับธีมด้วย next-themes ภาษาที่เลือกถูกส่งต่อไปถึง **AI ทุกตัว** (prompt บังคับให้ตอบภาษานั้น) ทำให้รายงาน AI ออกมาเป็นไทย อังกฤษ หรือญี่ปุ่นตามผู้ใช้
+* **Use Case:** ใช้งานในแล็บที่ญี่ปุ่น — อาจารย์ญี่ปุ่นใช้ UI ภาษา JA และได้รายงาน AI เป็นภาษาญี่ปุ่น ขณะที่นักศึกษาแลกเปลี่ยนใช้ EN ในเครื่องตนเองพร้อมกัน
+
+---
+
+## 🏁 7. สรุปความสัมพันธ์ของข้อมูล (System Integration Matrix)
+
+| เหตุการณ์ | Frontend | ช่องทาง | Backend | เก็บที่ | AI |
+|---|---|---|---|---|---|
+| สร้าง/แก้ควิซ | Quiz Builder (Zustand) | REST + JWT | quiz.controller | MongoDB `quizzes` | Copilot ผ่าน `/api/chat` |
+| นักเรียนเข้าห้อง | `/play/[code]` | REST + Socket | quizHandlers | Redis (live) | — |
+| ตอบคำถามสด | Play UI | Socket `submit_answer` | ตรวจเฉลย MongoDB → Redis | Redis (history + confusion) | — |
+| คุมสอบ | Monitoring UI | Socket `control_session` | quizHandlers | Redis meta | — |
+| จบสอบ (End) | Monitoring UI | Socket `end` | Archive snapshot | MongoDB `quizsessionresults` → ล้าง Redis | — |
+| ส่ง Interaction Log | `useQuizInteractionLog` | REST | quizLog.controller (re-validate) | MongoDB `quizinteractionlogs` | input ของ AI รายบุคคล |
+| รายงานย้อนหลัง | Session History UI | REST | session-history routes | MongoDB | AI Summary / per-student / cross-session ผ่าน SSE |
+| แดชบอร์ดครู | Dashboard UI | REST | dashboard.controller | MongoDB (aggregate) | — |
+
+### จุดเด่นของระบบ (Highlights)
+
+1. **Real-time ครบวงจร** — เห็นทุกคลิกของนักเรียนสด ๆ ผ่าน Socket.IO + Redis พร้อมกู้คืนสถานะเมื่อรีเฟรช
+2. **Confusion Detection** — วัด "ความเข้าใจจริง" ไม่ใช่แค่ถูก/ผิด จากพฤติกรรมเปลี่ยนคำตอบและเวลา
+3. **AI ทำงานบนเครื่อง (Local LLM)** — ข้อมูลนักเรียนไม่ออกนอกเครื่อง/แล็บ ใช้ Ollama ได้หลายโมเดล สตรีมผลแบบ SSE
+4. **วิเคราะห์ 3 ระดับ** — รายบุคคล (Interaction Log) → รายห้อง (Session Summary) → ข้ามรอบสอบ (Cross-Session Trends)
+5. **Resilient Architecture** — Redis ล่มก็สอบต่อได้ (in-memory fallback), Server ตรวจเฉลยเองเสมอ ไม่เชื่อ client
+6. **Multilingual ถึงระดับ AI** — TH/EN/JA ทั้ง UI และรายงาน AI
+
