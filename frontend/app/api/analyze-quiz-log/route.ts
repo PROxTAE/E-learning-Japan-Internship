@@ -28,7 +28,7 @@ async function detectModel(): Promise<string> {
       if (d.models?.[0]?.name) return d.models[0].name;
     }
   } catch { /* Ollama not running */ }
-  return "gemma2:9b";
+  return "qwen3:4b-instruct";
 }
 
 /** Build the analysis system + user prompt from a log payload */

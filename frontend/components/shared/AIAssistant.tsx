@@ -498,6 +498,48 @@ export default function AIAssistant() {
   const [selectedContexts, setSelectedContexts] = useState<AIContext[]>([]);
   const [isSelectingContext, setIsSelectingContext] = useState(false);
 
+  const [connectionStatus, setConnectionStatus] = useState<"checking" | "connected" | "disconnected">("checking");
+  const [ollamaError, setOllamaError] = useState<string | null>(null);
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [ollamaUrl, setOllamaUrl] = useState<string>("");
+
+  const checkConnection = async () => {
+    setConnectionStatus("checking");
+    setOllamaError(null);
+    try {
+      const res = await fetch("/api/ai-status");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.connected) {
+          setConnectionStatus("connected");
+          setActiveModel(data.model);
+          setAvailableModels(data.models || []);
+          setOllamaUrl(data.url);
+        } else {
+          setConnectionStatus("disconnected");
+          setOllamaError(data.error || "Ollama server not responding");
+          setOllamaUrl(data.url);
+        }
+      } else {
+        setConnectionStatus("disconnected");
+        setOllamaError(`HTTP error ${res.status}`);
+      }
+    } catch (err: any) {
+      setConnectionStatus("disconnected");
+      setOllamaError(err.message || "Failed to reach AI status endpoint");
+    }
+  };
+
+  useEffect(() => {
+    checkConnection();
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      checkConnection();
+    }
+  }, [isOpen]);
+
   useContextSelector(isSelectingContext, (context) => {
     setSelectedContexts((prev) => {
       const exists = prev.some(c => c.name === context.name && c.type === context.type);
@@ -870,23 +912,47 @@ export default function AIAssistant() {
             {/* Header */}
             <div className="p-4 border-b border-zinc-200/50 dark:border-zinc-800/80 bg-gradient-to-r from-violet-50/85 to-indigo-50/85 dark:from-zinc-900/60 dark:to-zinc-900/60 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-violet-500/20">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-violet-500/20 animate-pulse-slow">
                   <Bot className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-zinc-800 dark:text-zinc-100 text-sm flex items-center gap-1.5">
+                  <h3 className="font-bold text-zinc-800 dark:text-zinc-100 text-sm flex items-center gap-1.5 animate-fade-in">
                     {localT.headerTitle}
-                    <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className={`inline-block w-2.5 h-2.5 rounded-full animate-pulse transition-colors duration-500 ${
+                      connectionStatus === "connected"
+                        ? "bg-emerald-500 shadow-sm shadow-emerald-500/50"
+                        : connectionStatus === "checking"
+                          ? "bg-amber-500 shadow-sm shadow-amber-500/50"
+                          : "bg-rose-500 shadow-sm shadow-rose-500/50"
+                    }`} />
                   </h3>
                   <div className="mt-0.5">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-violet-100/60 text-violet-700 dark:bg-violet-950/40 dark:text-violet-400 border border-violet-200/30 dark:border-violet-900/30 select-none">
-                      {activeModel ? activeModel : "Local LLM"}
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold border select-none transition-all duration-300 ${
+                      connectionStatus === "connected"
+                        ? "bg-violet-100/60 text-violet-700 dark:bg-violet-950/40 dark:text-violet-400 border-violet-200/30 dark:border-violet-900/30"
+                        : connectionStatus === "checking"
+                          ? "bg-amber-100/60 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border-amber-200/30 dark:border-amber-900/30 animate-pulse"
+                          : "bg-rose-100/60 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 border-rose-200/30 dark:border-rose-900/30"
+                    }`}>
+                      {connectionStatus === "connected" ? (activeModel ? activeModel : "Local LLM") : (connectionStatus === "checking" ? "Checking..." : "Offline")}
                     </span>
                   </div>
                 </div>
               </div>
 
               <div className="flex items-center gap-1.5">
+                <Button
+                  isIconOnly
+                  size="sm"
+                  variant="ghost"
+                  className={`text-zinc-500 hover:text-violet-600 dark:text-zinc-400 bg-transparent hover:bg-zinc-100/80 dark:hover:bg-zinc-900 border-none ${
+                    connectionStatus === "checking" ? "animate-spin" : ""
+                  }`}
+                  onClick={checkConnection}
+                  aria-label="Check connection status"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                </Button>
                 <Button
                   isIconOnly
                   size="sm"
@@ -924,6 +990,23 @@ export default function AIAssistant() {
 
             {/* Chat Body */}
             <div className="flex-1 flex flex-col overflow-hidden relative">
+              {connectionStatus === "disconnected" && (
+                <div className="px-4 py-2 bg-rose-500/10 border-b border-rose-500/15 text-rose-600 dark:text-rose-400 text-[11px] font-semibold flex items-center justify-between gap-2 shadow-sm shadow-rose-500/5 animate-slide-down">
+                  <span className="truncate flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
+                    {lang === "th" 
+                      ? "ตรวจไม่พบ Ollama ในเครื่องของคุณ" 
+                      : "Cannot detect local Ollama server"} {ollamaUrl && `(${ollamaUrl})`}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={checkConnection}
+                    className="px-2.5 py-0.5 rounded bg-rose-600 text-white text-[10px] font-bold hover:bg-rose-700 transition-colors shrink-0 shadow-sm cursor-pointer border-none active:scale-[0.98]"
+                  >
+                    {lang === "th" ? "เชื่อมต่อใหม่" : "Reconnect"}
+                  </button>
+                </div>
+              )}
               <ScrollShadow className="flex-1 p-4 overflow-y-auto space-y-4">
                 {messages.map((msg) => (
                   <div
@@ -1007,7 +1090,7 @@ export default function AIAssistant() {
 
                 {/* Error Banner */}
                 {errorMsg && (
-                  <Card className="border border-rose-500/30 bg-rose-500/10 p-3.5 text-rose-500 text-xs rounded-2xl flex flex-col gap-1.5 shadow-none">
+                  <Card className="border border-rose-500/30 bg-rose-500/10 p-3.5 text-rose-500 text-xs rounded-2xl flex flex-col gap-1.5 shadow-none animate-shake">
                     <p className="font-bold flex items-center gap-1">
                       {localT.errTitle}
                     </p>
@@ -1020,6 +1103,17 @@ export default function AIAssistant() {
                         ollama run gemma2
                       </code>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setErrorMsg(null);
+                        checkConnection();
+                      }}
+                      className="mt-2 w-full py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm shadow-rose-600/10 cursor-pointer border-none active:scale-[0.98]"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                      {lang === "th" ? "ตรวจสอบการเชื่อมต่อใหม่" : "Retry Connection"}
+                    </button>
                   </Card>
                 )}
 

@@ -44,9 +44,17 @@ export function SessionCard({ session, index, onView, onDelete }: SessionCardPro
       transition={{ delay: index * 0.07, duration: 0.4 }}
       whileHover={{ y: -4 }}
     >
-      <button
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => onView(session.id)}
-        className="w-full text-left group relative overflow-hidden rounded-2xl border border-default-200/60 dark:border-white/10 hover:border-violet-400/50 dark:hover:border-violet-500/40 transition-all duration-300 shadow-sm hover:shadow-xl hover:shadow-violet-500/10 bg-background dark:bg-white/[0.03] backdrop-blur-sm cursor-pointer"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onView(session.id);
+          }
+        }}
+        className="w-full text-left group relative overflow-hidden rounded-2xl border border-default-200/60 dark:border-white/10 hover:border-violet-400/50 dark:hover:border-violet-500/40 transition-all duration-300 shadow-sm hover:shadow-xl hover:shadow-violet-500/10 bg-background dark:bg-white/[0.03] backdrop-blur-sm cursor-pointer select-none"
         data-ai-context-type="session-summary"
         data-ai-context-name={`สรุปผลเซสชัน ${label}`}
         data-ai-context-data={JSON.stringify({
@@ -130,7 +138,7 @@ export function SessionCard({ session, index, onView, onDelete }: SessionCardPro
             </div>
           </div>
         </div>
-      </button>
+      </div>
     </motion.div>
   );
 }

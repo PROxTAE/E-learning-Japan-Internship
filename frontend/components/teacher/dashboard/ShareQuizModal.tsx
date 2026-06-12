@@ -28,7 +28,7 @@ export function ShareQuizModal({ quiz, isOpen, onClose }: ShareQuizModalProps) {
   }, [quiz]);
 
   // When students join, they go to /play/[code]
-  const baseUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || (typeof window !== "undefined" ? window.location.origin : "");
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : (process.env.NEXT_PUBLIC_FRONTEND_URL || "");
   const joinUrl = currentQuiz.accessCode ? `${baseUrl}/play/${currentQuiz.accessCode}` : "";
 
   useEffect(() => {

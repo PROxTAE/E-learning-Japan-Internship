@@ -33,7 +33,7 @@ export async function POST(req: Request) {
 
     // Default fallback model if none could be auto-detected or configured
     if (!selectedModel) {
-      selectedModel = "gemma2:9b"; // Popular default model
+      selectedModel = "qwen3:4b-instruct"; // Default model installed on this machine (fits 4GB VRAM)
     }
 
     // 2. Prepare conversation messages

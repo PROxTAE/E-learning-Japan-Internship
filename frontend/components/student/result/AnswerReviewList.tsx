@@ -29,8 +29,8 @@ export function AnswerReviewList({ reviews }: AnswerReviewListProps) {
         <Accordion {...{ variant: "light", selectionMode: "multiple" } as any}>
           {reviews.map((review, idx) => (
             <AccordionItem
+              key={review.questionId}
               {...{
-                key: review.questionId,
                 "aria-label": `Question ${idx + 1}`,
                 title: (
                   <div className="flex items-center gap-3 py-1">
