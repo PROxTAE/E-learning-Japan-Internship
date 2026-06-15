@@ -480,6 +480,11 @@ export default function AIAssistant() {
   const pathname = usePathname();
   const { lang } = useLang();
 
+  // Hide on projector presentation views and student play screens
+  if (pathname?.startsWith("/present") || pathname?.startsWith("/play")) {
+    return null;
+  }
+
   const localT = localTranslations[lang] || localTranslations.en;
 
   const [isOpen, setIsOpen] = useState(false);

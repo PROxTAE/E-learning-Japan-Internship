@@ -8,7 +8,7 @@
  *
  * Usage (from the `frontend` folder):
  *   node scripts/loadtest-students.js --quiz <QUIZ_ID> [options]
- *
+ * 
  * Options:
  *   --quiz   <id>     Quiz id to join (required)
  *   --count  <n>      Number of students to spawn        (default 20)
