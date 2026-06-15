@@ -11,10 +11,32 @@ const {
 } = require("./types");
 
 const redis = require("../redis/redisService");
-const { validateJoinPayload, validateAnswerPayload, cleanupSocket } = require("./socketMiddleware");
+const { validateJoinPayload, validateAnswerPayload, checkEventRateLimit, cleanupSocket } = require("./socketMiddleware");
 const Quiz = require("../models/Quiz.model");
 
 module.exports = function registerHandlers(io, socket) {
+
+  // ── Debounced stats broadcast ───────────────────────────────────────────────
+  // When 20 students submit answers within 300ms, only ONE stats update is sent
+  // to the teacher room instead of 20. Individual answer_update events are still
+  // sent immediately — only the heavy stats calculation is batched.
+  const _statsBroadcastTimers = registerHandlers._statsBroadcastTimers || (registerHandlers._statsBroadcastTimers = new Map());
+
+  function debouncedStatsBroadcast(sessionId, delayMs = 300) {
+    if (_statsBroadcastTimers.has(sessionId)) {
+      clearTimeout(_statsBroadcastTimers.get(sessionId));
+    }
+    _statsBroadcastTimers.set(sessionId, setTimeout(async () => {
+      try {
+        const stats = await redis.calcStats(sessionId);
+        io.to(teacherRoom(sessionId)).emit(SERVER_EVENTS.SESSION_STATS, { stats });
+      } catch (err) {
+        console.error("[debouncedStatsBroadcast] error:", err);
+      }
+      _statsBroadcastTimers.delete(sessionId);
+    }, delayMs));
+  }
+
 
   // ── JOIN_QUIZ ────────────────────────────────────────────────────────────────
   socket.on(CLIENT_EVENTS.JOIN_QUIZ, async (payload) => {
@@ -37,15 +59,17 @@ module.exports = function registerHandlers(io, socket) {
         socket.join(teacherRoom(sessionId));
         console.log(`[join_quiz] Teacher joined teacherRoom: ${teacherRoom(sessionId)}`);
 
+        // Cache quiz in Redis for fast access during submit_answer
+        let quiz = null;
+        if (quizId) {
+          quiz = await redis.cacheQuizForSession(sessionId, quizId);
+        }
+
         const [students, answers, stats] = await Promise.all([
           redis.getStudents(sessionId),
           redis.getAnswers(sessionId),
           redis.calcStats(sessionId),
         ]);
-
-        const quiz = quizId
-          ? await Quiz.findById(quizId).lean().catch(() => null)
-          : null;
 
         return socket.emit(SERVER_EVENTS.SESSION_JOINED, {
           role: "teacher",
@@ -90,6 +114,10 @@ module.exports = function registerHandlers(io, socket) {
   // ── SUBMIT_ANSWER ────────────────────────────────────────────────────────────
   socket.on(CLIENT_EVENTS.SUBMIT_ANSWER, async (payload) => {
     try {
+      // Per-event rate limit: max 10 answer submissions per 5 seconds per socket
+      const rateLimitError = checkEventRateLimit(socket.id, 10, 5000);
+      if (rateLimitError) return socket.emit(SERVER_EVENTS.ERROR, { message: rateLimitError });
+
       const error = validateAnswerPayload(payload);
       if (error) return socket.emit(SERVER_EVENTS.ERROR, { message: error });
 
@@ -102,19 +130,19 @@ module.exports = function registerHandlers(io, socket) {
         return socket.emit(SERVER_EVENTS.ERROR, { message: "Session is paused" });
       }
 
-      // Determine correctness from MongoDB
+      // Determine correctness from cached quiz (Redis) instead of MongoDB
       let isCorrect = payload.isCorrect ?? false;
       if (quizId) {
         try {
-          const quiz = await Quiz.findById(quizId).lean();
+          const quiz = await redis.getCachedQuiz(sessionId, quizId);
           if (quiz) {
             const question = quiz.questions.find(
-              (q) => q._id.toString() === questionId || q.id === questionId
+              (q) => (q._id && q._id.toString() === questionId) || q.id === questionId
             );
             if (question) {
               const correctChoice = question.choices.find((c) => c.isCorrect);
               isCorrect =
-                correctChoice?._id.toString() === choiceId ||
+                (correctChoice?._id && correctChoice._id.toString() === choiceId) ||
                 correctChoice?.id === choiceId;
             }
           }
@@ -127,12 +155,13 @@ module.exports = function registerHandlers(io, socket) {
         isCorrect, responseTime: responseTime || 0,
       });
 
-      const stats = await redis.calcStats(sessionId);
-
+      // Send individual answer to teacher immediately (lightweight)
       const room = teacherRoom(sessionId);
-      console.log(`[submit_answer] Broadcasting answer_update to room: ${room}`);
-      io.to(room).emit(SERVER_EVENTS.ANSWER_UPDATE, { answer, stats });
+      io.to(room).emit(SERVER_EVENTS.ANSWER_UPDATE, { answer });
       socket.emit(SERVER_EVENTS.ANSWER_UPDATE, { answer });
+
+      // Debounce the heavy stats recalculation — batches rapid submissions
+      debouncedStatsBroadcast(sessionId);
 
     } catch (err) {
       console.error("[submit_answer] error:", err);
@@ -237,6 +266,12 @@ module.exports = function registerHandlers(io, socket) {
       }
       
       if (action === "end") {
+        // Clean up debounce timer for this session
+        if (_statsBroadcastTimers.has(sessionId)) {
+          clearTimeout(_statsBroadcastTimers.get(sessionId));
+          _statsBroadcastTimers.delete(sessionId);
+        }
+
         const snapshot = await redis.getFullSessionState(sessionId);
         const actualQuizId = snapshot?.quizId || sessionId.replace("quiz-session-", "");
         const sessionLabel = payload.sessionLabel || "";
@@ -244,9 +279,10 @@ module.exports = function registerHandlers(io, socket) {
         if (snapshot && actualQuizId) {
           const QuizSessionResult = require("../models/QuizSessionResult.model");
 
+          // Use cached quiz first, fallback to MongoDB
           let quizQuestions = [];
           try {
-            const quizDoc = await Quiz.findById(actualQuizId).lean();
+            const quizDoc = await redis.getCachedQuiz(sessionId, actualQuizId);
             quizQuestions = quizDoc?.questions || [];
           } catch (_) { /* ignore */ }
           const totalQuestions = quizQuestions.length;

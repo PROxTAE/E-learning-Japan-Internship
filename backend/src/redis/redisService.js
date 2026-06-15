@@ -44,6 +44,49 @@ async function _touch(client, code) {
   ]);
 }
 
+// ── Quiz Cache ────────────────────────────────────────────────────────────────
+// Cache quiz data in Redis so submit_answer doesn't hit MongoDB every time.
+// Key: quiz:{accessCode}:quiz_cache  →  STRING (JSON-serialised quiz document)
+
+const QUIZ_CACHE_KEY = (code) => `quiz:${code}:quiz_cache`;
+
+/**
+ * Cache a quiz document in Redis for the duration of a live session.
+ * Called once when the session is created or when the first answer needs it.
+ * @param {string} accessCode - The session/access code
+ * @param {string} quizId - MongoDB quiz ID
+ * @returns {Promise<object|null>} The cached quiz document
+ */
+async function cacheQuizForSession(accessCode, quizId) {
+  if (!quizId) return null;
+  const Quiz = require("../models/Quiz.model");
+  const quiz = await Quiz.findById(quizId).lean();
+  if (!quiz) return null;
+
+  const client = await getRedisClient();
+  if (client) {
+    await client.set(QUIZ_CACHE_KEY(accessCode), JSON.stringify(quiz), { EX: SESSION_TTL });
+  }
+  return quiz;
+}
+
+/**
+ * Get cached quiz data. Falls back to MongoDB + caches if not found.
+ * @param {string} accessCode - The session/access code
+ * @param {string} [quizId] - Optional quiz ID for fallback fetch
+ * @returns {Promise<object|null>} The quiz document
+ */
+async function getCachedQuiz(accessCode, quizId) {
+  const client = await getRedisClient();
+  if (client) {
+    const raw = await client.get(QUIZ_CACHE_KEY(accessCode));
+    if (raw) return safeJSON(raw);
+  }
+  // Cache miss — fetch from MongoDB and cache for next time
+  if (quizId) return cacheQuizForSession(accessCode, quizId);
+  return null;
+}
+
 // ── Session ───────────────────────────────────────────────────────────────────
 
 /**
@@ -604,7 +647,8 @@ async function deleteSession(accessCode) {
   const students = await getStudents(accessCode);
   const deletePromises = [
     client.del(keys.session(accessCode)),
-    client.del(keys.students(accessCode))
+    client.del(keys.students(accessCode)),
+    client.del(QUIZ_CACHE_KEY(accessCode)),  // clean up quiz cache
   ];
   students.forEach(st => {
     deletePromises.push(client.del(keys.answers(accessCode, st.studentId)));
@@ -632,4 +676,6 @@ module.exports = {
   getFullSessionState,
   calcStats,
   deleteSession,
+  cacheQuizForSession,
+  getCachedQuiz,
 };

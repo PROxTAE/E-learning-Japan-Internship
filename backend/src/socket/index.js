@@ -13,6 +13,11 @@ function initSocket(httpServer) {
       origin: "*",  // In production, restrict to your frontend domain
       methods: ["GET", "POST"],
     },
+    // ── Heartbeat: detect ghost connections quickly ───────────
+    // With 20+ concurrent students, stale connections skew stats.
+    // Ping every 15s → if no pong within 10s → disconnect.
+    pingInterval: 15000,
+    pingTimeout:  10000,
     // Allow reconnection with same session data
     connectionStateRecovery: {
       maxDisconnectionDuration: 2 * 60 * 1000, // 2 minutes

@@ -22,6 +22,25 @@ function rateLimitMiddleware(socket, next) {
   next();
 }
 
+// Per-event rate limiter — call inside individual handlers
+// Returns null if OK, or an error message string if rate-limited
+const eventRateLimitMap = new Map(); // socketId → { count, resetAt }
+
+function checkEventRateLimit(socketId, maxEvents = 10, windowMs = 5000) {
+  const now = Date.now();
+  const entry = eventRateLimitMap.get(socketId) || { count: 0, resetAt: now + windowMs };
+  if (now > entry.resetAt) {
+    entry.count = 0;
+    entry.resetAt = now + windowMs;
+  }
+  entry.count++;
+  eventRateLimitMap.set(socketId, entry);
+  if (entry.count > maxEvents) {
+    return "Rate limit: too many events, please slow down";
+  }
+  return null;
+}
+
 // Validate join_quiz payload
 function validateJoinPayload(payload) {
   const { sessionId, studentId, name, role } = payload || {};
@@ -45,6 +64,7 @@ function validateAnswerPayload(payload) {
 // Cleanup on disconnect
 function cleanupSocket(socketId) {
   rateLimitMap.delete(socketId);
+  eventRateLimitMap.delete(socketId);
 }
 
-module.exports = { rateLimitMiddleware, validateJoinPayload, validateAnswerPayload, cleanupSocket };
+module.exports = { rateLimitMiddleware, checkEventRateLimit, validateJoinPayload, validateAnswerPayload, cleanupSocket };

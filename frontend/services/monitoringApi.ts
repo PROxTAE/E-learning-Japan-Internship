@@ -78,6 +78,7 @@ function setupRealtimeListeners(
   socket.off("session_joined");
   socket.off("session_state");
   socket.off("answer_update");
+  socket.off("session_stats");
   socket.off("student_joined");
   socket.off("student_left");
   socket.off("session_control");
@@ -121,9 +122,15 @@ function setupRealtimeListeners(
   });
 
   // ── Real-time answer updates ───────────────────────────────
-  socket.on("answer_update", ({ answer, stats }: { answer: AnswerCellData; stats: LiveStats }) => {
+  socket.on("answer_update", ({ answer, stats }: { answer: AnswerCellData; stats?: LiveStats }) => {
     console.log("[monitoringApi] answer_update:", answer.studentId, answer.questionId);
     callbacks.onAnswerUpdate(answer);
+    if (stats) callbacks.onStatsUpdate(stats);
+  });
+
+  // ── Debounced stats update (batched for 20+ concurrent students) ──
+  socket.on("session_stats", ({ stats }: { stats: LiveStats }) => {
+    console.log("[monitoringApi] session_stats (debounced):", stats);
     if (stats) callbacks.onStatsUpdate(stats);
   });
 
@@ -154,6 +161,7 @@ function setupRealtimeListeners(
     socket.off("session_joined");
     socket.off("session_state");
     socket.off("answer_update");
+    socket.off("session_stats");
     socket.off("student_joined");
     socket.off("student_left");
     socket.off("session_control");
