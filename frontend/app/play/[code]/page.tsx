@@ -59,6 +59,7 @@ export default function PlayQuizPage() {
   // ── Session Controls States ────────────────────────────────────────────────
   const [isTeacherLed, setIsTeacherLed] = useState(false);
   const [roomLocked, setRoomLocked] = useState(false);
+  const [kicked, setKicked] = useState(false);
   const [liveTimer, setLiveTimer] = useState<number | null>(null);
 
   // ── Timing per question ────────────────────────────────────────────────────
@@ -75,7 +76,7 @@ export default function PlayQuizPage() {
   });
 
   // ── Session persistence ────────────────────────────────────────────────────
-  const { loadSession, saveSession, clearSession } = useQuizSession(quiz?.id ?? "");
+  const { loadSession, saveSession, clearSession } = useQuizSession(quiz?.id ?? "", quiz?.sessionToken);
 
   // ── Load quiz from API ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -178,7 +179,12 @@ export default function PlayQuizPage() {
       } else if (action === "resume") {
         setIsPaused(false);
       } else if (action === "end") {
+        // Teacher ended the round. Show results, but drop our identity + lobby
+        // state so we don't linger in the next (freshly-rotated) round.
         clearSession();
+        setInLobby(false);
+        setIsReady(false);
+        setStudentId("");          // disconnects socket; result screen still renders
         setIsFinished(true);
       } else if (action === "teacher_led") {
         setIsTeacherLed(!!payload.isTeacherLed);
@@ -190,6 +196,17 @@ export default function PlayQuizPage() {
         if (payload.timer === 0 && payload.timerActive === false) {
           clearSession();
           setIsFinished(true);
+        }
+      } else if (action === "remove_student") {
+        if (payload.studentId === studentId) {
+          // The teacher kicked us out of the session.
+          clearSession();
+          setInLobby(false);
+          setIsReady(false);
+          setStarted(false);
+          setIsFinished(false);
+          setStudentId("");
+          setKicked(true);
         }
       } else if (action === "reset_student") {
         if (payload.studentId === studentId) {
@@ -297,11 +314,22 @@ export default function PlayQuizPage() {
   };
 
   const handlePlayAgain = () => {
+    // Re-fetch the quiz so we pick up the latest round's sessionToken, then
+    // return to the welcome screen with a clean slate (fresh identity).
+    quizApi.getQuizByCode(code).then((data) => setQuiz(data)).catch(() => {});
+    clearSession();
+    setStudentId("");
+    setStudentName("");
     setCurrentIndex(0);
     setSelectedAnswers({});
     setCurrentSelection(null);
+    setInLobby(false);
+    setIsReady(false);
+    setStarted(false);
     setIsFinished(false);
-    setStarted(true);
+    setStartTime(null);
+    setTimeLeft(null);
+    setRecoveredSession(false);
   };
 
   const handleSelectOption = (optionId: string) => {
@@ -391,6 +419,29 @@ export default function PlayQuizPage() {
   // ═══════════════════════════════════════════════════════════════════════════
   //  Loading & Error Screens
   // ═══════════════════════════════════════════════════════════════════════════
+  if (kicked) {
+    return (
+      <div className="quiz-bg fixed inset-0 flex flex-col items-center justify-center p-4">
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+          <QuizLangSwitcher />
+          <ThemeSwitcher />
+        </div>
+        <Card className="w-full max-w-md bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl">
+          <CardContent className="text-center py-12 px-8 flex flex-col items-center gap-6">
+            <div className="text-6xl mb-2">👋</div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-black text-white">{t.play.kickedTitle}</h2>
+              <p className="text-white/60">{t.play.kickedMessage}</p>
+            </div>
+            <Button className="w-full h-14 rounded-2xl font-bold bg-white text-violet-600 shadow-xl" onPress={() => router.push("/")}>
+              {t.play.backHome}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (roomLocked) {
     return (
       <div className="quiz-bg fixed inset-0 flex flex-col items-center justify-center p-4">

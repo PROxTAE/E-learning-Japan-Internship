@@ -74,6 +74,7 @@ export function StudentResultScreen({ quizId, studentId, studentName, selectedAn
   const [aiError, setAiError]               = useState<string | null>(null);
   const [showAiPanel, setShowAiPanel]       = useState(false);
   const [aiModel, setAiModel]               = useState<string>("");
+  const [aiQueuePos, setAiQueuePos]         = useState<number | null>(null); // >0 = waiting in queue
 
 
   useEffect(() => {
@@ -205,20 +206,72 @@ export function StudentResultScreen({ quizId, studentId, studentName, selectedAn
     setAiLoading(true);
     setAiError(null);
     setShowAiPanel(true);
+    setAiAnalysis("");
+    setAiQueuePos(null);
     try {
-      const res  = await fetch("/api/analyze-quiz-log", {
+      const res = await fetch("/api/analyze-quiz-log", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({ logId, lang }),
       });
-      const body = await res.json();
-      if (!res.ok || !body.success) throw new Error(body.message || "Analysis failed");
-      setAiAnalysis(body.data.analysis);
-      setAiModel(body.data.model || "");
+
+      // Early errors come back as a single JSON object; success streams NDJSON.
+      const contentType = res.headers.get("Content-Type") || "";
+      if (!res.ok || contentType.includes("application/json")) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message || "Analysis failed");
+      }
+
+      const reader = res.body?.getReader();
+      if (!reader) throw new Error("Streaming not supported");
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let acc = "";
+      let streamError: string | null = null;
+
+      const handleFrame = (obj: any) => {
+        switch (obj.type) {
+          case "meta":
+            setAiModel(obj.model || "");
+            break;
+          case "queue":
+            // position 0 = running; >0 = waiting in line
+            setAiQueuePos(obj.position > 0 ? obj.position : null);
+            break;
+          case "token":
+            acc += obj.text || "";
+            setAiQueuePos(null);
+            setAiLoading(false); // first token → show live text, drop spinner
+            setAiAnalysis(acc);
+            break;
+          case "error":
+            streamError = obj.message || "Analysis failed";
+            break;
+          // "done" — nothing extra to do
+        }
+      };
+
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+          try { handleFrame(JSON.parse(trimmed)); } catch { /* skip bad frame */ }
+        }
+      }
+
+      if (streamError) throw new Error(streamError);
+      if (!acc.trim()) throw new Error("Empty analysis");
     } catch (err: any) {
       setAiError(err.message || "Could not connect to AI");
     } finally {
       setAiLoading(false);
+      setAiQueuePos(null);
     }
   };
 
@@ -280,7 +333,9 @@ export function StudentResultScreen({ quizId, studentId, studentName, selectedAn
                 <Sparkles className="w-4 h-4" />
               )}
               {aiLoading
-                ? (lang === "th" ? "AI กำลังวิเคราะห์..." : lang === "ja" ? "AI分析中..." : "AI is analysing...")
+                ? (aiQueuePos != null
+                    ? (lang === "th" ? `อยู่ในคิว #${aiQueuePos}...` : lang === "ja" ? `順番待ち #${aiQueuePos}...` : `In queue #${aiQueuePos}...`)
+                    : (lang === "th" ? "AI กำลังวิเคราะห์..." : lang === "ja" ? "AI分析中..." : "AI is analysing..."))
                 : (lang === "th" ? "วิเคราะห์ด้วย AI" : lang === "ja" ? "AIで分析する" : "Analyse with AI")
               }
             </span>
@@ -305,9 +360,22 @@ export function StudentResultScreen({ quizId, studentId, studentName, selectedAn
                   {aiLoading && (
                     <div className="flex items-center gap-3 text-white/70">
                       <Spinner size="sm" />
-                      <span className="text-sm font-medium">
-                        {lang === "th" ? "กำลังวิเคราะห์ผลการทดสอบ..." : lang === "ja" ? "テスト結果を分析中..." : "Analysing your quiz performance..."}
-                      </span>
+                      {aiQueuePos != null ? (
+                        <span className="text-sm font-medium flex items-center gap-2">
+                          <span className="inline-flex items-center justify-center min-w-[1.5rem] h-6 px-2 rounded-full bg-amber-500/25 text-amber-200 border border-amber-400/30 text-xs font-black tabular-nums">
+                            #{aiQueuePos}
+                          </span>
+                          {lang === "th"
+                            ? `อยู่ในคิว ลำดับที่ ${aiQueuePos} — รอสักครู่นะ`
+                            : lang === "ja"
+                              ? `順番待ち ${aiQueuePos} 番目です…`
+                              : `In queue — position ${aiQueuePos}`}
+                        </span>
+                      ) : (
+                        <span className="text-sm font-medium">
+                          {lang === "th" ? "กำลังวิเคราะห์ผลการทดสอบ..." : lang === "ja" ? "テスト結果を分析中..." : "Analysing your quiz performance..."}
+                        </span>
+                      )}
                     </div>
                   )}
 

@@ -33,6 +33,11 @@ function safeJSON(str) {
   try { return JSON.parse(str); } catch { return null; }
 }
 
+/** Short, unique-enough identifier for one quiz round (session). */
+function genSessionToken() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
 function emptyStats() {
   return { totalStudents: 0, activeStudents: 0, averageScore: 0, completionPercentage: 0, totalAnswers: 0, correctAnswers: 0, questionStats: {} };
 }
@@ -98,10 +103,11 @@ async function getOrCreateSession(accessCode, quizId = "") {
   if (!client) {
     // Fallback: use in-memory sessionManager
     const s = await fallback.getOrCreate(accessCode, quizId);
-    return { 
-      isPaused: s.isPaused, 
-      startedAt: s.startedAt || Date.now(), 
-      quizId: s.quizId, 
+    return {
+      isPaused: s.isPaused,
+      startedAt: s.startedAt || Date.now(),
+      quizId: s.quizId,
+      sessionToken: s.sessionToken || "",
       totalQuestions: s.totalQuestions || 0,
       isLocked: s.isLocked || false,
       isTeacherLed: s.isTeacherLed || false,
@@ -127,10 +133,12 @@ async function getOrCreateSession(accessCode, quizId = "") {
         console.error("[getOrCreateSession] Error fetching quiz:", err);
       }
     }
+    const sessionToken = genSessionToken();
     const initial = {
       isPaused: "false",
       startedAt: String(Date.now()),
       quizId,
+      sessionToken,
       totalQuestions: String(totalQuestions),
       isLocked: "false",
       isTeacherLed: "false",
@@ -140,10 +148,11 @@ async function getOrCreateSession(accessCode, quizId = "") {
     };
     await client.hSet(key, initial);
     await client.expire(key, SESSION_TTL);
-    return { 
-      isPaused: false, 
-      startedAt: Number(initial.startedAt), 
-      quizId, 
+    return {
+      isPaused: false,
+      startedAt: Number(initial.startedAt),
+      quizId,
+      sessionToken,
       totalQuestions,
       isLocked: false,
       isTeacherLed: false,
@@ -174,6 +183,7 @@ async function getOrCreateSession(accessCode, quizId = "") {
     isPaused:  raw.isPaused === "true",
     startedAt: Number(raw.startedAt),
     quizId:    raw.quizId || quizId,
+    sessionToken: raw.sessionToken || "",
     totalQuestions,
     isLocked: raw.isLocked === "true",
     isTeacherLed: raw.isTeacherLed === "true",
@@ -192,10 +202,11 @@ async function getSession(accessCode) {
   if (!client) {
     const s = fallback.getSession(accessCode);
     if (!s) return null;
-    return { 
-      isPaused: s.isPaused, 
-      startedAt: s.startedAt || Date.now(), 
+    return {
+      isPaused: s.isPaused,
+      startedAt: s.startedAt || Date.now(),
       quizId: s.quizId,
+      sessionToken: s.sessionToken || "",
       isLocked: s.isLocked || false,
       isTeacherLed: s.isTeacherLed || false,
       currentQuestionIndex: s.currentQuestionIndex || 0,
@@ -210,6 +221,7 @@ async function getSession(accessCode) {
     isPaused:  raw.isPaused === "true",
     startedAt: Number(raw.startedAt),
     quizId:    raw.quizId || "",
+    sessionToken: raw.sessionToken || "",
     isLocked:  raw.isLocked === "true",
     isTeacherLed: raw.isTeacherLed === "true",
     currentQuestionIndex: Number(raw.currentQuestionIndex || 0),

@@ -113,6 +113,7 @@ module.exports = function registerHandlers(io, socket) {
         role: "student",
         sessionId,
         student,
+        sessionToken: sessionMeta?.sessionToken,
         isTeacherLed: sessionMeta?.isTeacherLed,
         currentQuestionIndex: sessionMeta?.currentQuestionIndex,
         timer: sessionMeta?.timer,
@@ -313,6 +314,19 @@ module.exports = function registerHandlers(io, socket) {
         }
       }
 
+      if (action === "remove_student") {
+        // Teacher kicks a student out of the session entirely.
+        const { studentId } = payload;
+        if (studentId) {
+          await redis.removeStudent(sessionId, studentId);
+          const stats = await redis.calcStats(sessionId);
+          io.to(teacherRoom(sessionId)).emit(SERVER_EVENTS.STUDENT_REMOVED, { studentId, stats });
+          await broadcastLobby(sessionId);
+          // The final SESSION_CONTROL broadcast (below) notifies the kicked
+          // student so their device can leave the quiz.
+        }
+      }
+
       if (action === "regenerate_code") {
         const snapshot = await redis.getFullSessionState(sessionId);
         const quizId = snapshot?.quizId || sessionId.replace("quiz-session-", "");
@@ -423,13 +437,16 @@ module.exports = function registerHandlers(io, socket) {
             students:      studentScores,
             answers:       enrichedAnswers,
             questionStats,
-          })
-            .then(async () => {
-              console.log(`[control_session] Session ${sessionId} archived successfully. Cleaning active state.`);
-              await redis.deleteSession(sessionId);
-            })
-            .catch(err => console.error("[control_session] Archive error:", err));
+          });
+          console.log(`[control_session] Session ${sessionId} archived successfully. Cleaning active state.`);
         }
+
+        // Wipe live state, THEN rotate to a brand-new round so the next session
+        // starts clean (fresh sessionToken → students' stale saved state is
+        // invalidated). Order matters: delete must complete before re-create.
+        await redis.deleteSession(sessionId);
+        const fresh = await redis.getOrCreateSession(sessionId, actualQuizId || "");
+        payload.newSessionToken = fresh?.sessionToken || "";
       }
 
       // Broadcast control state and payload to all in session

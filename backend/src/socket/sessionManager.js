@@ -23,6 +23,8 @@ function getOrCreate(sessionId, quizId) {
     sessions.set(sessionId, {
       sessionId,
       quizId: quizId || "unknown",
+      sessionToken: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+      startedAt: Date.now(),
       isPaused: false,
       students: new Map(),
       answers: new Map(),

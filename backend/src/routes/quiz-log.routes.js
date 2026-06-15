@@ -17,11 +17,17 @@ const {
   listLogs,
   getLog,
   getLatestStudentLog,
+  getCachedAnalysis,
+  saveCachedAnalysis,
 } = require("../controllers/quizLog.controller");
 
 // NOTE: More specific routes must be registered BEFORE /:logId
 // to prevent Express treating "student" as a logId.
 router.get("/student/:studentId/quiz/:quizId", getLatestStudentLog);
+
+// Cached AI analysis (per log + language)
+router.get("/:logId/analysis", getCachedAnalysis);
+router.put("/:logId/analysis", saveCachedAnalysis);
 
 router.post("/",        submitLog);
 router.get("/",         listLogs);

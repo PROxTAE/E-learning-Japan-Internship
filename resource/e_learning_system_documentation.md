@@ -1,6 +1,8 @@
 # 📖 เอกสารรายละเอียดระบบ E-Learning Quiz Platform & System Specification
 
-> **อัปเดตล่าสุด:** 11 มิถุนายน 2026 — อ้างอิงจากโค้ดจริงใน `backend/` และ `frontend/` ณ ปัจจุบัน
+> **อัปเดตล่าสุด:** 15 มิถุนายน 2026 — อ้างอิงจากโค้ดจริงใน `backend/` และ `frontend/` ณ ปัจจุบัน
+>
+> **ของใหม่ในรอบนี้:** Waiting Room (ห้องรอ) + ปุ่มพร้อม, จอ Projector แยกหน้า, ครูลบนักเรียนออกจากเซสชันได้, ระบบ Round Token แยกรอบสอบ (End แล้วเริ่มใหม่สะอาด), และ AI วิเคราะห์รายบุคคลแบบ **Streaming (NDJSON) + Queue + Cache** รองรับนักเรียนกดพร้อมกันจำนวนมาก
 
 เอกสารนี้รวบรวมสถาปัตยกรรม ฟีเจอร์ทั้งหมด วิธีการใช้งาน ตัวอย่าง Use Case และ Flow การไหลของข้อมูลของระบบ ทั้งฝั่ง **Frontend**, **Backend**, **Database/Cache** และ **AI Engine**
 
@@ -18,7 +20,7 @@
 | **Backend** | Node.js, Express 5, Socket.IO 4.8, JWT (jsonwebtoken) + bcryptjs (Auth), Multer (อัปโหลดรูป), Mongoose 9 |
 | **Database** | **MongoDB** — ข้อมูลถาวร: ควิซ, ครู, ผลสอบที่จบแล้ว (QuizSessionResult), Interaction Log |
 | **Cache** | **Redis 5** — สถานะห้องสอบสด (นักเรียนออนไลน์, คำตอบรายข้อ, ประวัติการเปลี่ยนคำตอบ, สถิติ) พร้อม TTL และระบบ **In-memory Fallback** อัตโนมัติหาก Redis ล่ม |
-| **AI Engine** | **Ollama (Local LLM)** — ฝั่ง Backend ใช้ `qwen3:8b` (ค่า default, ตั้งผ่าน `OLLAMA_MODEL`) สตรีมผลแบบ SSE; ฝั่ง Frontend API Routes ตรวจจับโมเดลที่ติดตั้งอัตโนมัติผ่าน `/api/tags` (fallback `gemma2:9b`) |
+| **AI Engine** | **Ollama (Local LLM)** — ตั้งผ่าน `OLLAMA_MODEL` (ปัจจุบันใช้ `qwen3:4b-instruct`), `OLLAMA_HOST`; Backend สตรีมผลแบบ SSE; Frontend API Routes ตรวจจับโมเดลที่ติดตั้งอัตโนมัติผ่าน `/api/tags` (fallback `qwen3:4b-instruct`) และจำกัด concurrency ด้วย `AI_MAX_CONCURRENCY` |
 
 ### บทบาทผู้ใช้ (Roles)
 
@@ -35,7 +37,7 @@
 1. **REST API (HTTP/JSON)** — Frontend services (`services/*.ts`) เรียก Express Backend (`/api/...`) สำหรับ CRUD ควิซ, Auth, Dashboard, ประวัติเซสชัน, Interaction Log
 2. **WebSocket (Socket.IO)** — ใช้เฉพาะ "ห้องสอบสด": นักเรียนส่งคำตอบ → Server บันทึกลง Redis → broadcast ไปยังห้องของครู (`teacher:{sessionId}`) แบบเรียลไทม์
 3. **SSE (Server-Sent Events)** — Backend สตรีมข้อความวิเคราะห์จาก Ollama กลับมาทีละ token (AI Summary ของ Session History)
-4. **Next.js API Routes → Ollama** — Frontend มี API ภายในของตัวเอง (`app/api/chat`, `app/api/analyze-quiz-log`) ที่เรียก Ollama โดยตรง สำหรับ AI Assistant และการวิเคราะห์ Log รายบุคคล
+4. **Next.js API Routes → Ollama** — Frontend มี API ภายในของตัวเอง (`app/api/chat`, `app/api/analyze-quiz-log`) ที่เรียก Ollama โดยตรง สำหรับ AI Assistant และการวิเคราะห์ Log รายบุคคล — ตัววิเคราะห์ Log สตรีมกลับเป็น **NDJSON** (เฟรม `meta`/`queue`/`token`/`done`) พร้อมคิวจำกัด concurrency และ cache ผลลง MongoDB
 
 ```
                 ┌────────────────────── REST (CRUD/Auth/History) ─────────────────────┐
@@ -95,6 +97,7 @@
 * `session_metadata`: `student_id`, `student_name`, `quiz_id`, `quiz_title`, `device_info`, `start_timestamp`, `lang`
 * `answer_logs[]` ต่อข้อ: `interactions[]` (`action`: `view | select | change | deselect | heartbeat` + timestamp + option), `final_answer[]`, `correct_answers[]`, `is_correct`, `time_spent_seconds`, `is_confused`
 * `summary`: `total_score`, `full_score`, `completion_time_seconds`, `average_confusion_rate` (0.0–1.0)
+* `ai_analyses[]` (cache ผลวิเคราะห์ AI): ต่อภาษา `lang`, `content` (Markdown), `model`, `createdAt` — เก็บไว้เพื่อ generate ครั้งเดียวต่อนักเรียน/ภาษา กดซ้ำหรือรีเฟรชได้ผลเดิมทันที (ดู Feature 10)
 
 > ฝั่ง Server จะ **ตรวจคำตอบใหม่กับเฉลยจริงใน MongoDB เสมอ** (ไม่เชื่อ flag จาก client) ก่อนบันทึก
 
@@ -104,8 +107,9 @@
 
 | Key | ชนิด | เก็บอะไร |
 |---|---|---|
-| `quiz:{sessionId}:session` | Hash | `quizId`, `isPaused`, `isLocked`, `isTeacherLed`, `currentQuestionIndex`, `timer`, `timerActive`, `startedAt`, `totalQuestions` |
-| `quiz:{sessionId}:students` | Hash (studentId → JSON) | ต่อคน: `studentId`, `name`, `avatar` (DiceBear auto), `isOnline`, `score`, `progress`, `socketId`, `joinedAt` |
+| `quiz:{sessionId}:session` | Hash | `quizId`, **`sessionToken`** (รหัสรอบสอบ หมุนใหม่ทุกครั้งที่ End), `isPaused`, `isLocked`, `isTeacherLed`, `currentQuestionIndex`, `timer`, `timerActive`, `startedAt`, `totalQuestions` |
+| `quiz:{sessionId}:students` | Hash (studentId → JSON) | ต่อคน: `studentId`, `name`, `avatar` (DiceBear auto), `isOnline`, **`isReady`** (สถานะพร้อมในห้องรอ), `score`, `progress`, `socketId`, `joinedAt` |
+| `quiz:{sessionId}:quiz_cache` | String (JSON) | สำเนาควิซแคชไว้ระหว่างเซสชัน เพื่อตรวจเฉลย `submit_answer` ได้เร็วโดยไม่ยิง MongoDB ทุกครั้ง |
 | `quiz:{sessionId}:answers:{studentId}` | Hash (questionId → JSON) | ต่อข้อ: `state`, `finalAnswer(Text)`, `isCorrect`, `responseTime`, `history[]` (ทุกการเปลี่ยนคำตอบ), `confusionLevel`, `updatedAt` |
 
 ทุก key มี **TTL 24 ชั่วโมง** (ต่ออายุทุกครั้งที่มี activity) — จบสอบแล้ว `deleteSession()` ล้างทั้งหมดทันที
@@ -131,6 +135,8 @@
 | `GET /api/monitoring/sessions/:sessionId/export` | — | **Export CSV** ผลสอบ — รองรับทั้งเซสชันสด (Redis) และเซสชันที่จบแล้ว (MongoDB) |
 | `POST /api/quiz-logs` | — | นักเรียนส่ง Interaction Log ทั้งชุดหลังทำเสร็จ (server ตรวจเฉลยใหม่) |
 | `GET /api/quiz-logs`, `GET /api/quiz-logs/:logId`, `GET /api/quiz-logs/student/:studentId/quiz/:quizId` | — | ครู/ระบบดึง Log มาดูหรือส่งให้ AI |
+| `GET /api/quiz-logs/:logId/analysis?lang=` | — | ดึงผลวิเคราะห์ AI ที่ cache ไว้ (ต่อภาษา) — ใช้ข้าม Ollama เมื่อกดซ้ำ/รีเฟรช |
+| `PUT /api/quiz-logs/:logId/analysis` | — | บันทึกผลวิเคราะห์ AI ลง cache (เรียกจาก Next.js route หลัง generate เสร็จ) |
 | `GET /api/session-history/all` | — | ทุกเซสชันที่จบแล้ว (ทุกควิซ) |
 | `GET /api/session-history/quiz/:quizId` | — | เซสชันย้อนหลังของควิซ |
 | `GET /api/session-history/quiz/:quizId/aggregate` | — | สถิติเปรียบเทียบข้ามเซสชัน (per-question correct% / confusion trend) |
@@ -145,8 +151,8 @@
 | Path | หน้าที่ |
 |---|---|
 | `POST /api/chat` | AI Assistant แชทช่วยครู (auto-detect โมเดล Ollama, system prompt รองรับ `json_quiz_update` สำหรับแก้ควิซอัตโนมัติ) |
-| `POST /api/analyze-quiz-log` | สร้าง prompt จาก Interaction Log → Ollama → คำแนะนำการเรียนรายบุคคล |
-| `GET/POST /api/quiz-logs`, `/api/quiz-logs/[logId]` | proxy ไปยัง Backend |
+| `POST /api/analyze-quiz-log` | สร้าง prompt จาก Interaction Log → Ollama → คำแนะนำการเรียนรายบุคคล **แบบ NDJSON streaming + Queue (semaphore) + Cache** (ดู Feature 10) |
+| `GET/POST /api/quiz-logs`, `/api/quiz-logs/[logId]`, `/api/quiz-logs/student/[studentId]/quiz/[quizId]` | proxy ไปยัง Backend |
 
 ---
 
@@ -158,13 +164,18 @@
 |---|---|---|---|
 | Client → Server | `join_quiz` | นักเรียน/ครูเข้าห้องสอบ — สร้าง session ใน Redis ถ้ายังไม่มี; เช็ก `isLocked` ก่อนรับนักเรียน | `sessionId`, `quizId`, `studentId`, `name`, `avatar`, `role` |
 | Client → Server | `submit_answer` | นักเรียนส่ง/เปลี่ยนคำตอบ — server ตรวจเฉลยจาก MongoDB, บันทึก history ลง Redis, คำนวณ confusion | `questionId`, `choiceId`, `choiceText`, `responseTime` |
-| Client → Server | `control_session` | ครูสั่งควบคุมห้อง | `action`: `pause`, `resume`, `lock`, `unlock`, `teacher_led`, `set_question_index`, `set_timer`, `reset_student`, `regenerate_code`, `end` (+`sessionLabel`) |
+| Client → Server | `control_session` | ครูสั่งควบคุมห้อง | `action`: `pause`, `resume`, `lock`, `unlock`, `teacher_led`, `set_question_index`, `set_timer`, `reset_student`, **`remove_student`** (เตะนักเรียนออก), **`start`** (เริ่มควิซจากห้องรอ), `regenerate_code`, `end` (+`sessionLabel` → Archive + หมุน `sessionToken` ใหม่) |
+| Client → Server | `set_ready` | นักเรียนกดสลับสถานะ "พร้อม" ในห้องรอ | `sessionId`, `studentId`, `isReady` |
+| Client → Server | `get_lobby` | ขอรายชื่อในห้องรอล่าสุด | `sessionId` |
+| Client → Server | `leave_quiz` | นักเรียนออกจากห้องรอ — **ลบระเบียนทิ้งจริง** (กันชื่อค้าง/ซ้ำ) | `sessionId`, `studentId` |
 | Client → Server | `get_session_state` | ครูรีเฟรชหน้า → ขอ snapshot เต็มเพื่อกู้คืนแดชบอร์ด | `sessionId` |
 | Server → Client | `session_joined` | ตอบรับการ join (ครูได้ students+answers+stats+quiz, นักเรียนได้สถานะ teacher-led/timer) | — |
 | Server → Client | `session_state` | snapshot เต็มตอบ `get_session_state` หรือหลัง `reset_student` | students, answers, stats |
 | Server → Teacher | `student_joined` / `student_left` | นักเรียนเข้า/หลุดการเชื่อมต่อ (disconnect = set offline ไม่ลบข้อมูล) | `student`, `stats` |
 | Server → Teacher + Student | `answer_update` | broadcast คำตอบใหม่ + สถิติห้องล่าสุดให้ครู / ack กลับให้นักเรียน | `answer`, `stats` |
-| Server → ทั้งห้อง | `session_control` | กระจายคำสั่งครูไปทุกหน้าจอ (pause จะล็อกหน้านักเรียน ฯลฯ) | `action` + payload |
+| Server → ทั้งห้อง | `session_control` | กระจายคำสั่งครูไปทุกหน้าจอ (`pause` ล็อกหน้านักเรียน, `start` พานักเรียนเข้าควิซ, `remove_student` เตะคนนั้นออก, `end` หมุนรอบใหม่) | `action` + payload (+`newSessionToken` ตอน end) |
+| Server → ทั้งห้อง | `lobby_update` | broadcast รายชื่อ + สถานะพร้อมในห้องรอ ให้ทุกคนใน session (นักเรียนเห็นกันเอง + ครู) | `students[]` |
+| Server → Teacher | `student_removed` | นักเรียนถูกลบถาวร (ออกเอง/ครูเตะ) → ลบแถวออกจากกริด | `studentId`, `stats` |
 | Server → Client | `error` | เช่น `ROOM_LOCKED`, "Session is paused" | `message` |
 
 ---
@@ -245,9 +256,10 @@
   * `lock` / `unlock` — ปิด/เปิดรับนักเรียนใหม่ (join จะได้ `ROOM_LOCKED`)
   * `teacher_led` + `set_question_index` + `set_timer` — **โหมดครูนำ (Teacher-paced)**: ทุกจอของนักเรียนเลื่อนไปข้อเดียวกันพร้อมตัวจับเวลาที่ครูควบคุม
   * `reset_student` — ล้างคำตอบของนักเรียนรายคน (เช่น เครื่องค้าง ขอเริ่มใหม่)
+  * `remove_student` — **เตะนักเรียนออกจากเซสชันถาวร** (ลบทั้งระเบียน+คำตอบ) ใช้เก็บกวาดชื่อซ้ำ/แถวค้าง — มี modal ยืนยันก่อน, นักเรียนคนนั้นเด้งหน้า "ถูกนำออก"
   * `regenerate_code` — สุ่ม Join Code ใหม่กลางคัน
-  * `end` (+ `sessionLabel`) — จบสอบและ Archive
-* **Flow ตอนจบเซสชัน (Archiving):** `end` → Backend ดึง snapshot เต็มจาก Redis → คำนวณคะแนนรายคน (`scorePercent`, `progress`), สถิติรวม และ `questionStats` รายข้อ (correct%, avg time, confusion, การแจกแจงตัวเลือก) → บันทึกเป็นเอกสาร `QuizSessionResult` ใน MongoDB → ลบ session ออกจาก Redis → broadcast `session_control(end)` ล็อกจอนักเรียน
+  * `end` (+ `sessionLabel`) — จบสอบ, Archive และ **หมุน `sessionToken` รอบใหม่**
+* **Flow ตอนจบเซสชัน (Archiving + Round Rotation):** `end` → Backend ดึง snapshot เต็มจาก Redis → คำนวณคะแนนรายคน (`scorePercent`, `progress`), สถิติรวม และ `questionStats` รายข้อ → บันทึกเป็นเอกสาร `QuizSessionResult` ใน MongoDB → `deleteSession()` ล้าง Redis → **สร้าง session ใหม่พร้อม `sessionToken` ใหม่** (รอบถัดไปสะอาด ไม่จำค่าเดิม) → broadcast `session_control(end)` พร้อม `newSessionToken` ให้นักเรียนเคลียร์ตัวเองและพร้อมเข้ารอบใหม่ (ดู Feature 17)
 * **Use Case:** สอบเก็บคะแนนแบบ "ครูนำ" — ครูเปิด Teacher-led กดเดินทีละข้อ ข้อละ 30 วินาที นักเรียนทุกคนเห็นข้อเดียวกันพร้อมกัน หมดเวลาแล้วครูกด End พร้อมตั้ง label "ห้อง 2 - Midterm" เพื่อให้ค้นหาย้อนหลังง่าย
 
 ---
@@ -271,8 +283,12 @@
 ### Feature 10: Personalized AI Analysis per Student (AI วิเคราะห์และแนะแนวรายบุคคล)
 
 * **รายละเอียด:** นำ Interaction Log มาสร้าง prompt โครงสร้าง (คะแนน, เวลา, confusion rate, สรุปรายข้อพร้อม flag "ตอบเร็วผิดปกติ/ลังเล") ส่งให้ Ollama วิเคราะห์ ตอบเป็น 5 ส่วน: Overall Assessment / Strengths / Weak Areas / Study Recommendations / Encouragement — เลือกภาษาได้ (TH/EN/JA)
-* **การส่งข้อมูล:** UI → `POST /api/analyze-quiz-log` (Next.js route) → ดึง log จาก Backend (ถ้าส่ง `logId`) → build prompt → Ollama `/api/generate` → ผลกลับมาเรนเดอร์เป็น Markdown
-* **Use Case:** หลังสอบ ครูกดวิเคราะห์นักเรียนรายคน AI ชี้ว่านักเรียน C ผิดเฉพาะข้อที่เกี่ยวกับ "loop ซ้อน" และทุกข้อนั้นมีการเปลี่ยนคำตอบมากกว่า 2 รอบ พร้อมแนะนำแบบฝึกเฉพาะเรื่อง — ครูส่งสรุปนี้ให้นักเรียนไปทบทวน
+* **รองรับนักเรียนจำนวนมากกดพร้อมกัน (สำคัญ):** หน้าผลของนักเรียนทุกคนมีปุ่มนี้ ถ้า 20+ คนกดพร้อมกันจะใช้ 3 กลไกประกอบกัน:
+  1. **Cache** — ถ้า log+ภาษานี้เคยวิเคราะห์แล้ว (`ai_analyses[]` ใน MongoDB) จะสตรีมผลเดิมกลับทันที ไม่แตะ Ollama
+  2. **Queue (Semaphore)** — จำกัดให้เข้า Ollama พร้อมกันได้ตาม `AI_MAX_CONCURRENCY` (default 1) ที่เหลือเข้าคิว พร้อมส่งเฟรม **"ลำดับคิว"** สดให้ผู้รอเห็น (#1, #2 … ลดลงเรื่อยๆ)
+  3. **Streaming** — ตอบกลับเป็น **NDJSON** ทีละเฟรม (`meta` / `queue` / `token` / `error` / `done`) ฝั่ง UI พิมพ์ทีละ token; เมื่อ generate จบจะ `PUT` เก็บผลลง cache ให้ครั้งต่อไปเป็น cache hit
+* **การส่งข้อมูล:** UI → `POST /api/analyze-quiz-log` (Next.js route) → เช็ก cache (Backend) → ถ้าไม่มี: ดึง log + build prompt → เข้าคิว → Ollama `/api/chat` (stream) → สตรีม NDJSON กลับ + บันทึก cache
+* **Use Case:** จบสอบทั้งห้อง 25 คนกดวิเคราะห์พร้อมกัน — 2–3 คนแรกเริ่มพิมพ์ทันที ที่เหลือเห็นป้าย "อยู่ในคิว #N" แล้วทยอยได้ผลทีละคน เครื่อง Ollama ไม่ล่ม; ใครรีเฟรช/กดซ้ำได้ผลเดิมทันทีจาก cache
 
 ---
 
@@ -311,15 +327,50 @@
 
 ---
 
+### Feature 15: Waiting Room / Lobby (ห้องรอก่อนเริ่มสอบ)
+
+* **รายละเอียด:** หลังกรอกชื่อ นักเรียนจะเข้า **ห้องรอ** (แทนที่จะเริ่มทำทันที) เห็นรายชื่อ + Avatar ของทุกคนที่เข้ามาแบบสด มีปุ่ม **"ฉันพร้อมแล้ว"** สลับสถานะ (ขอบ/วงแหวนเขียวเมื่อพร้อม) และตัวนับ "เข้าร่วม X คน / พร้อม Y คน" — อาจารย์เข้าหน้าเดียวกันได้ (มีปุ่ม **Start Quiz**) component เดียว (`WaitingRoom.tsx`) ใช้ได้ทั้ง 2 บทบาท ต่างกันแค่ footer
+* **การส่งข้อมูล:** นักเรียน join → `lobby_update` broadcast รายชื่อให้ทั้งห้อง (`session:{id}`); กดพร้อม → `set_ready` → broadcast ใหม่; กดออก → `leave_quiz` (ลบระเบียนจริง); ครูกด Start → `control_session(start)` → ทุกจอนักเรียนเข้าสู่ควิซพร้อมกัน
+* **คงสถานะเมื่อรีเฟรช:** สถานะห้องรอ (ชื่อ/พร้อม) เก็บใน `localStorage` คีย์ตาม **round token** — รีเฟรชแล้วกลับเข้าห้องรอเดิม ไม่หลุด
+* **Use Case:** ก่อนเริ่มสอบ อาจารย์ฉายห้องรอขึ้นจอ เห็นนักเรียนทยอยเข้าจนครบ 30 คน รอจนเกือบทุกคนกด "พร้อม" แล้วจึงกด Start ให้เริ่มพร้อมกัน
+
+---
+
+### Feature 16: Projector / Presentation View (จอแสดงผลแยกสำหรับห้องเรียน)
+
+* **รายละเอียด:** หน้า `/present/[quizId]` เป็นจอ **เต็มหน้าจอแยกออกจาก Layout ของอาจารย์** (ไม่มี sidebar/topbar) ออกแบบมาเพื่อเอาขึ้น Projector ให้นักเรียนดู — แสดงห้องรอแบบ display-only (ซ่อนปุ่ม Start/Leave), avatar ใหญ่, กริดสูงสุด 6 คอลัมน์, ข้อความ "กำลังรออาจารย์เริ่ม…" ตัวใหญ่ มี auth guard ในตัว เปิดได้จากปุ่ม **"เปิดหน้าจอ Projector"** ทั้งในหน้า monitoring และหน้าห้องรอของอาจารย์ (เปิดแท็บใหม่)
+* **การส่งข้อมูล:** ใช้ teacher socket (อ่านอย่างเดียว) รับ `lobby_update` มาเรนเดอร์รายชื่อสด
+* **Use Case:** อาจารย์เปิด `/present/...` บนจอโปรเจกเตอร์หน้าห้อง นักเรียนเห็นชื่อตัวเองเด้งขึ้นจอเมื่อเข้าห้องสำเร็จ สร้างบรรยากาศและยืนยันว่าเข้าถูกห้อง
+
+---
+
+### Feature 17: Session Replay & Round Token (เริ่มรอบสอบใหม่แบบสะอาด)
+
+* **รายละเอียด:** แต่ละ "รอบสอบ" มี **`sessionToken`** ของตัวเอง พอครูกด **End Session** ระบบ Archive รอบเก่า แล้ว **หมุน token ใหม่** ทันที — ฝั่งนักเรียน `localStorage` ผูกกับ token เดิม (`quiz_session_{quizId}_{token}`) จึง **ใช้ไม่ได้กับรอบใหม่อัตโนมัติ** ไม่จำค่าเก่า; นักเรียนที่ค้างอยู่จะถูกเคลียร์ identity (ตัด socket) ไม่ค้างในกริดครู กด "เล่นอีกครั้ง" จะ refetch ควิซ (ได้ token ใหม่) กลับไปหน้าใส่ชื่อเพื่อเข้ารอบใหม่
+* **การส่งข้อมูล:** `GET /api/play/:code` แนบ `sessionToken` ปัจจุบันให้นักเรียน; `control_session(end)` ส่ง `newSessionToken` กลับทุกจอ
+* **Use Case:** อาจารย์ให้ห้องทำควิซเดียวกัน 2 รอบ — กด End รอบแรก (เก็บเข้า history แยกรอบ) แล้วให้ทุกคนทำใหม่ ระบบเริ่มสด ไม่มีคำตอบ/ชื่อเก่าค้าง
+
+---
+
+### Feature 18: Remove Student from Session (ครูลบนักเรียนออกจากเซสชัน)
+
+* **รายละเอียด:** ในกริด monitoring แต่ละแถวมีปุ่ม **ลบ (UserX สีแดง)** โผล่ตอน hover ใช้ได้กับทุกแถวรวมถึงที่ disconnected/ชื่อซ้ำ มี **modal ยืนยันก่อนลบ** (แสดงชื่อนักเรียน) — กดแล้วส่ง `control_session(remove_student)` → ลบระเบียน+คำตอบออกจาก Redis → `student_removed` ลบแถวจากกริด + แจ้งนักเรียนคนนั้นให้เด้งหน้า "ถูกนำออกจากเซสชัน"
+* **การส่งข้อมูล:** Monitoring UI → Socket `control_session(remove_student, {studentId})` → Backend `removeStudent` → `student_removed` (ครู) + `session_control` (นักเรียนเป้าหมาย)
+* **Use Case:** นักเรียนเข้าซ้ำ 3 แถวชื่อ "asd" เพราะกดเข้าหลายครั้ง — อาจารย์ลบแถวซ้ำทิ้งให้เหลือคนจริง กริดสะอาด สถิติไม่เพี้ยน
+
+---
+
 ## 🏁 7. สรุปความสัมพันธ์ของข้อมูล (System Integration Matrix)
 
 | เหตุการณ์ | Frontend | ช่องทาง | Backend | เก็บที่ | AI |
 |---|---|---|---|---|---|
 | สร้าง/แก้ควิซ | Quiz Builder (Zustand) | REST + JWT | quiz.controller | MongoDB `quizzes` | Copilot ผ่าน `/api/chat` |
 | นักเรียนเข้าห้อง | `/play/[code]` | REST + Socket | quizHandlers | Redis (live) | — |
+| ห้องรอ / กดพร้อม | WaitingRoom (นักเรียน+ครู+Projector) | Socket `set_ready`/`leave_quiz` → `lobby_update` | quizHandlers | Redis `students` (`isReady`) | — |
 | ตอบคำถามสด | Play UI | Socket `submit_answer` | ตรวจเฉลย MongoDB → Redis | Redis (history + confusion) | — |
-| คุมสอบ | Monitoring UI | Socket `control_session` | quizHandlers | Redis meta | — |
-| จบสอบ (End) | Monitoring UI | Socket `end` | Archive snapshot | MongoDB `quizsessionresults` → ล้าง Redis | — |
+| คุมสอบ / เตะนักเรียน | Monitoring UI | Socket `control_session` (`start`/`remove_student`/…) | quizHandlers | Redis meta + `student_removed` | — |
+| จบสอบ (End) + หมุนรอบ | Monitoring UI | Socket `end` | Archive snapshot + rotate `sessionToken` | MongoDB `quizsessionresults` → ล้าง+สร้าง Redis ใหม่ | — |
+| วิเคราะห์ AI รายบุคคล (สเกล) | Result Screen | Next route (NDJSON stream) | proxy + cache | MongoDB `ai_analyses[]` | Ollama (queue+stream+cache) |
 | ส่ง Interaction Log | `useQuizInteractionLog` | REST | quizLog.controller (re-validate) | MongoDB `quizinteractionlogs` | input ของ AI รายบุคคล |
 | รายงานย้อนหลัง | Session History UI | REST | session-history routes | MongoDB | AI Summary / per-student / cross-session ผ่าน SSE |
 | แดชบอร์ดครู | Dashboard UI | REST | dashboard.controller | MongoDB (aggregate) | — |
@@ -332,4 +383,7 @@
 4. **วิเคราะห์ 3 ระดับ** — รายบุคคล (Interaction Log) → รายห้อง (Session Summary) → ข้ามรอบสอบ (Cross-Session Trends)
 5. **Resilient Architecture** — Redis ล่มก็สอบต่อได้ (in-memory fallback), Server ตรวจเฉลยเองเสมอ ไม่เชื่อ client
 6. **Multilingual ถึงระดับ AI** — TH/EN/JA ทั้ง UI และรายงาน AI
+7. **Waiting Room + Projector** — รวมพลก่อนเริ่มสอบ เห็นชื่อ/Avatar/สถานะพร้อมสด ฉายขึ้นจอแยกได้
+8. **รองรับโหลดสูง** — AI วิเคราะห์รายบุคคลแบบ Queue + Stream + Cache รับนักเรียนกดพร้อมกันได้โดย Ollama ไม่ล่ม
+9. **แยกรอบสอบสะอาด** — Round Token หมุนทุกครั้งที่ End เริ่มรอบใหม่ไม่จำค่าเก่า + ครูลบนักเรียนซ้ำได้
 

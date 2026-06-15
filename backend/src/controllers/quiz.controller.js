@@ -189,6 +189,17 @@ async function getQuizByCode(req, res) {
       choices: q.choices.map(({ isCorrect: _removed, ...c }) => c),
     }));
 
+    // Attach the current round's session token (if a live session exists) so
+    // the student can scope their saved progress to this round. When the
+    // teacher ends a session the token rotates, invalidating stale state.
+    try {
+      const redis = require("../redis/redisService");
+      const meta  = await redis.getSession(`quiz-session-${quiz._id}`);
+      safeQuiz.sessionToken = meta?.sessionToken || "";
+    } catch (_) {
+      safeQuiz.sessionToken = "";
+    }
+
     ok(res, safeQuiz);
   } catch (err) {
     fail(res, err.message, 500);

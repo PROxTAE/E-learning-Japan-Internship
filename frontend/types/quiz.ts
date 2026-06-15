@@ -37,6 +37,8 @@ export interface Quiz {
   tags: string[];
   status: QuizStatus;
   accessCode?: string | null;
+  /** Current live-round token (rotates each time the teacher ends a session) */
+  sessionToken?: string;
   questions: Question[];
   createdAt: string;
   updatedAt: string;

@@ -197,4 +197,67 @@ async function getLatestStudentLog(req, res) {
   }
 }
 
-module.exports = { submitLog, listLogs, getLog, getLatestStudentLog };
+// ── GET /api/quiz-logs/:logId/analysis?lang=xx ─────────────────────
+/**
+ * Return the cached AI analysis for a log in a given language, if one
+ * has already been generated. Lets the result screen skip Ollama entirely
+ * on repeat views / refreshes.
+ */
+async function getCachedAnalysis(req, res) {
+  try {
+    const { logId } = req.params;
+    const lang = req.query.lang || "en";
+    const log = await QuizInteractionLog.findById(logId).select("ai_analyses").lean();
+    if (!log) {
+      return res.status(404).json({ success: false, message: "Log not found" });
+    }
+    const cached = (log.ai_analyses || []).find((a) => a.lang === lang);
+    if (!cached || !cached.content) {
+      return res.json({ success: true, data: null });
+    }
+    return res.json({ success: true, data: cached });
+  } catch (err) {
+    console.error("[quizLog] getCachedAnalysis error:", err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+// ── PUT /api/quiz-logs/:logId/analysis ─────────────────────────────
+/**
+ * Persist a generated AI analysis for a log + language. Upserts so a
+ * later regeneration overwrites the cached copy for that language.
+ * Body: { lang, content, model }
+ */
+async function saveCachedAnalysis(req, res) {
+  try {
+    const { logId } = req.params;
+    const { lang = "en", content = "", model = "" } = req.body || {};
+    if (!content) {
+      return res.status(400).json({ success: false, message: "Missing analysis content" });
+    }
+
+    // Remove any existing entry for this language, then push the fresh one.
+    await QuizInteractionLog.updateOne(
+      { _id: logId },
+      { $pull: { ai_analyses: { lang } } }
+    );
+    await QuizInteractionLog.updateOne(
+      { _id: logId },
+      { $push: { ai_analyses: { lang, content, model, createdAt: new Date() } } }
+    );
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error("[quizLog] saveCachedAnalysis error:", err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+module.exports = {
+  submitLog,
+  listLogs,
+  getLog,
+  getLatestStudentLog,
+  getCachedAnalysis,
+  saveCachedAnalysis,
+};

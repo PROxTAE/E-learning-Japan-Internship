@@ -78,6 +78,20 @@ const quizInteractionLogSchema = new mongoose.Schema(
       completion_time_seconds: { type: Number, default: 0 },
       average_confusion_rate:  { type: Number, default: 0 }, // 0.0–1.0
     },
+
+    // ── Cached AI analyses (one per language) ─────────────────────
+    // Persisted so each student's analysis is generated only ONCE per
+    // language — repeat clicks / refreshes return instantly and we don't
+    // hammer Ollama when 20+ students view results at the same time.
+    ai_analyses: [
+      {
+        _id:       false,
+        lang:      { type: String, default: "en" },
+        content:   { type: String, default: "" },
+        model:     { type: String, default: "" },
+        createdAt: { type: Date,   default: Date.now },
+      },
+    ],
   },
   {
     timestamps: true, // adds createdAt / updatedAt

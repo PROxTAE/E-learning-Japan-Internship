@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Student } from "@/types/teacher/monitoring.types";
 import { Avatar, ProgressBar, Button, Tooltip } from "@heroui/react";
 import { motion } from "framer-motion";
-import { Wifi, WifiOff, RotateCcw } from "lucide-react";
+import { Wifi, WifiOff, RotateCcw, UserX } from "lucide-react";
 import { useMonitoringStore } from "@/store/monitoringStore";
 import { useLang } from "@/lib/i18n/LanguageContext";
 import { ConfirmModal } from "./ConfirmModal";
@@ -24,6 +24,7 @@ export function StudentRow({ student }: StudentRowProps) {
   
   const { answers, questions } = useMonitoringStore();
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showRemove, setShowRemove] = useState(false);
 
   // Find and format student's answers for AI context
   const studentAnswers = answers.filter((a) => a.studentId === student.id);
@@ -132,21 +133,37 @@ export function StudentRow({ student }: StudentRowProps) {
         )}
       </div>
 
-      {/* Hover-activated Reset Progress button */}
-      {isOnline && (
-        // @ts-expect-error HeroUI Tooltip types issue
-        <Tooltip content={t.monitoring.controls.resetStudent}>
+      {/* Hover-activated action buttons */}
+      <div className="flex items-center shrink-0">
+        {isOnline && (
+          // @ts-expect-error HeroUI Tooltip types issue
+          <Tooltip content={t.monitoring.controls.resetStudent}>
+            <Button
+              isIconOnly
+              size="sm"
+              variant="ghost"
+              className="opacity-0 group-hover:opacity-100 hover:bg-default-100 dark:hover:bg-white/5 transition-opacity rounded-full min-w-0 w-8 h-8 flex items-center justify-center shrink-0 ml-1"
+              onPress={() => setShowConfirm(true)}
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-danger animate-spin-slow hover:rotate-180 transition-transform duration-500" />
+            </Button>
+          </Tooltip>
+        )}
+
+        {/* Remove-from-session button (available for any row, incl. duplicates / ghosts) */}
+        {/* @ts-expect-error HeroUI Tooltip types issue */}
+        <Tooltip content={t.monitoring.controls.removeStudent}>
           <Button
             isIconOnly
             size="sm"
             variant="ghost"
-            className="opacity-0 group-hover:opacity-100 hover:bg-default-100 dark:hover:bg-white/5 transition-opacity rounded-full min-w-0 w-8 h-8 flex items-center justify-center shrink-0 ml-1"
-            onPress={() => setShowConfirm(true)}
+            className="opacity-0 group-hover:opacity-100 hover:bg-danger/10 transition-opacity rounded-full min-w-0 w-8 h-8 flex items-center justify-center shrink-0"
+            onPress={() => setShowRemove(true)}
           >
-            <RotateCcw className="w-3.5 h-3.5 text-danger animate-spin-slow hover:rotate-180 transition-transform duration-500" />
+            <UserX className="w-3.5 h-3.5 text-danger" />
           </Button>
         </Tooltip>
-      )}
+      </div>
 
       {/* HeroUI Confirm Modal */}
       <ConfirmModal
@@ -159,6 +176,21 @@ export function StudentRow({ student }: StudentRowProps) {
         title={t.monitoring.controls.resetStudent}
         message={t.monitoring.controls.resetConfirm}
         confirmText="Reset"
+        cancelText={t.modal.cancel}
+        isDanger={true}
+      />
+
+      {/* Remove-from-session confirm modal */}
+      <ConfirmModal
+        isOpen={showRemove}
+        onClose={() => setShowRemove(false)}
+        onConfirm={() => {
+          monitoringApi.controlSession(sessionId, "remove_student", { studentId: student.id });
+          setShowRemove(false);
+        }}
+        title={`${t.monitoring.controls.removeStudent} — ${student.name}`}
+        message={t.monitoring.controls.removeConfirm}
+        confirmText={t.monitoring.controls.removeText}
         cancelText={t.modal.cancel}
         isDanger={true}
       />
