@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 import { Avatar } from "@heroui/react";
 import { motion } from "framer-motion";
 import { Trophy, Award } from "lucide-react";
@@ -34,7 +34,7 @@ const RANK_STYLES = [
   },
 ];
 
-export function PresentLeaderboard({ students, answers, questionsCount }: PresentLeaderboardProps) {
+function PresentLeaderboardInner({ students, answers, questionsCount }: PresentLeaderboardProps) {
   const { t } = useLang();
 
   // Filter out offline students if any
@@ -42,14 +42,30 @@ export function PresentLeaderboard({ students, answers, questionsCount }: Presen
     return students.filter((s) => s.isOnline !== false);
   }, [students]);
 
+  // Tally answers per student in a SINGLE pass (was O(students × answers)).
+  const statsByStudent = useMemo(() => {
+    const map = new Map<string, { total: number; correct: number }>();
+    for (const a of answers) {
+      let s = map.get(a.studentId);
+      if (!s) {
+        s = { total: 0, correct: 0 };
+        map.set(a.studentId, s);
+      }
+      s.total += 1;
+      if (a.isCorrect) s.correct += 1;
+    }
+    return map;
+  }, [answers]);
+
   // Compute stats and sort
   const leaderboardData = useMemo(() => {
     const list = roster.map((student) => {
       const studentId = student.id || (student as any).studentId || "";
-      const studentAnswers = answers.filter((a) => a.studentId === studentId);
-      const correctAnswers = studentAnswers.filter((a) => a.isCorrect).length;
+      const tally = statsByStudent.get(studentId);
+      const totalAnswers = tally?.total ?? 0;
+      const correctAnswers = tally?.correct ?? 0;
 
-      const progress = questionsCount > 0 ? Math.round((studentAnswers.length / questionsCount) * 100) : 0;
+      const progress = questionsCount > 0 ? Math.round((totalAnswers / questionsCount) * 100) : 0;
       const score = questionsCount > 0 ? Math.round((correctAnswers / questionsCount) * 100) : 0;
 
       return {
@@ -62,7 +78,7 @@ export function PresentLeaderboard({ students, answers, questionsCount }: Presen
 
     // Sort by score (percentage correct) desc, then by progress percentage desc, then by name
     return list.sort((a, b) => b.score - a.score || b.progress - a.progress || a.name.localeCompare(b.name));
-  }, [roster, answers, questionsCount]);
+  }, [roster, statsByStudent, questionsCount]);
 
   return (
     <div className="flex flex-col items-center w-full max-w-3xl mx-auto py-8 px-4 h-full overflow-y-auto pb-24">
@@ -180,3 +196,5 @@ export function PresentLeaderboard({ students, answers, questionsCount }: Presen
     </div>
   );
 }
+
+export const PresentLeaderboard = memo(PresentLeaderboardInner);

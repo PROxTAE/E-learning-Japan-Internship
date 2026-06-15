@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useMemo } from "react";
 import { Avatar, Button, Spinner } from "@heroui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, Clock, Users, Wifi, WifiOff, Play, LogOut, GraduationCap } from "lucide-react";
@@ -63,7 +64,7 @@ export interface WaitingRoomProps {
   presentation?: boolean;
 }
 
-export function WaitingRoom({
+function WaitingRoomInner({
   role,
   quizTitle,
   code,
@@ -78,34 +79,31 @@ export function WaitingRoom({
   presentation = false,
 }: WaitingRoomProps) {
   const { t } = useLang();
-  const roster = students.filter((s) => s.isOnline !== false);
-  const readyCount = roster.filter((s) => s.isReady).length;
+  const roster = useMemo(
+    () => students.filter((s) => s.isOnline !== false),
+    [students]
+  );
+  const readyCount = useMemo(
+    () => roster.filter((s) => s.isReady).length,
+    [roster]
+  );
 
   return (
-    <div className={`relative min-h-full flex flex-col items-center justify-start px-4 sm:px-6 py-6 sm:py-10 w-full mx-auto ${presentation ? "max-w-7xl" : "max-w-5xl"}`}>
+    <div className={`relative min-h-full flex flex-col items-center justify-start px-4 sm:px-6 pt-6 sm:pt-10 pb-32 sm:pb-40 w-full mx-auto ${presentation ? "max-w-7xl" : "max-w-5xl"}`}>
       {/* ── Scattered bokeh dots ──────────────────────────────────── */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden -z-0">
         {SCATTER_DOTS.map((dot, i) => (
-          <motion.span
+          <span
             key={i}
-            className="absolute rounded-full"
+            className="absolute rounded-full present-float"
             style={{
               left: dot.x,
               top: dot.y,
               width: dot.size,
               height: dot.size,
               background: dot.color,
-            }}
-            animate={{
-              y: [0, -10 - (i % 3) * 5, 0],
-              opacity: [0.7, 0.3, 0.7],
-              scale: [1, 1.3, 1],
-            }}
-            transition={{
-              duration: 3 + (i % 4) * 1.2,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: (i % 5) * 0.4,
+              ["--bob-dur" as any]: `${3 + (i % 4) * 1.2}s`,
+              ["--bob-delay" as any]: `${(i % 5) * 0.4}s`,
             }}
           />
         ))}
@@ -196,11 +194,12 @@ export function WaitingRoom({
                       transition={{ type: "spring", stiffness: 350, damping: 20, delay: idx * 0.03 }}
                       className="relative flex flex-col items-center gap-2"
                     >
-                      <motion.div
-                        className="relative"
-                        animate={{ y: [0, -5, 0], rotate: [0, 1, 0, -1, 0] }}
-                        transition={{ duration: bobDuration, repeat: Infinity, ease: "easeInOut", delay: bobDelay }}
-                        whileHover={{ scale: 1.12, rotate: -3 }}
+                      <div
+                        className="relative present-bob transition-transform hover:scale-110"
+                        style={{
+                          ["--bob-dur" as any]: `${bobDuration}s`,
+                          ["--bob-delay" as any]: `${bobDelay}s`,
+                        }}
                       >
                         {/* Pop-in ripple */}
                         <motion.span
@@ -228,21 +227,27 @@ export function WaitingRoom({
                                 : `0 0 25px -4px ${glowColor}, 0 0 50px -10px ${glowColor}`,
                           }}
                         >
-                          {/* Dark inner circle */}
-                          <div
-                            className="rounded-full bg-[#1a1535] p-[3px] relative overflow-hidden"
-                            style={{
-                              backgroundImage:
-                                "radial-gradient(circle at 50% 25%, rgba(255,255,255,0.08), rgba(255,255,255,0) 70%)",
-                            }}
-                          >
-                            <Avatar
-                              className={`${
-                                presentation
-                                  ? "w-[80px] h-[80px] sm:w-[90px] sm:h-[90px]"
-                                  : "w-[76px] h-[76px] sm:w-[96px] sm:h-[96px]"
+                            {/* Inner circle */}
+                            <div
+                              className={`rounded-full p-[3px] relative overflow-hidden ${
+                                isMe
+                                  ? "bg-violet-50 dark:bg-[#2d1b54]"
+                                  : "bg-white dark:bg-[#1a1535]"
                               }`}
+                              style={{
+                                backgroundImage:
+                                  "radial-gradient(circle at 50% 25%, rgba(255,255,255,0.08), rgba(255,255,255,0) 70%)",
+                              }}
                             >
+                              <Avatar
+                                className={`${
+                                  presentation
+                                    ? "w-[80px] h-[80px] sm:w-[90px] sm:h-[90px]"
+                                    : isMe
+                                      ? "w-[90px] h-[90px] sm:w-[110px] sm:h-[110px] ring-4 ring-violet-400 ring-offset-4 ring-offset-violet-50 dark:ring-offset-[#2d1b54]"
+                                      : "w-[76px] h-[76px] sm:w-[96px] sm:h-[96px]"
+                                } transition-all duration-300`}
+                              >
                               <Avatar.Image src={s.avatar} alt={s.name} />
                               <Avatar.Fallback
                                 className="bg-gradient-to-br from-violet-500 to-indigo-600 text-white font-black text-2xl sm:text-3xl"
@@ -263,7 +268,7 @@ export function WaitingRoom({
                             ? <Check className="w-4 h-4 text-white" strokeWidth={3} />
                             : <Clock className="w-3.5 h-3.5 text-white/80" />}
                         </span>
-                      </motion.div>
+                      </div>
 
                       {/* Name label */}
                       <div className="flex flex-col items-center gap-0.5 min-w-0 w-full">
@@ -290,55 +295,59 @@ export function WaitingRoom({
 
         {/* ── Action footer ───────────────────────────────────────── */}
         {presentation ? (
-          <p className="text-center text-white/80 text-lg font-bold flex items-center justify-center gap-2 py-2">
+          <p className="text-center text-white/80 text-lg font-bold flex items-center justify-center gap-2 py-2 mt-auto">
             <GraduationCap className="w-5 h-5" />
             {t.play.waitingForTeacher}
           </p>
         ) : (
-        <div className="flex flex-col gap-3">
-          {role === "student" ? (
-            <>
+        <div className="fixed bottom-0 left-0 right-0 p-4 sm:p-6 bg-gradient-to-t from-primary via-primary/90 dark:from-[#120E24] dark:via-[#120E24]/90 to-transparent z-50">
+          <div className="max-w-md mx-auto flex flex-col gap-3">
+            {role === "student" ? (
+              <>
+                <Button
+                  size="lg"
+                  onPress={onToggleReady}
+                  className={`w-full h-16 rounded-2xl font-black text-lg shadow-xl transition-all flex items-center justify-center gap-2 ${
+                    isReady
+                      ? "bg-white/90 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-100"
+                      : "bg-gradient-to-r from-emerald-400 to-green-500 text-white hover:shadow-green-500/30 hover:-translate-y-0.5"
+                  }`}
+                >
+                  {isReady ? <Clock className="w-5 h-5" /> : <Check className="w-5 h-5" />}
+                  {isReady ? t.play.waitingCancelReady : t.play.waitingImReady}
+                </Button>
+                <p className="text-center text-zinc-500 dark:text-white/70 text-sm font-semibold flex items-center justify-center gap-2">
+                  <GraduationCap className="w-4 h-4" />
+                  {t.play.waitingForTeacher}
+                </p>
+              </>
+            ) : (
               <Button
                 size="lg"
-                onPress={onToggleReady}
-                className={`w-full h-16 rounded-2xl font-black text-lg shadow-xl transition-all flex items-center justify-center gap-2 ${
-                  isReady
-                    ? "bg-white/90 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-100"
-                    : "bg-gradient-to-r from-emerald-400 to-green-500 text-white hover:shadow-green-500/30 hover:-translate-y-0.5"
-                }`}
+                onPress={onStart}
+                isDisabled={roster.length === 0}
+                className="w-full h-16 rounded-2xl font-black text-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-xl hover:shadow-violet-500/30 hover:-translate-y-0.5 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {isReady ? <Clock className="w-5 h-5" /> : <Check className="w-5 h-5" />}
-                {isReady ? t.play.waitingCancelReady : t.play.waitingImReady}
+                <Play className="w-6 h-6" fill="currentColor" />
+                {t.play.waitingStartQuiz}
               </Button>
-              <p className="text-center text-white/70 text-sm font-semibold flex items-center justify-center gap-2">
-                <GraduationCap className="w-4 h-4" />
-                {t.play.waitingForTeacher}
-              </p>
-            </>
-          ) : (
-            <Button
-              size="lg"
-              onPress={onStart}
-              isDisabled={roster.length === 0}
-              className="w-full h-16 rounded-2xl font-black text-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-xl hover:shadow-violet-500/30 hover:-translate-y-0.5 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              <Play className="w-6 h-6" fill="currentColor" />
-              {t.play.waitingStartQuiz}
-            </Button>
-          )}
+            )}
 
-          {onLeave && (
-            <button
-              onClick={onLeave}
-              className="text-white/60 hover:text-white text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 py-1"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              {t.play.waitingLeave}
-            </button>
-          )}
+            {onLeave && (
+              <button
+                onClick={onLeave}
+                className="text-zinc-400 hover:text-zinc-600 dark:text-white/60 dark:hover:text-white text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 py-1"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                {t.play.waitingLeave}
+              </button>
+            )}
+          </div>
         </div>
         )}
       </motion.div>
     </div>
   );
 }
+
+export const WaitingRoom = memo(WaitingRoomInner);

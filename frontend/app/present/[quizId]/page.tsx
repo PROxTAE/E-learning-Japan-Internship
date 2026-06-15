@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Spinner } from "@heroui/react";
 import { quizApi } from "@/services/quizApi";
@@ -87,21 +87,49 @@ export default function PresentPage() {
   // Keep track of answers state
   const [answers, setAnswers] = useState<AnswerCellData[]>([]);
 
+  // ── Throttled batching ──────────────────────────────────────────
+  // During a join/answer flood every socket event would otherwise
+  // trigger its own React render. We mutate authoritative copies held
+  // in refs and flush them to state at most ~every 150ms, so dozens of
+  // events collapse into a single re-render.
+  const studentsRef = useRef<Student[]>([]);
+  const answersRef = useRef<AnswerCellData[]>([]);
+  const studentsDirty = useRef(false);
+  const answersDirty = useRef(false);
+  const flushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const scheduleFlush = useCallback(() => {
+    if (flushTimer.current) return;
+    flushTimer.current = setTimeout(() => {
+      flushTimer.current = null;
+      if (studentsDirty.current) {
+        studentsDirty.current = false;
+        setStudents(studentsRef.current.slice());
+      }
+      if (answersDirty.current) {
+        answersDirty.current = false;
+        setAnswers(answersRef.current.slice());
+      }
+    }, 150);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (flushTimer.current) clearTimeout(flushTimer.current);
+    };
+  }, []);
+
   // ── Handle answer updates ───────────────────────────────────────
   const handleAnswerUpdate = useCallback((answer: AnswerCellData) => {
-    setAnswers((prev) => {
-      // Upsert: replace if same student+question exists
-      const idx = prev.findIndex(
-        (a) => a.studentId === answer.studentId && a.questionId === answer.questionId
-      );
-      if (idx >= 0) {
-        const next = [...prev];
-        next[idx] = answer;
-        return next;
-      }
-      return [...prev, answer];
-    });
-  }, []);
+    const arr = answersRef.current;
+    const idx = arr.findIndex(
+      (a) => a.studentId === answer.studentId && a.questionId === answer.questionId
+    );
+    if (idx >= 0) arr[idx] = answer;
+    else arr.push(answer);
+    answersDirty.current = true;
+    scheduleFlush();
+  }, [scheduleFlush]);
 
   // ── Handle session control events ───────────────────────────────
   const handleSessionControl = useCallback((payload: any) => {
@@ -117,39 +145,47 @@ export default function PresentPage() {
     {
       sessionId,
       quizId,
-      onLobbyUpdate: (list) => setStudents(list),
+      onLobbyUpdate: (list) => {
+        studentsRef.current = list;
+        studentsDirty.current = true;
+        scheduleFlush();
+      },
       onStudentJoined: (student) => {
-        setStudents((prev) => {
-          const normalized = { ...student, id: student.id || (student as any).studentId || "" };
-          const exists = prev.findIndex((s) => s.id === normalized.id);
-          if (exists >= 0) {
-            const next = [...prev];
-            next[exists] = { ...next[exists], ...normalized, isOnline: true };
-            return next;
-          }
-          return [...prev, { ...normalized, isOnline: true }];
-        });
+        const normalized = { ...student, id: student.id || (student as any).studentId || "" };
+        const arr = studentsRef.current;
+        const exists = arr.findIndex((s) => s.id === normalized.id);
+        if (exists >= 0) {
+          arr[exists] = { ...arr[exists], ...normalized, isOnline: true };
+        } else {
+          arr.push({ ...normalized, isOnline: true });
+        }
+        studentsDirty.current = true;
+        scheduleFlush();
       },
       onStudentLeft: (student) => {
-        setStudents((prev) =>
-          prev.map((s) =>
-            (s.id === student.id || s.id === (student as any).studentId)
-              ? { ...s, isOnline: false }
-              : s
-          )
-        );
+        const arr = studentsRef.current;
+        for (let i = 0; i < arr.length; i++) {
+          if (arr[i].id === student.id || arr[i].id === (student as any).studentId) {
+            arr[i] = { ...arr[i], isOnline: false };
+          }
+        }
+        studentsDirty.current = true;
+        scheduleFlush();
       },
       onAnswerUpdate: handleAnswerUpdate,
       onSessionControl: handleSessionControl,
     },
     (snap) => {
-      setStudents(snap.students || []);
+      studentsRef.current = (snap.students || []).slice();
+      studentsDirty.current = true;
       if (snap.answers && snap.answers.length > 0) {
-        setAnswers(snap.answers);
+        answersRef.current = snap.answers.slice();
+        answersDirty.current = true;
         // If we have answers, the session has already started
         setSessionStarted(true);
         setView("roadmap");
       }
+      scheduleFlush();
     }
   );
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useEffect } from "react";
+import { memo, useMemo, useRef, useEffect } from "react";
 import { Avatar } from "@heroui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Flag, MapPin } from "lucide-react";
@@ -103,17 +103,9 @@ function buildSvgPath(checkpoints: { x: number; y: number }[]) {
   return d;
 }
 
-/** Count how many questions a student has answered. */
-function getStudentAnsweredCount(studentId: string, answers: AnswerCellData[]) {
-  const studentAnswers = answers.filter((a) => a.studentId === studentId);
-  // Count unique questions answered
-  const questionIds = new Set(studentAnswers.map((a) => a.questionId));
-  return questionIds.size;
-}
-
 /* ── Component ─────────────────────────────────────────────────── */
 
-export function ProgressRoadmap({ questions, students, answers, scale = 1.0 }: ProgressRoadmapProps) {
+function ProgressRoadmapInner({ questions, students, answers, scale = 1.0 }: ProgressRoadmapProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastScrollTarget = useRef<number | null>(null);
   const { t } = useLang();
@@ -138,21 +130,40 @@ export function ProgressRoadmap({ questions, students, answers, scale = 1.0 }: P
   const canvasH = (totalCheckpoints - 1) * CHECKPOINT_GAP + 200;
 
   // Online students only
-  const roster = students.filter((s) => s.isOnline !== false);
+  const roster = useMemo(
+    () => students.filter((s) => s.isOnline !== false),
+    [students]
+  );
+
+  // Count unique answered questions per student in a SINGLE pass over answers
+  // (was O(students × answers); now O(answers)).
+  const answeredCountByStudent = useMemo(() => {
+    const seen = new Map<string, Set<string>>();
+    for (const a of answers) {
+      let set = seen.get(a.studentId);
+      if (!set) {
+        set = new Set();
+        seen.set(a.studentId, set);
+      }
+      set.add(a.questionId);
+    }
+    const counts = new Map<string, number>();
+    seen.forEach((set, sid) => counts.set(sid, set.size));
+    return counts;
+  }, [answers]);
 
   // Build a map: checkpointIndex → students at that checkpoint
   const studentPositions = useMemo(() => {
     const map = new Map<number, (Student & { ringIdx: number })[]>();
     roster.forEach((s, globalIdx) => {
       const sid = s.id || s.studentId || "";
-      const answered = getStudentAnsweredCount(sid, answers);
+      const answered = answeredCountByStudent.get(sid) ?? 0;
       const cpIdx = Math.min(answered, questions.length); // clamp to finish
       if (!map.has(cpIdx)) map.set(cpIdx, []);
       map.get(cpIdx)!.push({ ...s, ringIdx: globalIdx });
     });
     return map;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roster.length, answers.length, answers, questions.length]);
+  }, [roster, answeredCountByStudent, questions.length]);
 
   // Auto-scroll to the most active checkpoint (the one with the most recent activity)
   useEffect(() => {
@@ -338,14 +349,12 @@ export function ProgressRoadmap({ questions, students, answers, scale = 1.0 }: P
                     />
                   </svg>
 
-                  {/* Avatar bubble */}
-                  <motion.div
-                    animate={{ y: [0, -3, 0] }}
-                    transition={{
-                      duration: 2.5 + (stackIdx % 3) * 0.3,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                      delay: stackIdx * 0.2,
+                  {/* Avatar bubble — CSS bob (GPU-composited) */}
+                  <div
+                    className="present-bob"
+                    style={{
+                      ["--bob-dur" as any]: `${2.5 + (stackIdx % 3) * 0.3}s`,
+                      ["--bob-delay" as any]: `${stackIdx * 0.2}s`,
                     }}
                   >
                     <div
@@ -366,7 +375,7 @@ export function ProgressRoadmap({ questions, students, answers, scale = 1.0 }: P
                         </Avatar>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
 
                   {/* Name tag */}
                   <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-lg px-2 py-0.5 max-w-[80px]">
@@ -402,25 +411,17 @@ export function ProgressRoadmap({ questions, students, answers, scale = 1.0 }: P
           { x: "20%", y: "85%", s: 6, c: "#f472b6" },
           { x: "80%", y: "90%", s: 5, c: "#a78bfa" },
         ].map((dot, i) => (
-          <motion.span
+          <span
             key={`dot-${i}`}
-            className="absolute rounded-full pointer-events-none"
+            className="absolute rounded-full pointer-events-none present-float"
             style={{
               left: dot.x,
               top: dot.y,
               width: dot.s,
               height: dot.s,
               background: dot.c,
-            }}
-            animate={{
-              y: [0, -8, 0],
-              opacity: [0.6, 0.3, 0.6],
-            }}
-            transition={{
-              duration: 3 + i * 0.5,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: i * 0.3,
+              ["--bob-dur" as any]: `${3 + i * 0.5}s`,
+              ["--bob-delay" as any]: `${i * 0.3}s`,
             }}
           />
         ))}
@@ -454,3 +455,5 @@ export function ProgressRoadmap({ questions, students, answers, scale = 1.0 }: P
     </div>
   );
 }
+
+export const ProgressRoadmap = memo(ProgressRoadmapInner);

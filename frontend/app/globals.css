@@ -247,3 +247,39 @@ html {
   outline-color: var(--color-violet-400) !important;
   background-color: rgba(167, 139, 250, 0.05) !important;
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Projector / presentation animations.
+   GPU-composited (transform/opacity only) so they stay smooth
+   with many simultaneous avatars on a low-power projector device.
+   Per-element timing is driven by --bob-dur / --bob-delay inline.
+   ───────────────────────────────────────────────────────────── */
+@keyframes present-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-5px); }
+}
+
+.present-bob {
+  animation: present-bob var(--bob-dur, 3s) ease-in-out infinite;
+  animation-delay: var(--bob-delay, 0s);
+  will-change: transform;
+}
+
+@keyframes present-float {
+  0%, 100% { transform: translateY(0); opacity: 0.6; }
+  50%      { transform: translateY(-8px); opacity: 0.3; }
+}
+
+.present-float {
+  animation: present-float var(--bob-dur, 3s) ease-in-out infinite;
+  animation-delay: var(--bob-delay, 0s);
+  will-change: transform, opacity;
+}
+
+/* Respect reduced-motion / let teachers disable via body class if needed */
+@media (prefers-reduced-motion: reduce) {
+  .present-bob,
+  .present-float {
+    animation: none;
+  }
+}
