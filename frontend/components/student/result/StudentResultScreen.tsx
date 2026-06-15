@@ -94,8 +94,10 @@ export function StudentResultScreen({ quizId, studentId, studentName, selectedAn
         if (logId) {
           try {
             const res = await fetch(`/api/quiz-logs/${logId}`);
-            const body = await res.json();
-            if (body.success) logData = body.data;
+            if (res.ok) {
+              const body = await res.json();
+              if (body.success) logData = body.data;
+            }
           } catch (err) {
             console.error("Failed to fetch log by logId:", err);
           }
@@ -104,8 +106,10 @@ export function StudentResultScreen({ quizId, studentId, studentName, selectedAn
         if (!logData && studentId && quizId) {
           try {
             const res = await fetch(`/api/quiz-logs/student/${studentId}/quiz/${quizId}`);
-            const body = await res.json();
-            if (body.success) logData = body.data;
+            if (res.ok) {
+              const body = await res.json();
+              if (body.success) logData = body.data;
+            }
           } catch (err) {
             console.error("Failed to fetch student log fallback:", err);
           }

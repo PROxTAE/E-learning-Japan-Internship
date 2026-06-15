@@ -12,6 +12,9 @@ const CLIENT_EVENTS = {
   SUBMIT_ANSWER:     "submit_answer",
   CONTROL_SESSION:   "control_session",
   GET_SESSION_STATE: "get_session_state",   // ← teacher refresh/reconnect
+  SET_READY:         "set_ready",           // ← student waiting-room ready toggle
+  GET_LOBBY:         "get_lobby",           // ← request current roster
+  LEAVE_QUIZ:        "leave_quiz",          // ← student permanently leaves
 } as const;
 
 const SERVER_EVENTS = {
@@ -22,6 +25,7 @@ const SERVER_EVENTS = {
   ANSWER_UPDATE:   "answer_update",
   SESSION_STATS:   "session_stats",
   SESSION_CONTROL: "session_control",
+  LOBBY_UPDATE:    "lobby_update",          // ← waiting-room roster broadcast
   ERROR:           "error",
 } as const;
 
@@ -33,6 +37,7 @@ export interface UseTeacherSocketOptions {
   onStudentLeft?:     (student: Student, stats: LiveStats) => void;
   onAnswerUpdate?:    (answer: AnswerCellData, stats: LiveStats) => void;
   onSessionControl?:  (payload: any) => void;
+  onLobbyUpdate?:     (students: Student[]) => void;
   onError?:           (message: string) => void;
 }
 
@@ -48,8 +53,12 @@ export interface SessionSnapshot {
 export interface UseTeacherSocketReturn {
   isConnected:      boolean;
   controlSession:   (action: "pause" | "resume" | "stop") => void;
+  /** Start the quiz for everyone in the waiting room */
+  startSession:     () => void;
   /** Manually request a fresh state snapshot (e.g., after teacher-side refresh) */
   requestSnapshot:  () => void;
+  /** Manually request the current waiting-room roster */
+  requestLobby:     () => void;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -66,7 +75,7 @@ export function useTeacherSocket(
   const socketRef    = useRef<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
-  const { sessionId, quizId, onStudentJoined, onStudentLeft, onAnswerUpdate, onSessionControl, onError } = options;
+  const { sessionId, quizId, onStudentJoined, onStudentLeft, onAnswerUpdate, onSessionControl, onLobbyUpdate, onError } = options;
 
   useEffect(() => {
     // Create socket with auto-reconnect
@@ -138,6 +147,10 @@ export function useTeacherSocket(
       onSessionControl?.(payload);
     });
 
+    socket.on(SERVER_EVENTS.LOBBY_UPDATE, ({ students }: { students: Student[] }) => {
+      onLobbyUpdate?.(students || []);
+    });
+
     socket.on(SERVER_EVENTS.ERROR, ({ message }: { message: string }) => {
       console.warn("[teacher socket] error:", message);
       onError?.(message);
@@ -159,15 +172,27 @@ export function useTeacherSocket(
     socketRef.current?.emit(CLIENT_EVENTS.CONTROL_SESSION, { sessionId, action });
   }, [sessionId]);
 
+  /** Start the quiz for all students currently in the waiting room */
+  const startSession = useCallback(() => {
+    socketRef.current?.emit(CLIENT_EVENTS.CONTROL_SESSION, { sessionId, action: "start" });
+  }, [sessionId]);
+
   /** Imperatively pull the latest state (e.g. a "Refresh" button) */
   const requestSnapshot = useCallback(() => {
     socketRef.current?.emit(CLIENT_EVENTS.GET_SESSION_STATE, { sessionId, quizId });
   }, [sessionId, quizId]);
 
+  /** Imperatively pull the latest waiting-room roster */
+  const requestLobby = useCallback(() => {
+    socketRef.current?.emit(CLIENT_EVENTS.GET_LOBBY, { sessionId });
+  }, [sessionId]);
+
   return {
     isConnected,
     controlSession,
+    startSession,
     requestSnapshot,
+    requestLobby,
   };
 }
 
@@ -181,6 +206,7 @@ export interface UseStudentSocketOptions {
   name:      string;
   avatar?:   string;
   onSessionControl?: (payload: any) => void;
+  onLobbyUpdate?:    (students: Student[]) => void;
   onError?:          (message: string) => void;
 }
 
@@ -193,13 +219,17 @@ export interface UseStudentSocketReturn {
     isCorrect?:   boolean;
     responseTime: number;
   }) => void;
+  /** Toggle this student's waiting-room "ready" flag */
+  setReady: (isReady: boolean) => void;
+  /** Permanently leave the session (removes this student's record) */
+  leaveSession: () => void;
 }
 
 export function useStudentSocket(options: UseStudentSocketOptions): UseStudentSocketReturn {
   const socketRef = useRef<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
-  const { sessionId, quizId, studentId, name, avatar, onSessionControl, onError } = options;
+  const { sessionId, quizId, studentId, name, avatar, onSessionControl, onLobbyUpdate, onError } = options;
 
   useEffect(() => {
     // Don't connect until we have a real student identity
@@ -244,6 +274,10 @@ export function useStudentSocket(options: UseStudentSocketOptions): UseStudentSo
       onSessionControl?.(payload);
     });
 
+    socket.on(SERVER_EVENTS.LOBBY_UPDATE, ({ students }: { students: Student[] }) => {
+      onLobbyUpdate?.(students || []);
+    });
+
     socket.on(SERVER_EVENTS.ERROR, ({ message }: { message: string }) => {
       console.warn("[studentSocket] error:", message);
       onError?.(message);
@@ -280,7 +314,15 @@ export function useStudentSocket(options: UseStudentSocketOptions): UseStudentSo
     socketRef.current.emit(CLIENT_EVENTS.SUBMIT_ANSWER, payload);
   }, [sessionId, quizId, studentId]);
 
-  return { isConnected, submitAnswer };
+  const setReady = useCallback((isReady: boolean) => {
+    socketRef.current?.emit(CLIENT_EVENTS.SET_READY, { sessionId, studentId, isReady });
+  }, [sessionId, studentId]);
+
+  const leaveSession = useCallback(() => {
+    socketRef.current?.emit(CLIENT_EVENTS.LEAVE_QUIZ, { sessionId, studentId });
+  }, [sessionId, studentId]);
+
+  return { isConnected, submitAnswer, setReady, leaveSession };
 }
 
 // ── Utility ────────────────────────────────────────────────────

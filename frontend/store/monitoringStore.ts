@@ -28,6 +28,7 @@ interface MonitoringStore {
   updateUIState: (updates: Partial<MonitoringState>) => void;
   addAnswer: (answer: AnswerCellData) => void;
   updateStudent: (student: Student) => void;
+  removeStudent: (studentId: string) => void;
   updateStats: (stats: LiveStats) => void;
   setQuestions: (questions: Question[]) => void;
 
@@ -155,7 +156,14 @@ export const useMonitoringStore = create<MonitoringStore>((set) => ({
     return { students: [...state.students, normalized] };
   }),
 
-  updateStats: (stats) => set((state) => ({ 
+  removeStudent: (studentId) => set((state) => ({
+    students: state.students.filter(
+      (s) => (s.id || (s as Student & { studentId?: string }).studentId) !== studentId
+    ),
+    answers: state.answers.filter((a) => a.studentId !== studentId),
+  })),
+
+  updateStats: (stats) => set((state) => ({
     stats,
     questions: mergeQuestionStats(state.questions, stats)
   })),

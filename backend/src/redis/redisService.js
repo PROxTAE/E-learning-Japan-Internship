@@ -336,6 +336,7 @@ async function upsertStudent(accessCode, student) {
                      || existing.avatar
                      || `https://api.dicebear.com/7.x/avataaars/svg?seed=${student.studentId}`,
     isOnline:      true,
+    isReady:       existing.isReady        ?? false,   // waiting-room ready flag
     score:         existing.score          ?? 0,
     progress:      existing.progress       ?? 0,
     confusionLevel:existing.confusionLevel ?? "none",
@@ -347,6 +348,49 @@ async function upsertStudent(accessCode, student) {
   await client.hSet(key, student.studentId, JSON.stringify(updated));
   await client.expire(key, SESSION_TTL);
   return updated;
+}
+
+/**
+ * Toggle a student's waiting-room "ready" flag.
+ * @returns {Promise<StudentRecord | null>}
+ */
+async function setStudentReady(accessCode, studentId, isReady) {
+  const client = await getRedisClient();
+  if (!client) {
+    return fallback.setStudentReady(accessCode, studentId, isReady);
+  }
+
+  const key = keys.students(accessCode);
+  const raw = await client.hGet(key, studentId);
+  if (!raw) return null;
+
+  const student = safeJSON(raw);
+  if (!student) return null;
+
+  student.isReady   = !!isReady;
+  student.updatedAt = Date.now();
+  await client.hSet(key, studentId, JSON.stringify(student));
+  await client.expire(key, SESSION_TTL);
+  return student;
+}
+
+/**
+ * Permanently remove a student (and their answers) from the session.
+ * Used when a student leaves the waiting room so stale records don't linger.
+ * @returns {Promise<StudentRecord | null>}
+ */
+async function removeStudent(accessCode, studentId) {
+  const client = await getRedisClient();
+  if (!client) {
+    return fallback.removeStudent(accessCode, studentId);
+  }
+
+  const key = keys.students(accessCode);
+  const raw = await client.hGet(key, studentId);
+  await client.hDel(key, studentId);
+  await client.del(keys.answers(accessCode, studentId));
+  await client.expire(key, SESSION_TTL);
+  return raw ? safeJSON(raw) : null;
 }
 
 /**
@@ -668,6 +712,8 @@ module.exports = {
   setSessionTimer,
   resetStudentAnswers,
   upsertStudent,
+  setStudentReady,
+  removeStudent,
   setStudentOffline,
   getStudents,
   recordAnswer,

@@ -16,7 +16,7 @@ import { motion } from "framer-motion";
 import { useLang } from "@/lib/i18n/LanguageContext";
 import { Tabs, TabList, Tab, TabPanel } from "@heroui/react";
 import { quizApi } from "@/services/quizApi";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Users, MonitorPlay } from "lucide-react";
 import type { Question } from "@/types/teacher/monitoring.types";
 
 export default function MonitoringQuizPage() {
@@ -149,6 +149,9 @@ export default function MonitoringQuizPage() {
           updateStudent(normalized);
         },
         onStatsUpdate: (newStats) => updateStats(newStats),
+        onStudentRemoved: (studentId) => {
+          useMonitoringStore.getState().removeStudent(studentId);
+        },
         onSessionControl: (payload) => {
           const { action } = payload;
           if (action === "pause") {
@@ -238,15 +241,38 @@ export default function MonitoringQuizPage() {
     <div className="min-h-[calc(100vh-64px)] text-foreground p-4 md:p-6 flex flex-col relative">
       <div className="flex flex-col h-full w-full max-w-[1600px] mx-auto space-y-4 flex-1">
 
-        {/* Back button */}
-        <button
-          suppressHydrationWarning
-          onClick={() => router.push("/teacher/quizzes")}
-          className="flex items-center gap-2 text-sm text-gray-500 dark:text-default-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors w-fit"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Quiz Library
-        </button>
+        {/* Top bar: back + waiting room */}
+        <div className="flex items-center justify-between gap-3">
+          <button
+            suppressHydrationWarning
+            onClick={() => router.push("/teacher/quizzes")}
+            className="flex items-center gap-2 text-sm text-gray-500 dark:text-default-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors w-fit"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Quiz Library
+          </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              suppressHydrationWarning
+              onClick={() => window.open(`/present/${quizId}`, "_blank", "noopener")}
+              title={t.play.waitingProjectorHint}
+              className="flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-default-300 hover:bg-gray-50 dark:hover:bg-white/15 transition-colors w-fit"
+            >
+              <MonitorPlay className="w-4 h-4" />
+              {t.play.waitingOpenProjector}
+            </button>
+
+            <button
+              suppressHydrationWarning
+              onClick={() => router.push(`/teacher/waiting-room/${quizId}`)}
+              className="flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-xl bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/50 transition-colors w-fit"
+            >
+              <Users className="w-4 h-4" />
+              {t.play.waitingTitle}
+            </button>
+          </div>
+        </div>
 
         {/* Dev debug bar */}
         {debugInfo && (

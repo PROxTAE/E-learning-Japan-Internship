@@ -51,6 +51,7 @@ function upsertStudent(sessionId, student) {
     name: student.name,
     avatar: student.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${student.studentId}`,
     isOnline: true,
+    isReady: existing.isReady || false,
     score: existing.score || 0,
     progress: existing.progress || 0,
     speed: existing.speed || 0,
@@ -59,6 +60,28 @@ function upsertStudent(sessionId, student) {
   };
   session.students.set(student.studentId, updated);
   return updated;
+}
+
+function setStudentReady(sessionId, studentId, isReady) {
+  const session = sessions.get(sessionId);
+  if (!session) return null;
+  const student = session.students.get(studentId);
+  if (student) {
+    student.isReady = !!isReady;
+    session.students.set(studentId, student);
+  }
+  return student;
+}
+
+function removeStudent(sessionId, studentId) {
+  const session = sessions.get(sessionId);
+  if (!session) return null;
+  const student = session.students.get(studentId) || null;
+  session.students.delete(studentId);
+  for (const key of session.answers.keys()) {
+    if (key.startsWith(`${studentId}:`)) session.answers.delete(key);
+  }
+  return student;
 }
 
 function setStudentOffline(sessionId, studentId) {
@@ -295,6 +318,8 @@ module.exports = {
   getOrCreate,
   getSession,
   upsertStudent,
+  setStudentReady,
+  removeStudent,
   setStudentOffline,
   getStudents,
   recordAnswer,

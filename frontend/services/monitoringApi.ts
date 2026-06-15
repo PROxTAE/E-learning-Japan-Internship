@@ -60,6 +60,7 @@ function setupRealtimeListeners(
     onStudentJoined: (student: Student) => void;
     onStatsUpdate:   (stats: LiveStats) => void;
     onSessionControl?: (payload: any) => void;
+    onStudentRemoved?: (studentId: string) => void;
   },
   onSnapshot?: (data: { students: Student[]; answers: AnswerCellData[]; stats: LiveStats; isPaused?: boolean; startedAt?: number }) => void
 ) {
@@ -81,6 +82,7 @@ function setupRealtimeListeners(
   socket.off("session_stats");
   socket.off("student_joined");
   socket.off("student_left");
+  socket.off("student_removed");
   socket.off("session_control");
 
   socket.on("connect", doJoin);
@@ -146,6 +148,13 @@ function setupRealtimeListeners(
     if (stats) callbacks.onStatsUpdate(stats);
   });
 
+  // ── Student permanently removed (left the waiting room) ────
+  socket.on("student_removed", ({ studentId, stats }: { studentId: string; stats?: LiveStats }) => {
+    console.log("[monitoringApi] student_removed:", studentId);
+    if (callbacks.onStudentRemoved) callbacks.onStudentRemoved(studentId);
+    if (stats) callbacks.onStatsUpdate(stats);
+  });
+
   socket.on("session_control", (payload: any) => {
     console.log("[monitoringApi] session_control broadcast received:", payload);
     if (callbacks.onSessionControl) callbacks.onSessionControl(payload);
@@ -164,6 +173,7 @@ function setupRealtimeListeners(
     socket.off("session_stats");
     socket.off("student_joined");
     socket.off("student_left");
+    socket.off("student_removed");
     socket.off("session_control");
     socket.off("error");
     console.log("[monitoringApi] cleanup listeners for", sessionId);

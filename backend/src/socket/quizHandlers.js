@@ -37,6 +37,18 @@ module.exports = function registerHandlers(io, socket) {
     }, delayMs));
   }
 
+  // ── Waiting-room roster broadcast ───────────────────────────────────────────
+  // Sends the full student list to EVERYONE in the session (students + teacher)
+  // so the waiting room stays in sync as people join, leave, or toggle "ready".
+  async function broadcastLobby(sessionId) {
+    try {
+      const students = await redis.getStudents(sessionId);
+      io.to(sessionRoom(sessionId)).emit(SERVER_EVENTS.LOBBY_UPDATE, { students });
+    } catch (err) {
+      console.error("[broadcastLobby] error:", err);
+    }
+  }
+
 
   // ── JOIN_QUIZ ────────────────────────────────────────────────────────────────
   socket.on(CLIENT_EVENTS.JOIN_QUIZ, async (payload) => {
@@ -71,7 +83,7 @@ module.exports = function registerHandlers(io, socket) {
           redis.calcStats(sessionId),
         ]);
 
-        return socket.emit(SERVER_EVENTS.SESSION_JOINED, {
+        socket.emit(SERVER_EVENTS.SESSION_JOINED, {
           role: "teacher",
           sessionId,
           students,
@@ -79,6 +91,9 @@ module.exports = function registerHandlers(io, socket) {
           stats,
           quiz,
         });
+        // Send the waiting-room roster to the teacher right away
+        socket.emit(SERVER_EVENTS.LOBBY_UPDATE, { students });
+        return;
       }
 
       // ── Student ────────────────────────────────────────────────────────────
@@ -104,6 +119,9 @@ module.exports = function registerHandlers(io, socket) {
         timerActive: sessionMeta?.timerActive,
       });
       io.to(teacherRoom(sessionId)).emit(SERVER_EVENTS.STUDENT_JOINED, { student, stats });
+
+      // Broadcast updated waiting-room roster to everyone in the session
+      await broadcastLobby(sessionId);
 
     } catch (err) {
       console.error("[join_quiz] error:", err);
@@ -201,6 +219,55 @@ module.exports = function registerHandlers(io, socket) {
     } catch (err) {
       console.error("[get_session_state] error:", err);
       socket.emit(SERVER_EVENTS.ERROR, { message: "Failed to restore session state" });
+    }
+  });
+
+  // ── SET_READY (student waiting room) ─────────────────────────────────────────
+  socket.on(CLIENT_EVENTS.SET_READY, async (payload) => {
+    try {
+      const { sessionId, studentId, isReady } = payload || {};
+      if (!sessionId || !studentId) {
+        return socket.emit(SERVER_EVENTS.ERROR, { message: "Missing sessionId or studentId" });
+      }
+      await redis.setStudentReady(sessionId, studentId, !!isReady);
+      await broadcastLobby(sessionId);
+    } catch (err) {
+      console.error("[set_ready] error:", err);
+      socket.emit(SERVER_EVENTS.ERROR, { message: "Internal error updating ready state" });
+    }
+  });
+
+  // ── LEAVE_QUIZ (student leaves the waiting room) ─────────────────────────────
+  // Permanently removes the student record so changing name / re-joining doesn't
+  // leave a stale "disconnected" row on the teacher's monitoring grid.
+  socket.on(CLIENT_EVENTS.LEAVE_QUIZ, async (payload) => {
+    try {
+      const { sessionId, studentId } = payload || {};
+      if (!sessionId || !studentId) {
+        return socket.emit(SERVER_EVENTS.ERROR, { message: "Missing sessionId or studentId" });
+      }
+      const removed = await redis.removeStudent(sessionId, studentId);
+      const stats   = await redis.calcStats(sessionId);
+      if (removed) {
+        io.to(teacherRoom(sessionId)).emit(SERVER_EVENTS.STUDENT_REMOVED, { studentId, stats });
+      }
+      await broadcastLobby(sessionId);
+      // Forget this socket's identity so the disconnect handler won't re-mark offline
+      socket.data = {};
+    } catch (err) {
+      console.error("[leave_quiz] error:", err);
+    }
+  });
+
+  // ── GET_LOBBY (refresh roster on demand) ─────────────────────────────────────
+  socket.on(CLIENT_EVENTS.GET_LOBBY, async (payload) => {
+    try {
+      const { sessionId } = payload || {};
+      if (!sessionId) return socket.emit(SERVER_EVENTS.ERROR, { message: "Missing sessionId" });
+      const students = await redis.getStudents(sessionId);
+      socket.emit(SERVER_EVENTS.LOBBY_UPDATE, { students });
+    } catch (err) {
+      console.error("[get_lobby] error:", err);
     }
   });
 
@@ -386,6 +453,8 @@ module.exports = function registerHandlers(io, socket) {
         if (student) {
           io.to(teacherRoom(sessionId)).emit(SERVER_EVENTS.STUDENT_LEFT, { student, stats });
         }
+        // Keep the waiting-room roster in sync after a student leaves
+        await broadcastLobby(sessionId);
       } catch (err) {
         console.error("[disconnect] Redis error:", err);
       }

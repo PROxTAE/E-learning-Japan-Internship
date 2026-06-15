@@ -12,6 +12,9 @@ export interface Student {
   name: string;
   avatar: string;
   isOnline: boolean;
+  isReady?: boolean;
+  studentId?: string;
+  joinedAt?: number;
   score: number;
   progress: number;
   speed: number;

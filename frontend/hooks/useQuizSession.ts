@@ -32,6 +32,10 @@ export interface QuizSessionState {
   started:          boolean;
   isFinished:       boolean;
   startTime?:       number;
+  /** Student is in the waiting room (joined but quiz not started yet) */
+  inLobby?:         boolean;
+  /** Waiting-room "ready" flag */
+  isReady?:         boolean;
 }
 
 function storageKey(quizId: string) {

@@ -9,6 +9,9 @@ const CLIENT_EVENTS = {
   SUBMIT_ANSWER:     "submit_answer",     // Student submits / changes answer
   CONTROL_SESSION:   "control_session",   // Teacher pauses / resumes / stops
   GET_SESSION_STATE: "get_session_state", // Teacher requests full snapshot (refresh/reconnect)
+  SET_READY:         "set_ready",         // Student toggles "ready" in the waiting room
+  GET_LOBBY:         "get_lobby",         // Anyone requests the current waiting-room roster
+  LEAVE_QUIZ:        "leave_quiz",        // Student permanently leaves (removes their record)
 };
 
 // ─── Server → Client Events ───────────────────────────────────
@@ -20,6 +23,8 @@ const SERVER_EVENTS = {
   ANSWER_UPDATE:   "answer_update",   // Broadcast new/updated answer
   SESSION_STATS:   "session_stats",   // Aggregated stats update
   SESSION_CONTROL: "session_control", // Teacher control broadcast (pause/resume)
+  LOBBY_UPDATE:    "lobby_update",    // Waiting-room roster broadcast to everyone in session
+  STUDENT_REMOVED: "student_removed", // A student record was permanently removed
   ERROR:           "error",
 };
 

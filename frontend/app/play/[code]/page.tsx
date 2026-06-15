@@ -15,6 +15,8 @@ import { useQuizSession } from "@/hooks/useQuizSession";
 import { StudentResultScreen } from "@/components/student/result/StudentResultScreen";
 import { useQuizInteractionLog } from "@/hooks/useQuizInteractionLog";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
+import { WaitingRoom } from "@/components/student/waiting-room/WaitingRoom";
+import type { Student } from "@/types/teacher/monitoring.types";
 
 // sessionId must match the Teacher's monitoring page: quiz-session-{quizId}
 function sessionIdFromQuiz(quizId: string) {
@@ -40,6 +42,9 @@ export default function PlayQuizPage() {
 
   // ── Quiz progress ──────────────────────────────────────────────────────────
   const [started,           setStarted]           = useState(false);
+  const [inLobby,           setInLobby]            = useState(false); // waiting room
+  const [lobbyStudents,     setLobbyStudents]      = useState<Student[]>([]);
+  const [isReady,           setIsReady]            = useState(false);
   const [currentIndex,      setCurrentIndex]       = useState(0);
   const [selectedAnswers,   setSelectedAnswers]    = useState<Record<string, string>>({});
   const [currentSelection,  setCurrentSelection]   = useState<string | null>(null);
@@ -85,9 +90,20 @@ export default function PlayQuizPage() {
   useEffect(() => {
     if (!quiz) return;
     const saved = loadSession();
-    if (!saved || !saved.started) return;
+    if (!saved) return;
 
-    // Restore all quiz state from localStorage
+    // Case 1: student was in the waiting room → rejoin the lobby on refresh
+    if (saved.inLobby && !saved.started) {
+      setStudentId(saved.studentId);
+      setStudentName(saved.studentName);
+      setIsReady(!!saved.isReady);
+      setInLobby(true);
+      return;
+    }
+
+    if (!saved.started) return;
+
+    // Case 2: restore an in-progress quiz exactly where they left off
     setStudentId(saved.studentId);
     setStudentName(saved.studentName);
     setCurrentIndex(saved.currentIndex);
@@ -118,18 +134,38 @@ export default function PlayQuizPage() {
     });
   }, [quiz, started, studentId, studentName, currentIndex, selectedAnswers, currentSelection, isFinished, startTime, saveSession]);
 
+  // ── Persist waiting-room state so a refresh rejoins the lobby ──────────────
+  useEffect(() => {
+    if (!quiz || !inLobby || started || !studentId) return;
+    saveSession({
+      studentId,
+      studentName,
+      currentIndex: 0,
+      selectedAnswers: {},
+      currentSelection: null,
+      started: false,
+      isFinished: false,
+      inLobby: true,
+      isReady,
+    });
+  }, [quiz, inLobby, started, studentId, studentName, isReady, saveSession]);
+
   // ── Socket (only active after student has an identity) ────────────────────
   const sessionId = quiz ? sessionIdFromQuiz(quiz.id) : "";
 
-  const { isConnected, submitAnswer } = useStudentSocket({
+  const { isConnected, submitAnswer, setReady, leaveSession } = useStudentSocket({
     sessionId,
     quizId: quiz?.id,
     studentId,
     name: studentName,
     avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${studentId}`,
+    onLobbyUpdate: (students) => setLobbyStudents(students),
     onSessionControl: (payload) => {
       const { action } = payload || {};
-      if (action === "init") {
+      if (action === "start") {
+        // Teacher started the quiz from the waiting room
+        beginQuiz();
+      } else if (action === "init") {
         setIsTeacherLed(!!payload.isTeacherLed);
         if (payload.isTeacherLed && payload.currentQuestionIndex !== undefined) {
           setCurrentIndex(payload.currentQuestionIndex);
@@ -219,7 +255,8 @@ export default function PlayQuizPage() {
   }, [started, isFinished, isPaused, quiz?.durationMinutes, quiz?.hasTimeLimit, startTime, clearSession]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
-  const handleStartQuiz = () => {
+  // Step 1: student enters name → join the waiting room (connects socket).
+  const handleJoinLobby = () => {
     const cleanName = studentName.trim();
     if (!cleanName) {
       setError("Please enter your name to start");
@@ -228,12 +265,35 @@ export default function PlayQuizPage() {
     const finalId = studentId || `${cleanName.toLowerCase().replace(/\s+/g, "_")}_${Date.now().toString(36)}`;
     setStudentId(finalId);
     setError(null);
+    setInLobby(true);
+  };
+
+  // Step 2: quiz actually begins (triggered by the teacher's "start" control).
+  const beginQuiz = useCallback(() => {
+    setInLobby(false);
     interactionLog.resetLog();
     const now = Date.now();
     setStartTime(now);
     setStarted(true);
-    // Log the first question view after state update
     setTimeout(() => interactionLog.logView(0), 50);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleToggleReady = () => {
+    const next = !isReady;
+    setIsReady(next);
+    setReady(next);
+  };
+
+  const handleLeaveLobby = () => {
+    // Remove our record on the server first, then tear down the socket.
+    leaveSession();
+    clearSession();
+    setInLobby(false);
+    setIsReady(false);
+    setLobbyStudents([]);
+    // Small delay so the leave_quiz event flushes before the socket disconnects
+    setTimeout(() => setStudentId(""), 150);
   };
 
   const handlePlayAgain = () => {
@@ -414,6 +474,33 @@ export default function PlayQuizPage() {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
+  //  Waiting Room (lobby) — after joining, before the teacher starts
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (inLobby && !started) {
+    return (
+      <div className="quiz-bg fixed inset-0 overflow-y-auto">
+        <Blobs />
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+          <QuizLangSwitcher />
+          <ThemeSwitcher />
+        </div>
+        <WaitingRoom
+          role="student"
+          quizTitle={quiz.title}
+          code={code}
+          questionCount={quiz.questions.length}
+          students={lobbyStudents}
+          myStudentId={studentId}
+          isReady={isReady}
+          isConnected={isConnected}
+          onToggleReady={handleToggleReady}
+          onLeave={handleLeaveLobby}
+        />
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
   //  Welcome Screen
   // ═══════════════════════════════════════════════════════════════════════════
   if (!started) {
@@ -480,9 +567,9 @@ export default function PlayQuizPage() {
                   size="lg"
                   isDisabled={!studentName.trim()}
                   className="w-full h-16 rounded-2xl font-black text-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-xl hover:shadow-violet-500/30 hover:-translate-y-1 transition-all"
-                  onPress={handleStartQuiz}
+                  onPress={handleJoinLobby}
                 >
-                  {t.play.startQuiz}
+                  {t.play.waitingJoinLobby}
                 </Button>
 
                 <button onClick={() => router.push("/")} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 text-sm font-semibold transition-colors">
