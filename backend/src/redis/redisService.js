@@ -346,7 +346,7 @@ async function upsertStudent(accessCode, student) {
     name:          student.name,
     avatar:        student.avatar
                      || existing.avatar
-                     || `https://api.dicebear.com/7.x/avataaars/svg?seed=${student.studentId}`,
+                     || `https://api.dicebear.com/10.x/big-smile/svg?seed=${student.studentId}`,
     isOnline:      true,
     isReady:       existing.isReady        ?? false,   // waiting-room ready flag
     score:         existing.score          ?? 0,

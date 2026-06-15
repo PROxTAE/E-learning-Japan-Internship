@@ -159,7 +159,7 @@ export default function PlayQuizPage() {
     quizId: quiz?.id,
     studentId,
     name: studentName,
-    avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${studentId}`,
+    avatar: `https://api.dicebear.com/10.x/big-smile/svg?seed=${studentId}`,
     onLobbyUpdate: (students) => setLobbyStudents(students),
     onSessionControl: (payload) => {
       const { action } = payload || {};

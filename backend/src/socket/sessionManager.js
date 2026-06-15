@@ -51,7 +51,7 @@ function upsertStudent(sessionId, student) {
     studentId: student.studentId,
     id:        student.studentId,   // ← alias so monitoring grid can render
     name: student.name,
-    avatar: student.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${student.studentId}`,
+    avatar: student.avatar || `https://api.dicebear.com/10.x/big-smile/svg?seed=${student.studentId}`,
     isOnline: true,
     isReady: existing.isReady || false,
     score: existing.score || 0,

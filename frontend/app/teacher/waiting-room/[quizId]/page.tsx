@@ -6,10 +6,11 @@ import { Spinner } from "@heroui/react";
 import { quizApi } from "@/services/quizApi";
 import { useTeacherSocket } from "@/hooks/useMonitoringSocket";
 import { WaitingRoom } from "@/components/student/waiting-room/WaitingRoom";
+import { ShareQuizModal } from "@/components/teacher/dashboard/ShareQuizModal";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import { useLang } from "@/lib/i18n/LanguageContext";
-import { MonitorPlay } from "lucide-react";
+import { MonitorPlay, Share2 } from "lucide-react";
 import type { Student } from "@/types/teacher/monitoring.types";
 
 // sessionId MUST match the Play page / monitoring: quiz-session-{quizId}
@@ -26,6 +27,7 @@ export default function TeacherWaitingRoomPage() {
   const [quiz, setQuiz] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState<Student[]>([]);
+  const [showShare, setShowShare] = useState(false);
 
   const sessionId = sessionIdFromQuiz(quizId);
 
@@ -70,7 +72,7 @@ export default function TeacherWaitingRoomPage() {
         <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-violet-800/30 dark:bg-violet-600/20 blur-3xl" />
       </div>
 
-      <div className="fixed top-4 left-4 z-50">
+      <div className="fixed top-4 left-4 z-50 flex items-center gap-2">
         <button
           onClick={() => window.open(`/present/${quizId}`, "_blank", "noopener")}
           title={t.play.waitingProjectorHint}
@@ -78,6 +80,13 @@ export default function TeacherWaitingRoomPage() {
         >
           <MonitorPlay className="w-4 h-4" />
           {t.play.waitingOpenProjector}
+        </button>
+        <button
+          onClick={() => setShowShare(true)}
+          className="flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-xl bg-violet-500/30 backdrop-blur-md border border-violet-400/40 text-white hover:bg-violet-500/50 transition-colors"
+        >
+          <Share2 className="w-4 h-4" />
+          {t.detail?.share || "Share"}
         </button>
       </div>
 
@@ -96,6 +105,14 @@ export default function TeacherWaitingRoomPage() {
         onStart={handleStart}
         onLeave={() => router.push(`/teacher/monitoring/${quizId}`)}
       />
+
+      {quiz && showShare && (
+        <ShareQuizModal
+          quiz={quiz}
+          isOpen={true}
+          onClose={() => setShowShare(false)}
+        />
+      )}
     </div>
   );
 }
