@@ -6,7 +6,7 @@
 import type { Quiz, QuizFormData, Question } from "@/types/quiz";
 import { getToken } from "@/lib/auth";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://150.15.79.45:5000";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 console.log("Quiz API BASE_URL:", BASE_URL);
 
 // ── internal fetch helper ─────────────────────────────────────
@@ -140,10 +140,10 @@ export const MOCK_QUIZ: Quiz = {
       type: "multiple_choice",
       text: "Which keyword declares a block-scoped variable?",
       choices: [
-        { id: "c-001", text: "var",   isCorrect: false },
-        { id: "c-002", text: "let",   isCorrect: true  },
+        { id: "c-001", text: "var", isCorrect: false },
+        { id: "c-002", text: "let", isCorrect: true },
         { id: "c-003", text: "const", isCorrect: false },
-        { id: "c-004", text: "def",   isCorrect: false },
+        { id: "c-004", text: "def", isCorrect: false },
       ],
     },
     {
@@ -152,8 +152,8 @@ export const MOCK_QUIZ: Quiz = {
       type: "true_false",
       text: "JavaScript is a statically typed language.",
       choices: [
-        { id: "c-005", text: "True",  isCorrect: false },
-        { id: "c-006", text: "False", isCorrect: true  },
+        { id: "c-005", text: "True", isCorrect: false },
+        { id: "c-006", text: "False", isCorrect: true },
       ],
     },
   ],
