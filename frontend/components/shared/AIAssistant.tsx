@@ -9,6 +9,7 @@ import { useLang } from "@/lib/i18n/LanguageContext";
 import { useContextSelector, type AIContext } from "@/hooks/useContextSelector";
 import { useQuizStore } from "@/store/quizStore";
 import { useRouter, usePathname } from "next/navigation";
+import { jsonrepair } from "jsonrepair";
 
 interface Message {
   id: string;
@@ -120,61 +121,33 @@ const localTranslations = {
   }
 };
 
+// Strip code fences / comments and isolate the outermost JSON object so that
+// jsonrepair gets clean input. We intentionally do NOT convert single quotes
+// here — that corrupts apostrophes inside text (e.g. "Hunter x Hunter's").
+// jsonrepair handles single-quoted keys/values safely on its own.
 function cleanJsonString(str: string): string {
-  return str
-    .replace(/\/\/.*$/gm, "")
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/'([^'\\]*(?:\\.[^'\\]*)*)'/g, '"$1"')
-    .replace(/,\s*([\]}])/g, "$1");
+  let s = str
+    .replace(/^\s*```(?:json|json_quiz_update)?/i, "")
+    .replace(/```\s*$/i, "")
+    .trim();
+
+  // Keep only from the first opening brace onward (drops stray prose prefixes).
+  const firstBrace = s.indexOf("{");
+  if (firstBrace > 0) s = s.slice(firstBrace);
+  return s;
 }
 
-function repairTruncatedJson(str: string): string {
-  str = str.trim();
-  if (!str) return str;
-
-  let openBraces = 0;
-  let openBrackets = 0;
-  let inString = false;
-  let escape = false;
-
-  for (let i = 0; i < str.length; i++) {
-    const char = str[i];
-    if (escape) {
-      escape = false;
-      continue;
-    }
-    if (char === "\\") {
-      escape = true;
-      continue;
-    }
-    if (char === '"') {
-      inString = !inString;
-      continue;
-    }
-    if (!inString) {
-      if (char === "{") openBraces++;
-      else if (char === "}") openBraces--;
-      else if (char === "[") openBrackets++;
-      else if (char === "]") openBrackets--;
-    }
+// Robustly parse possibly-malformed JSON emitted by the local LLM.
+// jsonrepair fixes unescaped quotes/newlines, single quotes, trailing commas,
+// and truncated/unclosed objects — the cases the old regex pipeline missed.
+function parseQuizJson(raw: string): any {
+  const cleaned = cleanJsonString(raw);
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    // jsonrepair throws if it cannot recover — let the caller handle it.
+    return JSON.parse(jsonrepair(cleaned));
   }
-
-  if (inString) {
-    str += '"';
-  }
-
-  str = str.trim().replace(/,\s*$/, "").replace(/:\s*$/, "");
-
-  while (openBrackets > 0) {
-    str += "]";
-    openBrackets--;
-  }
-  while (openBraces > 0) {
-    str += "}";
-    openBraces--;
-  }
-
-  return str;
 }
 
 interface QuizUpdateSummaryProps {
@@ -272,9 +245,7 @@ function QuizUpdateSummary({ codeString, lang, isGenerating }: QuizUpdateSummary
   let parseError = false;
 
   try {
-    const cleaned = cleanJsonString(codeString);
-    const repaired = repairTruncatedJson(cleaned);
-    quizData = JSON.parse(repaired);
+    quizData = parseQuizJson(codeString);
   } catch (e) {
     parseError = true;
   }
@@ -599,6 +570,14 @@ export default function AIAssistant() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [input]);
 
   const handleStopGeneration = () => {
     if (abortControllerRef.current) {
@@ -759,9 +738,7 @@ export default function AIAssistant() {
         const match = assistantMessageContent.match(/```json_quiz_update\s*([\s\S]*?)(?:\s*```|$)/);
         if (match && match[1].trim()) {
           try {
-            const cleanedJson = cleanJsonString(match[1]);
-            const repairedJson = repairTruncatedJson(cleanedJson);
-            const quizUpdate = JSON.parse(repairedJson);
+            const quizUpdate = parseQuizJson(match[1]);
             console.log("Parsed valid quiz update from AI assistant:", quizUpdate);
           } catch (e: any) {
             console.error("Failed to parse quiz update JSON:", e);
@@ -1184,12 +1161,22 @@ export default function AIAssistant() {
 
             {/* Input Bar */}
             <form onSubmit={sendMessage} className="p-4 border-t border-zinc-200/50 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-950/50 flex gap-2 items-center">
-              <input
+              <textarea
+                ref={textareaRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (!isLoading && input.trim()) {
+                      sendMessage();
+                    }
+                  }
+                }}
                 placeholder={localT.inputPlaceholder}
                 disabled={isLoading}
-                className="flex-1 px-4 py-2 text-sm bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-xl outline-none focus:ring-2 focus:ring-violet-500/10 focus:border-violet-500/50 text-zinc-800 dark:text-zinc-200 transition-all"
+                rows={1}
+                className="flex-1 px-4 py-2 text-sm bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-xl outline-none focus:ring-2 focus:ring-violet-500/10 focus:border-violet-500/50 text-zinc-800 dark:text-zinc-200 transition-all resize-none max-h-32 overflow-y-auto"
               />
               <Button
                 type="button"
