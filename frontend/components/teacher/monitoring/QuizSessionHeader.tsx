@@ -78,7 +78,7 @@ export function QuizSessionHeader({ quizTitle, quizCode, state, onStateChange, s
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-indigo-400">
+            <h1 className="text-2xl font-bold text-primary">
               {quizTitle}
             </h1>
             

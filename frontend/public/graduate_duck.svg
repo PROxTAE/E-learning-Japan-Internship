@@ -1,0 +1,43 @@
+<svg viewBox="0 0 540 540" xmlns="http://www.w3.org/2000/svg" width="540" height="540">
+  <!-- ===== Graduation Cap ===== -->
+  <!-- Cap top (mortarboard) -->
+  <polygon points="270,55 415,120 270,185 125,120" fill="#1a1a1a"/>
+
+  <!-- Cap band / head part -->
+  <path d="M180,135 L360,135 L360,205 Q360,250 270,250 Q180,250 180,205 Z" fill="#1a1a1a"/>
+  <!-- Notch under band -->
+  <polygon points="240,242 270,212 300,242" fill="#ffffff"/>
+
+  <!-- Button on top -->
+  <circle cx="270" cy="120" r="9" fill="#1a1a1a"/>
+
+  <!-- Tassel string -->
+  <path d="M270,120 Q400,130 405,175" fill="none" stroke="#1a1a1a" stroke-width="9"/>
+  <!-- Tassel knot -->
+  <circle cx="406" cy="180" r="10" fill="#1a1a1a"/>
+  <!-- Tassel body -->
+  <path d="M406,188 Q386,215 396,245 Q406,260 416,245 Q426,215 406,188 Z" fill="#1a1a1a"/>
+
+  <!-- ===== Eyes ===== -->
+  <ellipse cx="150" cy="295" rx="22" ry="32" fill="#1a1a1a"/>
+  <ellipse cx="390" cy="295" rx="22" ry="32" fill="#1a1a1a"/>
+
+  <!-- ===== Duck Bill ===== -->
+  <path d="M270,265
+           Q335,265 345,315
+           Q420,330 430,360
+           Q435,390 400,405
+           Q340,425 270,425
+           Q200,425 140,405
+           Q105,390 110,360
+           Q120,330 195,315
+           Q205,265 270,265 Z"
+        fill="#FFC21E"/>
+
+  <!-- Nostrils -->
+  <ellipse cx="255" cy="320" rx="6" ry="13" fill="#FFFBE8"/>
+  <ellipse cx="285" cy="320" rx="6" ry="13" fill="#FFFBE8"/>
+
+  <!-- Smile line -->
+  <path d="M165,375 Q270,420 375,375" fill="none" stroke="#E8A800" stroke-width="7" stroke-linecap="round"/>
+</svg>

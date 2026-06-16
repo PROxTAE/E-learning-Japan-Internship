@@ -9,21 +9,21 @@ import type { Student } from "@/types/teacher/monitoring.types";
 
 /* ── Scattered dot decorations (PEEPS-style coloured bokeh) ─────────────── */
 const SCATTER_DOTS = [
-  { x: "6%",  y: "10%", size: 7,  color: "#a78bfa" },
-  { x: "14%", y: "5%",  size: 5,  color: "#f472b6" },
-  { x: "88%", y: "7%",  size: 8,  color: "#818cf8" },
-  { x: "92%", y: "16%", size: 4,  color: "#c084fc" },
-  { x: "78%", y: "3%",  size: 6,  color: "#34d399" },
-  { x: "3%",  y: "55%", size: 6,  color: "#60a5fa" },
-  { x: "95%", y: "50%", size: 5,  color: "#f472b6" },
-  { x: "50%", y: "92%", size: 7,  color: "#a78bfa" },
-  { x: "30%", y: "88%", size: 4,  color: "#818cf8" },
-  { x: "70%", y: "95%", size: 5,  color: "#c084fc" },
-  { x: "20%", y: "35%", size: 3,  color: "#34d399" },
-  { x: "40%", y: "8%",  size: 5,  color: "#f9a8d4" },
-  { x: "60%", y: "4%",  size: 4,  color: "#60a5fa" },
-  { x: "10%", y: "80%", size: 6,  color: "#a78bfa" },
-  { x: "85%", y: "85%", size: 5,  color: "#f472b6" },
+  { x: "6%", y: "10%", size: 7, color: "#a78bfa" },
+  { x: "14%", y: "5%", size: 5, color: "#f472b6" },
+  { x: "88%", y: "7%", size: 8, color: "#818cf8" },
+  { x: "92%", y: "16%", size: 4, color: "#c084fc" },
+  { x: "78%", y: "3%", size: 6, color: "#34d399" },
+  { x: "3%", y: "55%", size: 6, color: "#60a5fa" },
+  { x: "95%", y: "50%", size: 5, color: "#f472b6" },
+  { x: "50%", y: "92%", size: 7, color: "#a78bfa" },
+  { x: "30%", y: "88%", size: 4, color: "#818cf8" },
+  { x: "70%", y: "95%", size: 5, color: "#c084fc" },
+  { x: "20%", y: "35%", size: 3, color: "#34d399" },
+  { x: "40%", y: "8%", size: 5, color: "#f9a8d4" },
+  { x: "60%", y: "4%", size: 4, color: "#60a5fa" },
+  { x: "10%", y: "80%", size: 6, color: "#a78bfa" },
+  { x: "85%", y: "85%", size: 5, color: "#f472b6" },
 ] as const;
 
 /* ── Per-bubble gradient ring colours — cycles for visual variety ──────── */
@@ -171,11 +171,10 @@ function WaitingRoomInner({
               </p>
             </div>
           ) : (
-            <div className={`grid gap-x-4 gap-y-6 sm:gap-x-6 sm:gap-y-8 w-full content-start justify-items-center ${
-              presentation
+            <div className={`grid gap-x-4 gap-y-6 sm:gap-x-6 sm:gap-y-8 w-full content-start justify-items-center ${presentation
                 ? "grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8"
                 : "grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6"
-            }`}>
+              }`}>
               <AnimatePresence>
                 {roster.map((s, idx) => {
                   const isMe = !!myStudentId && (s.studentId === myStudentId || s.id === myStudentId);
@@ -212,13 +211,12 @@ function WaitingRoomInner({
 
                         {/* Gradient ring container */}
                         <div
-                          className={`relative rounded-full p-[3px] bg-gradient-to-br ${
-                            isMe
+                          className={`relative rounded-full p-[3px] bg-gradient-to-br ${isMe
                               ? "from-violet-400 to-purple-600"
                               : s.isReady
                                 ? "from-emerald-400 to-teal-500"
                                 : ringGradient
-                          }`}
+                            }`}
                           style={{
                             boxShadow: isMe
                               ? "0 0 30px -4px rgba(139,92,246,0.6), 0 0 60px -8px rgba(139,92,246,0.3)"
@@ -227,27 +225,25 @@ function WaitingRoomInner({
                                 : `0 0 25px -4px ${glowColor}, 0 0 50px -10px ${glowColor}`,
                           }}
                         >
-                            {/* Inner circle */}
-                            <div
-                              className={`rounded-full p-[3px] relative overflow-hidden ${
-                                isMe
-                                  ? "bg-violet-50 dark:bg-[#2d1b54]"
-                                  : "bg-white dark:bg-[#1a1535]"
+                          {/* Inner circle */}
+                          <div
+                            className={`rounded-full p-[3px] relative overflow-hidden ${isMe
+                                ? "bg-violet-50 dark:bg-[#2d1b54]"
+                                : "bg-white dark:bg-[#1a1535]"
                               }`}
-                              style={{
-                                backgroundImage:
-                                  "radial-gradient(circle at 50% 25%, rgba(255,255,255,0.08), rgba(255,255,255,0) 70%)",
-                              }}
-                            >
-                              <Avatar
-                                className={`${
-                                  presentation
-                                    ? "w-[80px] h-[80px] sm:w-[90px] sm:h-[90px]"
-                                    : isMe
-                                      ? "w-[90px] h-[90px] sm:w-[110px] sm:h-[110px] ring-4 ring-violet-400 ring-offset-4 ring-offset-violet-50 dark:ring-offset-[#2d1b54]"
-                                      : "w-[76px] h-[76px] sm:w-[96px] sm:h-[96px]"
+                            style={{
+                              backgroundImage:
+                                "radial-gradient(circle at 50% 25%, rgba(255,255,255,0.08), rgba(255,255,255,0) 70%)",
+                            }}
+                          >
+                            <Avatar
+                              className={`${presentation
+                                  ? "w-[80px] h-[80px] sm:w-[90px] sm:h-[90px]"
+                                  : isMe
+                                    ? "w-[90px] h-[90px] sm:w-[110px] sm:h-[110px] ring-4 ring-violet-400 ring-offset-4 ring-offset-violet-50 dark:ring-offset-[#2d1b54]"
+                                    : "w-[76px] h-[76px] sm:w-[96px] sm:h-[96px]"
                                 } transition-all duration-300`}
-                              >
+                            >
                               <Avatar.Image src={s.avatar} alt={s.name} />
                               <Avatar.Fallback
                                 className="bg-gradient-to-br from-violet-500 to-indigo-600 text-white font-black text-2xl sm:text-3xl"
@@ -260,9 +256,8 @@ function WaitingRoomInner({
 
                         {/* Ready badge */}
                         <span
-                          className={`absolute -bottom-0.5 -right-0.5 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center border-[3px] border-[#1a1535] shadow-lg ${
-                            s.isReady ? "bg-emerald-500" : "bg-zinc-600"
-                          }`}
+                          className={`absolute -bottom-0.5 -right-0.5 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center border-[3px] border-[#1a1535] shadow-lg ${s.isReady ? "bg-emerald-500" : "bg-zinc-600"
+                            }`}
                         >
                           {s.isReady
                             ? <Check className="w-4 h-4 text-white" strokeWidth={3} />
@@ -300,50 +295,49 @@ function WaitingRoomInner({
             {t.play.waitingForTeacher}
           </p>
         ) : (
-        <div className="fixed bottom-0 left-0 right-0 p-4 sm:p-6 bg-gradient-to-t from-primary via-primary/90 dark:from-[#120E24] dark:via-[#120E24]/90 to-transparent z-50">
-          <div className="max-w-md mx-auto flex flex-col gap-3">
-            {role === "student" ? (
-              <>
+          <div className="fixed bottom-0 left-0 right-0 p-4 sm:p-6 bg-gradient-to-t from-primary via-primary/90 dark:from-[#120E24] dark:via-[#120E24]/90 to-transparent z-50">
+            <div className="max-w-md mx-auto flex flex-col gap-3">
+              {role === "student" ? (
+                <>
+                  <Button
+                    size="lg"
+                    onPress={onToggleReady}
+                    className={`w-full h-16 rounded-2xl font-black text-lg shadow-xl transition-all flex items-center justify-center gap-2 ${isReady
+                        ? "bg-white/90 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-100"
+                        : "bg-gradient-to-r from-emerald-400 to-green-500 text-white hover:shadow-green-500/30 hover:-translate-y-0.5"
+                      }`}
+                  >
+                    {isReady ? <Clock className="w-5 h-5" /> : <Check className="w-5 h-5" />}
+                    {isReady ? t.play.waitingCancelReady : t.play.waitingImReady}
+                  </Button>
+                  <p className="text-center text-zinc-500 dark:text-white/70 text-sm font-semibold flex items-center justify-center gap-2">
+                    <GraduationCap className="w-4 h-4" />
+                    {t.play.waitingForTeacher}
+                  </p>
+                </>
+              ) : (
                 <Button
                   size="lg"
-                  onPress={onToggleReady}
-                  className={`w-full h-16 rounded-2xl font-black text-lg shadow-xl transition-all flex items-center justify-center gap-2 ${
-                    isReady
-                      ? "bg-white/90 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-100"
-                      : "bg-gradient-to-r from-emerald-400 to-green-500 text-white hover:shadow-green-500/30 hover:-translate-y-0.5"
-                  }`}
+                  onPress={onStart}
+                  isDisabled={roster.length === 0}
+                  className="w-full h-16 rounded-2xl font-black text-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-xl hover:shadow-violet-500/30 hover:-translate-y-0.5 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {isReady ? <Clock className="w-5 h-5" /> : <Check className="w-5 h-5" />}
-                  {isReady ? t.play.waitingCancelReady : t.play.waitingImReady}
+                  <Play className="w-6 h-6" fill="currentColor" />
+                  {t.play.waitingStartQuiz}
                 </Button>
-                <p className="text-center text-zinc-500 dark:text-white/70 text-sm font-semibold flex items-center justify-center gap-2">
-                  <GraduationCap className="w-4 h-4" />
-                  {t.play.waitingForTeacher}
-                </p>
-              </>
-            ) : (
-              <Button
-                size="lg"
-                onPress={onStart}
-                isDisabled={roster.length === 0}
-                className="w-full h-16 rounded-2xl font-black text-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-xl hover:shadow-violet-500/30 hover:-translate-y-0.5 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                <Play className="w-6 h-6" fill="currentColor" />
-                {t.play.waitingStartQuiz}
-              </Button>
-            )}
+              )}
 
-            {onLeave && (
-              <button
-                onClick={onLeave}
-                className="text-zinc-400 hover:text-zinc-600 dark:text-white/60 dark:hover:text-white text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 py-1"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                {t.play.waitingLeave}
-              </button>
-            )}
+              {onLeave && (
+                <button
+                  onClick={onLeave}
+                  className="text-zinc-400 hover:text-zinc-600 dark:text-white/60 dark:hover:text-white text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 py-1"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  {t.play.waitingLeave}
+                </button>
+              )}
+            </div>
           </div>
-        </div>
         )}
       </motion.div>
     </div>

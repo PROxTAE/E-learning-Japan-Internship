@@ -40,21 +40,21 @@ export default function Home() {
 
         {/* Icon */}
         <div className="
-          w-24 h-24 sm:w-28 sm:h-28 rounded-3xl
-          bg-white/10 dark:bg-white/5 backdrop-blur-sm
+          w-24 h-24 sm:w-28 sm:h-28 rounded-full
+          bg-white dark:bg-zinc-100
           border-2 border-white/20 dark:border-white/10
-          flex items-center justify-center shadow-2xl
-          text-5xl sm:text-6xl
+          flex items-center justify-center shadow-2xl overflow-hidden p-4
         ">
-          🎓
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/graduate_duck.svg" alt="Logo" className="w-full h-full object-contain" />
         </div>
 
         {/* Title + subtitle */}
-        <div className="flex flex-col gap-2 sm:gap-3 max-w-xs sm:max-w-sm">
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-white leading-tight tracking-tight">
+        <div className="flex flex-col gap-2 sm:gap-3 max-w-xs sm:max-w-sm -mt-20 md:-mt-32">
+          <h1 className="text-6xl sm:text-8xl font-extrabold text-white leading-tight tracking-tight">
             {t.play.homeTitle.split(" ").slice(0, -1).join(" ")}<br />{t.play.homeTitle.split(" ").slice(-1)[0]}
           </h1>
-          <p className="text-white/55 text-base sm:text-lg">
+          <p className="text-white/55 text-base sm:text-xl">
             {t.play.homeSubtitle}
           </p>
         </div>
@@ -79,14 +79,14 @@ export default function Home() {
           </Button>
         </form>
 
-        <div className="flex items-center gap-4 w-full max-w-xs sm:max-w-sm my-2">
+        {/* <div className="flex items-center gap-4 w-full max-w-xs sm:max-w-sm my-2">
           <div className="h-px bg-white/20 flex-1" />
           <span className="text-white/50 text-sm font-medium uppercase tracking-wider">OR</span>
           <div className="h-px bg-white/20 flex-1" />
-        </div>
+        </div> */}
 
         {/* CTA button to Teacher Dashboard */}
-        <Link href="/teacher" className="w-full max-w-xs sm:max-w-sm">
+        {/* <Link href="/teacher" className="w-full max-w-xs sm:max-w-sm">
           <button
             suppressHydrationWarning
             className="
@@ -98,7 +98,7 @@ export default function Home() {
           >
             {t.play.teacherPortal}
           </button>
-        </Link>
+        </Link> */}
       </div>
     </div>
   );

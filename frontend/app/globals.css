@@ -255,8 +255,15 @@ html {
    Per-element timing is driven by --bob-dur / --bob-delay inline.
    ───────────────────────────────────────────────────────────── */
 @keyframes present-bob {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-5px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
 }
 
 .present-bob {
@@ -266,8 +273,17 @@ html {
 }
 
 @keyframes present-float {
-  0%, 100% { transform: translateY(0); opacity: 0.6; }
-  50%      { transform: translateY(-8px); opacity: 0.3; }
+
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: translateY(-8px);
+    opacity: 0.3;
+  }
 }
 
 .present-float {
@@ -278,6 +294,7 @@ html {
 
 /* Respect reduced-motion / let teachers disable via body class if needed */
 @media (prefers-reduced-motion: reduce) {
+
   .present-bob,
   .present-float {
     animation: none;

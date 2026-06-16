@@ -295,7 +295,7 @@ export default function MonitoringQuizPage() {
         {/* Monitoring views grid */}
         <div className="flex-1 min-h-0 mt-4">
           <Tabs aria-label="Monitoring Views">
-            <TabList className="bg-white dark:bg-[#0f0f1a] border-gray-200 dark:border-white/10 mb-4 rounded-xl p-1 shadow-sm">
+            <TabList className="bg-white dark:bg-[#0f0f1a]  dark:border-white/10 mb-4 rounded-xl p-1 ">
               <Tab id="grid">Live Matrix</Tab>
               <Tab id="analytics">Visual Analytics</Tab>
               <Tab id="leaderboard">Leaderboard</Tab>

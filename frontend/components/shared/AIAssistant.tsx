@@ -816,7 +816,10 @@ export default function AIAssistant() {
           {isOpen ? (
             <X className="w-6 h-6" />
           ) : (
-            <Sparkles className="w-6 h-6 animate-pulse" />
+            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center p-1 shadow-sm shrink-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/graduate_duck.svg" alt="AI" className="w-full h-full animate-pulse object-contain" />
+            </div>
           )}
         </button>
       </div>
@@ -894,8 +897,9 @@ export default function AIAssistant() {
             {/* Header */}
             <div className="p-4 border-b border-zinc-200/50 dark:border-zinc-800/80 bg-gradient-to-r from-violet-50/85 to-indigo-50/85 dark:from-zinc-900/60 dark:to-zinc-900/60 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-violet-500/20 animate-pulse-slow">
-                  <Bot className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-full bg-white dark:bg-zinc-100 flex items-center justify-center shadow-md shrink-0 overflow-hidden p-1.5 border border-zinc-200/50 dark:border-zinc-800/40">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/graduate_duck.svg" alt="AI Logo" className="w-full h-full object-contain" />
                 </div>
                 <div>
                   <h3 className="font-bold text-zinc-800 dark:text-zinc-100 text-sm flex items-center gap-1.5 animate-fade-in">
@@ -1060,8 +1064,9 @@ export default function AIAssistant() {
                 {/* Loading State / Skeleton */}
                 {isLoading && (messages.length === 0 || messages[messages.length - 1]?.role !== "assistant" || !messages[messages.length - 1]?.content) && (
                   <div className="flex justify-start items-start gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-violet-600/10 flex items-center justify-center text-violet-600 dark:text-violet-400 shrink-0">
-                      <Bot className="w-4 h-4 animate-bounce" />
+                    <div className="w-8 h-8 rounded-full bg-white dark:bg-zinc-100 flex items-center justify-center shrink-0 p-1 border border-zinc-200/50 dark:border-zinc-800/40 shadow-sm">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src="/graduate_duck.svg" alt="AI Loading" className="w-full h-full animate-bounce object-contain" />
                     </div>
                     <div className="flex flex-col gap-2 max-w-[75%]">
                       <Skeleton className="h-4 w-36 rounded-lg bg-zinc-200 dark:bg-zinc-800" />

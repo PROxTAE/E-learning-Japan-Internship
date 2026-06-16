@@ -49,8 +49,8 @@ export function AnswerCell({ answer, question, student, heatmapMode }: AnswerCel
         whileHover={{ scale: 1.05 }}
         className={`w-10 h-10 rounded-xl border flex items-center justify-center m-auto cursor-pointer transition-all duration-300 relative group
           ${isCorrect
-            ? "bg-success-500/80 dark:bg-success-500/10  border-gray-200 dark:border-gray-700"
-            : "bg-danger-500/80 dark:bg-danger-500/10  border-gray-200 dark:border-gray-700"
+            ? "bg-success-500/10 dark:bg-success-500/10  border-gray-200 dark:border-gray-700"
+            : "bg-danger-500/10 dark:bg-danger-500/10  border-gray-200 dark:border-gray-700"
           }
           ${heatmapMode && (isCorrect ? "bg-success-500 border-none shadow-lg shadow-success-500/20" : "bg-danger-500 border-none shadow-lg shadow-danger-500/20")}
         `}

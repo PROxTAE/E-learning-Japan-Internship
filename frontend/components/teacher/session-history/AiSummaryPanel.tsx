@@ -70,7 +70,12 @@ export function AiSummaryPanel({
           className="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-bold shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 transition-all"
           size="sm"
         >
-          {!loading && <Sparkles className="w-4 h-4 mr-1.5" />}
+          {!loading && (
+            <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center p-0.5 mr-1.5 shadow-sm shrink-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/graduate_duck.svg" alt="AI" className="w-full h-full object-contain" />
+            </span>
+          )}
           {loading ? t.sessionHistory.aiLoading : (label || t.sessionHistory.generateAiSummary)}
         </Button>
 
@@ -108,7 +113,10 @@ export function AiSummaryPanel({
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
             <div className="rounded-2xl bg-gradient-to-br from-violet-50 to-fuchsia-50 dark:from-violet-950/30 dark:to-fuchsia-950/30 border border-violet-200/60 dark:border-violet-700/30 p-5">
               <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="w-4 h-4 text-violet-500" />
+                <span className="w-6 h-6 rounded-full bg-white dark:bg-zinc-100 flex items-center justify-center p-1 mr-1.5 shadow-sm shrink-0 border border-zinc-200/50 dark:border-zinc-700/30">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/graduate_duck.svg" alt="AI" className="w-full h-full object-contain" />
+                </span>
                 <span className="text-xs font-bold text-violet-600 dark:text-violet-400 uppercase tracking-wider">AI Insights</span>
                 {loading && (
                   <span className="inline-flex gap-1 ml-auto">

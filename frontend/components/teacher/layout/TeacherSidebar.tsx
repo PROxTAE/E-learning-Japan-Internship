@@ -162,8 +162,9 @@ export function TeacherSidebar({
           onClick={isMobile ? onMobileClose : onToggle}
           className="flex items-center gap-3 px-4 h-16 w-full hover:bg-default-100 dark:hover:bg-white/[0.03] transition-colors text-left border-none bg-transparent cursor-pointer"
         >
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
-            <GraduationCap className="w-5 h-5 text-white" />
+          <div className="w-9 h-9 rounded-full bg-white dark:bg-zinc-100 flex items-center justify-center shadow-md shrink-0 overflow-hidden p-1">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/graduate_duck.svg" alt="Logo" className="w-full h-full object-contain" />
           </div>
           {(!collapsed || isMobile) && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-left overflow-hidden">

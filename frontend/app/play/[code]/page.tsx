@@ -31,26 +31,26 @@ export default function PlayQuizPage() {
   const code = (params.code as string)?.toUpperCase();
 
   // ── Quiz data ──────────────────────────────────────────────────────────────
-  const [quiz,    setQuiz]    = useState<Quiz | null>(null);
-  const [error,   setError]   = useState<string | null>(null);
+  const [quiz, setQuiz] = useState<Quiz | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   // ── Student identity ───────────────────────────────────────────────────────
-  const [studentName, setStudentName]   = useState("");
-  const [studentId,   setStudentId]     = useState("");
+  const [studentName, setStudentName] = useState("");
+  const [studentId, setStudentId] = useState("");
   const [showNameModal, setShowNameModal] = useState(false);
 
   // ── Quiz progress ──────────────────────────────────────────────────────────
-  const [started,           setStarted]           = useState(false);
-  const [inLobby,           setInLobby]            = useState(false); // waiting room
-  const [lobbyStudents,     setLobbyStudents]      = useState<Student[]>([]);
-  const [isReady,           setIsReady]            = useState(false);
-  const [currentIndex,      setCurrentIndex]       = useState(0);
-  const [selectedAnswers,   setSelectedAnswers]    = useState<Record<string, string>>({});
-  const [currentSelection,  setCurrentSelection]   = useState<string | null>(null);
-  const [isFinished,        setIsFinished]         = useState(false);
-  const [isPaused,          setIsPaused]           = useState(false);
-  const [recoveredSession,  setRecoveredSession]   = useState(false); // banner flag
+  const [started, setStarted] = useState(false);
+  const [inLobby, setInLobby] = useState(false); // waiting room
+  const [lobbyStudents, setLobbyStudents] = useState<Student[]>([]);
+  const [isReady, setIsReady] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
+  const [currentSelection, setCurrentSelection] = useState<string | null>(null);
+  const [isFinished, setIsFinished] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [recoveredSession, setRecoveredSession] = useState(false); // banner flag
 
   // ── Global Quiz Timer ──────────────────────────────────────────────────────
   const [startTime, setStartTime] = useState<number | null>(null);
@@ -68,8 +68,8 @@ export default function PlayQuizPage() {
   // ── Interaction log ────────────────────────────────────────────────────────
   const [submittedLogId, setSubmittedLogId] = useState<string | null>(null);
   const interactionLog = useQuizInteractionLog({
-    quizId:      quiz?.id ?? "",
-    quizTitle:   quiz?.title ?? "",
+    quizId: quiz?.id ?? "",
+    quizTitle: quiz?.title ?? "",
     studentId,
     studentName,
     lang,
@@ -117,7 +117,7 @@ export default function PlayQuizPage() {
 
     // Banner auto-hides after 4 s
     setTimeout(() => setRecoveredSession(false), 4000);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quiz?.id]);
 
   // ── Auto-save on every state change ───────────────────────────────────────
@@ -236,7 +236,7 @@ export default function PlayQuizPage() {
     if (started && quiz) {
       interactionLog.logView(currentIndex);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex, started]);
 
   // Start heartbeat tracking when quiz begins; stop when finished
@@ -247,27 +247,27 @@ export default function PlayQuizPage() {
     if (isFinished) {
       interactionLog.stopHeartbeat();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [started, isFinished]);
 
   // Global Timer logic
   useEffect(() => {
     if (!started || isFinished || isPaused || quiz?.hasTimeLimit === false || !quiz?.durationMinutes || !startTime) return;
-    
+
     const interval = setInterval(() => {
       const elapsedMs = Date.now() - startTime;
       const totalMs = quiz.durationMinutes * 60 * 1000;
       const remaining = Math.max(0, totalMs - elapsedMs);
-      
+
       setTimeLeft(remaining);
-      
+
       if (remaining <= 0) {
         clearInterval(interval);
         setIsFinished(true);
         clearSession();
       }
     }, 1000);
-    
+
     return () => clearInterval(interval);
   }, [started, isFinished, isPaused, quiz?.durationMinutes, quiz?.hasTimeLimit, startTime, clearSession]);
 
@@ -293,7 +293,7 @@ export default function PlayQuizPage() {
     setStartTime(now);
     setStarted(true);
     setTimeout(() => interactionLog.logView(0), 50);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleToggleReady = () => {
@@ -316,7 +316,7 @@ export default function PlayQuizPage() {
   const handlePlayAgain = () => {
     // Re-fetch the quiz so we pick up the latest round's sessionToken, then
     // return to the welcome screen with a clean slate (fresh identity).
-    quizApi.getQuizByCode(code).then((data) => setQuiz(data)).catch(() => {});
+    quizApi.getQuizByCode(code).then((data) => setQuiz(data)).catch(() => { });
     clearSession();
     setStudentId("");
     setStudentName("");
@@ -352,14 +352,14 @@ export default function PlayQuizPage() {
 
     if (quiz && studentId) {
       const currentQuestion = quiz.questions[currentIndex];
-      const correctChoice   = currentQuestion.choices.find(c => c.isCorrect);
-      const responseTime    = Math.round((Date.now() - questionStartTime.current) / 1000);
+      const correctChoice = currentQuestion.choices.find(c => c.isCorrect);
+      const responseTime = Math.round((Date.now() - questionStartTime.current) / 1000);
 
       submitAnswer({
-        questionId:   currentQuestion.id,
-        choiceId:     optionId,
-        choiceText:   selectedChoice?.text,
-        isCorrect:    optionId === (correctChoice?.id || (correctChoice as any)?._id?.toString()),
+        questionId: currentQuestion.id,
+        choiceId: optionId,
+        choiceText: selectedChoice?.text,
+        isCorrect: optionId === (correctChoice?.id || (correctChoice as any)?._id?.toString()),
         responseTime,
       });
     }
@@ -383,7 +383,7 @@ export default function PlayQuizPage() {
 
       if (quiz && studentId) {
         const payload = interactionLog.buildFinalLog(quiz, updated, startTime);
-        const logId   = await interactionLog.submitLog(payload);
+        const logId = await interactionLog.submitLog(payload);
         if (logId) {
           setSubmittedLogId(logId);
           console.log("[QuizLog] Submitted interaction log:", logId);
@@ -409,7 +409,7 @@ export default function PlayQuizPage() {
   const calcScore = () => {
     if (!quiz) return { correct: 0, total: 0 };
     const correct = quiz.questions.filter(q => {
-      const selected  = selectedAnswers[q.id];
+      const selected = selectedAnswers[q.id];
       const correctCh = q.choices.find(c => c.isCorrect);
       return selected && selected === correctCh?.id;
     }).length;
@@ -509,7 +509,7 @@ export default function PlayQuizPage() {
       <div className="quiz-bg fixed inset-0 overflow-y-auto">
         <Blobs />
         <div className="relative min-h-full flex flex-col items-center justify-center px-4 py-10">
-          <StudentResultScreen 
+          <StudentResultScreen
             quizId={quiz.id}
             studentId={studentId}
             studentName={studentName}
@@ -573,10 +573,10 @@ export default function PlayQuizPage() {
               data-ai-context-name={quiz.title}
               data-ai-context-data={JSON.stringify({ title: quiz.title, description: quiz.description, questionCount: quiz.questions.length, durationMinutes: quiz.durationMinutes, hasTimeLimit: quiz.hasTimeLimit, category: quiz.category, code })}
             >
-              <div className="h-32 bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center relative">
+              {/* <div className="h-32 bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center relative">
                 <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '16px 16px' }} />
                 <span className="text-6xl relative z-10 drop-shadow-lg">📚</span>
-              </div>
+              </div> */}
 
               <CardContent className="text-center py-10 px-8 flex flex-col items-center gap-6">
                 <div className="space-y-2">
@@ -586,8 +586,8 @@ export default function PlayQuizPage() {
                 </div>
 
                 <div className="w-full space-y-2 mt-2">
-                  <div className="text-left">
-                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">{t.play.yourName}</label>
+                  <div className="text-left flex flex-col items-center">
+                    <label className="text-2xl font-bold text-zinc-400 uppercase tracking-widest ml-1">{t.play.yourName}</label>
                     <Input
                       placeholder={t.play.namePlaceholder}
                       value={studentName}
@@ -680,7 +680,7 @@ export default function PlayQuizPage() {
         )}
       </AnimatePresence>
 
-      <div className="relative min-h-full flex flex-col items-center justify-start px-4 sm:px-6 md:px-8 py-6 sm:py-10 w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl mx-auto">
+      <div className="relative min-h-full flex flex-col items-center justify-start px-4 sm:px-6 md:px-8 py-6 sm:py-10 w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl mx-auto mb-10">
         <motion.div className="w-full flex flex-col gap-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
 
           {/* Header row */}
@@ -703,7 +703,7 @@ export default function PlayQuizPage() {
               {/* Connection indicator */}
               <div className={`flex items-center gap-1.5 backdrop-blur-md border border-white/25 rounded-full px-3 py-1.5 ${isConnected ? "bg-emerald-500/20" : "bg-white/20 dark:bg-white/10"}`}>
                 {isConnected
-                  ? <Wifi    className="w-3.5 h-3.5 text-emerald-300" />
+                  ? <Wifi className="w-3.5 h-3.5 text-emerald-300" />
                   : <WifiOff className="w-3.5 h-3.5 text-white/50" />
                 }
                 <span className={`font-bold text-xs uppercase tracking-tight ${isConnected ? "text-emerald-300" : "text-white/50"}`}>
@@ -718,23 +718,21 @@ export default function PlayQuizPage() {
               <ThemeSwitcher />
             </div>
           </div>
-          
+
           {/* Global Timer Display */}
           {liveTimer !== null ? (
-            <div className={`flex items-center justify-center py-2 px-4 rounded-xl border font-mono font-bold text-lg mb-2 shadow-sm transition-colors ${
-              liveTimer <= 60 
-                ? "bg-red-500/90 text-white border-red-400 animate-pulse" 
-                : "bg-white/20 dark:bg-black/20 text-white border-white/25"
-            }`}>
+            <div className={`flex items-center justify-center py-2 px-4 rounded-xl border font-mono font-bold text-lg mb-2 shadow-sm transition-colors ${liveTimer <= 60
+              ? "bg-red-500/90 text-white border-red-400 animate-pulse"
+              : "bg-white/20 dark:bg-black/20 text-white border-white/25"
+              }`}>
               ⏱ {Math.floor(liveTimer / 60)}:{String(liveTimer % 60).padStart(2, '0')}
             </div>
           ) : (
             timeLeft !== null && quiz.hasTimeLimit !== false && quiz.durationMinutes > 0 && (
-              <div className={`flex items-center justify-center py-2 px-4 rounded-xl border font-mono font-bold text-lg mb-2 shadow-sm transition-colors ${
-                timeLeft < 60000 
-                  ? "bg-red-500/90 text-white border-red-400 animate-pulse" 
-                  : "bg-white/20 dark:bg-black/20 text-white border-white/25"
-              }`}>
+              <div className={`flex items-center justify-center py-2 px-4 rounded-xl border font-mono font-bold text-lg mb-2 shadow-sm transition-colors ${timeLeft < 60000
+                ? "bg-red-500/90 text-white border-red-400 animate-pulse"
+                : "bg-white/20 dark:bg-black/20 text-white border-white/25"
+                }`}>
                 ⏱ {Math.floor(timeLeft / 60000)}:{String(Math.floor((timeLeft % 60000) / 1000)).padStart(2, '0')}
               </div>
             )
@@ -824,7 +822,7 @@ export default function PlayQuizPage() {
               {/* Next button */}
               {isTeacherLed ? (
                 <div className="w-full py-5 rounded-2xl font-black text-lg text-center bg-white/10 text-white/80 border border-white/20 shadow-xl">
-                  {currentSelection 
+                  {currentSelection
                     ? t.play.waitingNext
                     : t.play.selectAnswer
                   }
@@ -867,11 +865,10 @@ function Blobs() {
 
 function StatBox({ label, value, highlight }: { label: string; value: string; highlight: boolean }) {
   return (
-    <div className={`p-4 rounded-2xl border flex flex-col items-center gap-1 ${
-      highlight
-        ? "bg-violet-50 dark:bg-violet-900/20 border-violet-100 dark:border-violet-800/50"
-        : "bg-zinc-50 dark:bg-zinc-800/50 border-zinc-100 dark:border-zinc-700/50"
-    }`}>
+    <div className={`p-4 rounded-2xl border flex flex-col items-center gap-1 ${highlight
+      ? "bg-violet-50 dark:bg-violet-900/20 border-violet-100 dark:border-violet-800/50"
+      : "bg-zinc-50 dark:bg-zinc-800/50 border-zinc-100 dark:border-zinc-700/50"
+      }`}>
       <span className={`text-2xl font-black ${highlight ? "text-violet-600 dark:text-violet-300" : "text-zinc-800 dark:text-white"}`}>{value}</span>
       <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">{label}</span>
     </div>
@@ -940,10 +937,9 @@ function QuizLangSwitcher() {
                   onClick={() => { setLang(l.code as Language); setLangOpen(false); }}
                   className={`
                     w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-all
-                    ${
-                      lang === l.code
-                        ? "bg-violet-600/25 text-violet-200 font-semibold"
-                        : "text-zinc-300 hover:bg-white/8 hover:text-white"
+                    ${lang === l.code
+                      ? "bg-violet-600/25 text-violet-200 font-semibold"
+                      : "text-zinc-300 hover:bg-white/8 hover:text-white"
                     }
                   `}
                 >

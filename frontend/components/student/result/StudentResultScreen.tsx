@@ -18,20 +18,20 @@ function SimpleConfetti() {
   const colors = ["#fce18a", "#ff726d", "#b48def", "#f4306d", "#00b8a9"];
   const isClient = typeof window !== "undefined";
   if (!isClient) return null;
-  
+
   return (
     <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
       {[...Array(60)].map((_, i) => (
         <motion.div
           key={i}
-          initial={{ 
-            opacity: 1, 
-            y: -20, 
-            x: Math.random() * window.innerWidth 
+          initial={{
+            opacity: 1,
+            y: -20,
+            x: Math.random() * window.innerWidth
           }}
-          animate={{ 
-            opacity: 0, 
-            y: window.innerHeight, 
+          animate={{
+            opacity: 0,
+            y: window.innerHeight,
             x: Math.random() * window.innerWidth + (Math.random() > 0.5 ? 100 : -100),
             rotate: Math.random() * 720
           }}
@@ -69,12 +69,12 @@ export function StudentResultScreen({ quizId, studentId, studentName, selectedAn
   const [showAnswers, setShowAnswers] = useState(true);
 
   // ── AI Analysis state ─────────────────────────────────────────
-  const [aiAnalysis, setAiAnalysis]         = useState<string | null>(null);
-  const [aiLoading, setAiLoading]           = useState(false);
-  const [aiError, setAiError]               = useState<string | null>(null);
-  const [showAiPanel, setShowAiPanel]       = useState(false);
-  const [aiModel, setAiModel]               = useState<string>("");
-  const [aiQueuePos, setAiQueuePos]         = useState<number | null>(null); // >0 = waiting in queue
+  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [showAiPanel, setShowAiPanel] = useState(false);
+  const [aiModel, setAiModel] = useState<string>("");
+  const [aiQueuePos, setAiQueuePos] = useState<number | null>(null); // >0 = waiting in queue
 
 
   useEffect(() => {
@@ -122,7 +122,7 @@ export function StudentResultScreen({ quizId, studentId, studentName, selectedAn
         let correctCount = 0;
         const reviews = activeQuiz.questions.map((q: any) => {
           const qId = q.id || q._id;
-          
+
           // Find matching question in the log data
           const ansLog = logData?.answer_logs?.find(
             (al: any) => al.question_id === qId
@@ -141,8 +141,8 @@ export function StudentResultScreen({ quizId, studentId, studentName, selectedAn
           const correctChoice = q.choices.find((c: any) => (c.id || c._id) === correctChoiceId);
 
           // Determine correctness
-          const isCorrect = ansLog 
-            ? ansLog.is_correct 
+          const isCorrect = ansLog
+            ? ansLog.is_correct
             : (studentChoiceId !== null && studentChoiceId === correctChoiceId);
 
           if (isCorrect) correctCount++;
@@ -210,9 +210,9 @@ export function StudentResultScreen({ quizId, studentId, studentName, selectedAn
     setAiQueuePos(null);
     try {
       const res = await fetch("/api/analyze-quiz-log", {
-        method:  "POST",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ logId, lang }),
+        body: JSON.stringify({ logId, lang }),
       });
 
       // Early errors come back as a single JSON object; success streams NDJSON.
@@ -252,7 +252,7 @@ export function StudentResultScreen({ quizId, studentId, studentName, selectedAn
         }
       };
 
-      for (;;) {
+      for (; ;) {
         const { done, value } = await reader.read();
         if (done) break;
         buffer += decoder.decode(value, { stream: true });
@@ -293,8 +293,8 @@ export function StudentResultScreen({ quizId, studentId, studentName, selectedAn
         <LanguageSwitcher />
         <ThemeSwitcher />
       </div>
-      
-      <ResultScoreCard 
+
+      <ResultScoreCard
         studentName={studentName}
         score={result.score}
         total={result.total}
@@ -317,10 +317,9 @@ export function StudentResultScreen({ quizId, studentId, studentName, selectedAn
             className={`
               w-full flex items-center justify-between gap-3 px-5 py-4 rounded-2xl font-bold text-sm
               transition-all duration-200 shadow-lg
-              ${
-                aiLoading
-                  ? "bg-violet-500/80 text-white cursor-wait"
-                  : showAiPanel
+              ${aiLoading
+                ? "bg-violet-500/80 text-white cursor-wait"
+                : showAiPanel
                   ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-violet-500/25"
                   : "bg-white/15 hover:bg-white/25 text-white border border-white/20 backdrop-blur-md"
               }
@@ -330,12 +329,15 @@ export function StudentResultScreen({ quizId, studentId, studentName, selectedAn
               {aiLoading ? (
                 <Spinner size="sm" className="text-white" />
               ) : (
-                <Sparkles className="w-4 h-4" />
+                <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center p-0.5 shadow-sm shrink-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/graduate_duck.svg" alt="AI" className="w-full h-full object-contain" />
+                </span>
               )}
               {aiLoading
                 ? (aiQueuePos != null
-                    ? (lang === "th" ? `อยู่ในคิว #${aiQueuePos}...` : lang === "ja" ? `順番待ち #${aiQueuePos}...` : `In queue #${aiQueuePos}...`)
-                    : (lang === "th" ? "AI กำลังวิเคราะห์..." : lang === "ja" ? "AI分析中..." : "AI is analysing..."))
+                  ? (lang === "th" ? `อยู่ในคิว #${aiQueuePos}...` : lang === "ja" ? `順番待ち #${aiQueuePos}...` : `In queue #${aiQueuePos}...`)
+                  : (lang === "th" ? "AI กำลังวิเคราะห์..." : lang === "ja" ? "AI分析中..." : "AI is analysing..."))
                 : (lang === "th" ? "วิเคราะห์ด้วย AI" : lang === "ja" ? "AIで分析する" : "Analyse with AI")
               }
             </span>
@@ -398,8 +400,11 @@ export function StudentResultScreen({ quizId, studentId, studentName, selectedAn
                     <div>
                       {aiModel && (
                         <div className="flex items-center gap-1.5 mb-3">
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-violet-500/20 text-violet-200 border border-violet-400/20 select-none uppercase tracking-wider">
-                            <Sparkles className="w-2.5 h-2.5" />
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-violet-500/20 text-violet-200 border border-violet-400/20 select-none uppercase tracking-wider">
+                            <span className="w-4.5 h-4.5 rounded-full bg-white flex items-center justify-center p-0.5 shadow-sm shrink-0">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src="/graduate_duck.svg" alt="AI Model" className="w-full h-full object-contain" />
+                            </span>
                             {aiModel}
                           </span>
                         </div>
@@ -422,10 +427,10 @@ export function StudentResultScreen({ quizId, studentId, studentName, selectedAn
       ) : (
         <div className="mt-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-[32px] p-6 text-center text-white/70 shadow-xl">
           <p className="font-semibold text-sm leading-relaxed">
-            {lang === "th" 
-              ? "ผู้สอนปิดการแสดงเฉลยและทบทวนคำตอบสำหรับแบบทดสอบนี้" 
-              : lang === "ja" 
-                ? "このクイズの解答とレビューは非表示に設定されています。" 
+            {lang === "th"
+              ? "ผู้สอนปิดการแสดงเฉลยและทบทวนคำตอบสำหรับแบบทดสอบนี้"
+              : lang === "ja"
+                ? "このクイズの解答とレビューは非表示に設定されています。"
                 : "Answer review and correct answers are hidden for this quiz."}
           </p>
         </div>

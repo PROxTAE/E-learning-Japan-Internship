@@ -170,9 +170,9 @@ const en = {
     search: "Search students...",
     filter: { all: "All Students", incorrect: "Struggling", completed: "Finished" },
     stats: { active: "Online", score: "Avg Score", completion: "Completion", efficiency: "Efficiency", efficiencyTooltip: "Accuracy weighted by response speed (optimal: 15s/q)" },
-    analytics: { 
-      title: "Student Analytics", 
-      responseTime: "Response Time", 
+    analytics: {
+      title: "Student Analytics",
+      responseTime: "Response Time",
       changes: "Answer Changes",
       accuracy: "Accuracy",
       evolution: "Answer Evolution",
@@ -260,7 +260,7 @@ const en = {
   },
   play: {
     // Home page
-    homeTitle: "E-Learning Quiz",
+    homeTitle: "QUIZU",
     homeSubtitle: "Test your knowledge with our interactive quizzes. Challenge yourself!",
     enterCode: "Enter Access Code",
     joinQuiz: "Join Quiz",
@@ -559,9 +559,9 @@ const th: typeof en = {
     search: "ค้นหานักเรียน...",
     filter: { all: "นักเรียนทั้งหมด", incorrect: "ต้องการความช่วยเหลือ", completed: "ทำเสร็จแล้ว" },
     stats: { active: "ออนไลน์", score: "คะแนนเฉลี่ย", completion: "ความสำเร็จ", efficiency: "ประสิทธิภาพ", efficiencyTooltip: "ความแม่นยำถ่วงน้ำหนักด้วยความเร็ว (เวลาที่เหมาะสม: 15 วินาที/ข้อ)" },
-    analytics: { 
-      title: "บทวิเคราะห์นักเรียน", 
-      responseTime: "เวลาในการตอบ", 
+    analytics: {
+      title: "บทวิเคราะห์นักเรียน",
+      responseTime: "เวลาในการตอบ",
       changes: "สลับคำตอบ",
       accuracy: "ความแม่นยำ",
       evolution: "ลำดับการตอบ",
@@ -648,7 +648,7 @@ const th: typeof en = {
     deleteConfirm: "คุณแน่ใจหรือไม่ที่จะลบบันทึกเซสชันนี้อย่างถาวร?",
   },
   play: {
-    homeTitle: "อี-เลิร์นนิ่ง Quiz",
+    homeTitle: "QUIZU",
     homeSubtitle: "ทดสอบความรู้ของคุณด้วยแบบทดสอบเชิงโต้ตอบ มาลองดูกัน!",
     enterCode: "กรอกรหัสเข้าทำ",
     joinQuiz: "เข้าร่วม Quiz",
@@ -941,9 +941,9 @@ const ja: typeof en = {
     search: "学生を検索...",
     filter: { all: "全学生", incorrect: "苦戦中", completed: "完了" },
     stats: { active: "オンライン", score: "平均スコア", completion: "完了率", efficiency: "効率", efficiencyTooltip: "回答速度を加味した正答率（最適時間：1問15秒）" },
-    analytics: { 
-      title: "学生分析", 
-      responseTime: "回答時間", 
+    analytics: {
+      title: "学生分析",
+      responseTime: "回答時間",
       changes: "回答変更",
       accuracy: "正確性",
       evolution: "回答の変遷",
@@ -1030,7 +1030,7 @@ const ja: typeof en = {
     deleteConfirm: "このセッション記録を完全に削除してよろしいですか？",
   },
   play: {
-    homeTitle: "Eラーニング クイズ",
+    homeTitle: "QUIZU",
     homeSubtitle: "インタラクティブなクイズで知識を試してみましょう！",
     enterCode: "アクセスコードを入力",
     joinQuiz: "クイズに参加",
