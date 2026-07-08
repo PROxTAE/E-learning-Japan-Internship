@@ -508,7 +508,7 @@ export default function PlayQuizPage() {
     return (
       <div className="quiz-bg fixed inset-0 overflow-y-auto">
         <Blobs />
-        <div className="relative min-h-full flex flex-col items-center justify-center px-4 py-10">
+        <div className="relative min-h-full flex flex-col items-center justify-start px-4 pt-10 pb-32">
           <StudentResultScreen
             quizId={quiz.id}
             studentId={studentId}
@@ -565,7 +565,7 @@ export default function PlayQuizPage() {
           <ThemeSwitcher />
         </div>
 
-        <div className="relative min-h-full flex flex-col items-center justify-center px-4 py-10">
+        <div className="relative min-h-full flex flex-col items-center justify-center px-4 pt-10 pb-24">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
             <Card
               className="w-full rounded-[32px] border-0 shadow-2xl overflow-hidden bg-white dark:bg-zinc-900"
@@ -680,17 +680,11 @@ export default function PlayQuizPage() {
         )}
       </AnimatePresence>
 
-      <div className="relative min-h-full flex flex-col items-center justify-start px-4 sm:px-6 md:px-8 py-6 sm:py-10 w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl mx-auto mb-10">
+      <div className="relative min-h-full flex flex-col items-center justify-start px-4 sm:px-6 md:px-8 pt-6 pb-32 sm:pt-10 sm:pb-40 w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl mx-auto">
         <motion.div className="w-full flex flex-col gap-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
 
           {/* Header row */}
           <div className="flex items-center justify-between mb-2">
-            <button
-              onClick={() => setStarted(false)}
-              className="w-10 h-10 rounded-2xl bg-white/20 dark:bg-white/10 backdrop-blur-md border border-white/25 text-white flex items-center justify-center hover:bg-white/30 transition-all"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
 
             <span className="text-white font-black text-sm tracking-widest">
               {String(currentIndex + 1).padStart(2, "0")}{" "}
